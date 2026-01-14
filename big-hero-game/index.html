@@ -21,6 +21,90 @@
             <h2 class="game-subtitle">RUNNER</h2>
             <button id="start-btn" class="menu-btn">JOGAR</button>
             <button id="instructions-btn" class="menu-btn">INSTRUÇÕES</button>
+            <button id="settings-btn" class="menu-btn settings-btn">⚙️ CONFIGURAÇÕES</button>
+        </div>
+    </div>
+
+    <!-- Tela de Configurações -->
+    <div id="settings-screen" class="screen">
+        <div class="settings-container">
+            <h2>⚙️ CONFIGURAÇÕES</h2>
+
+            <div class="settings-section">
+                <h3>🔊 Som</h3>
+                <div class="setting-item">
+                    <label>Som do Jogo</label>
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="sound-toggle" checked>
+                        <span class="toggle-slider"></span>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <label>Volume</label>
+                    <div class="slider-container">
+                        <input type="range" id="volume-slider" min="0" max="100" value="70">
+                        <span id="volume-value" class="slider-value">70%</span>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <label>Música de Fundo</label>
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="music-toggle" checked>
+                        <span class="toggle-slider"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>🎮 Jogabilidade</h3>
+                <div class="setting-item">
+                    <label>Velocidade do Jogo</label>
+                    <div class="speed-options">
+                        <button class="speed-btn" data-speed="slow">🐢 Lento</button>
+                        <button class="speed-btn active" data-speed="normal">🏃 Normal</button>
+                        <button class="speed-btn" data-speed="fast">🚀 Rápido</button>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <label>Dificuldade</label>
+                    <div class="difficulty-options">
+                        <button class="difficulty-btn" data-difficulty="easy">Fácil</button>
+                        <button class="difficulty-btn active" data-difficulty="normal">Normal</button>
+                        <button class="difficulty-btn" data-difficulty="hard">Difícil</button>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <label>Vibração (Mobile)</label>
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="vibration-toggle" checked>
+                        <span class="toggle-slider"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>🎨 Visual</h3>
+                <div class="setting-item">
+                    <label>Efeitos Visuais</label>
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="effects-toggle" checked>
+                        <span class="toggle-slider"></span>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <label>Partículas</label>
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="particles-toggle" checked>
+                        <span class="toggle-slider"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-buttons">
+                <button id="save-settings-btn" class="menu-btn save-btn">💾 SALVAR</button>
+                <button id="reset-settings-btn" class="menu-btn reset-btn">🔄 RESETAR</button>
+                <button id="back-settings-btn" class="menu-btn">VOLTAR</button>
+            </div>
         </div>
     </div>
 

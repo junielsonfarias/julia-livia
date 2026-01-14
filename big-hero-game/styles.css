@@ -1101,3 +1101,304 @@ body {
 body.game-playing .back-to-portal {
     display: none !important;
 }
+
+/* ==========================================
+   TELA DE CONFIGURAÇÕES
+   ========================================== */
+
+.settings-container {
+    background: rgba(0, 0, 0, 0.9);
+    padding: 40px;
+    border-radius: 25px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    border: 3px solid #00d9ff;
+    animation: fadeIn 0.5s ease;
+}
+
+.settings-container h2 {
+    color: #00d9ff;
+    font-size: 2rem;
+    margin-bottom: 30px;
+    text-align: center;
+    text-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
+}
+
+.settings-section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.settings-section h3 {
+    color: #f39c12;
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(243, 156, 18, 0.3);
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+}
+
+.setting-item label {
+    color: #ecf0f1;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    width: 60px;
+    height: 30px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #555;
+    transition: 0.3s;
+    border-radius: 30px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: linear-gradient(45deg, #2ecc71, #27ae60);
+    box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(30px);
+}
+
+/* Slider de Volume */
+.slider-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.slider-container input[type="range"] {
+    -webkit-appearance: none;
+    width: 150px;
+    height: 8px;
+    border-radius: 5px;
+    background: linear-gradient(to right, #e74c3c, #f39c12, #2ecc71);
+    outline: none;
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s;
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+.slider-value {
+    color: #00d9ff;
+    font-weight: bold;
+    min-width: 45px;
+    text-align: right;
+}
+
+/* Botões de Velocidade e Dificuldade */
+.speed-options,
+.difficulty-options {
+    display: flex;
+    gap: 10px;
+}
+
+.speed-btn,
+.difficulty-btn {
+    padding: 8px 16px;
+    border: 2px solid #555;
+    border-radius: 20px;
+    background: transparent;
+    color: #aaa;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.speed-btn:hover,
+.difficulty-btn:hover {
+    border-color: #00d9ff;
+    color: #00d9ff;
+}
+
+.speed-btn.active,
+.difficulty-btn.active {
+    background: linear-gradient(45deg, #e74c3c, #c0392b);
+    border-color: #e74c3c;
+    color: white;
+    box-shadow: 0 0 15px rgba(231, 76, 60, 0.4);
+}
+
+.difficulty-btn[data-difficulty="easy"].active {
+    background: linear-gradient(45deg, #2ecc71, #27ae60);
+    border-color: #2ecc71;
+    box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
+}
+
+.difficulty-btn[data-difficulty="hard"].active {
+    background: linear-gradient(45deg, #9b59b6, #8e44ad);
+    border-color: #9b59b6;
+    box-shadow: 0 0 15px rgba(155, 89, 182, 0.4);
+}
+
+/* Botões de ações */
+.settings-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.save-btn {
+    background: linear-gradient(45deg, #2ecc71, #27ae60) !important;
+    box-shadow: 0 5px 20px rgba(46, 204, 113, 0.4) !important;
+}
+
+.save-btn:hover {
+    box-shadow: 0 10px 30px rgba(46, 204, 113, 0.6) !important;
+}
+
+.reset-btn {
+    background: linear-gradient(45deg, #f39c12, #d68910) !important;
+    box-shadow: 0 5px 20px rgba(243, 156, 18, 0.4) !important;
+}
+
+.reset-btn:hover {
+    box-shadow: 0 10px 30px rgba(243, 156, 18, 0.6) !important;
+}
+
+.settings-btn {
+    background: linear-gradient(45deg, #9b59b6, #8e44ad) !important;
+    box-shadow: 0 5px 20px rgba(155, 89, 182, 0.4) !important;
+}
+
+/* Scrollbar personalizada para configurações */
+.settings-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.settings-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.settings-container::-webkit-scrollbar-thumb {
+    background: #00d9ff;
+    border-radius: 4px;
+}
+
+.settings-container::-webkit-scrollbar-thumb:hover {
+    background: #00b8d9;
+}
+
+/* Responsivo para configurações */
+@media (max-width: 600px) {
+    .settings-container {
+        padding: 25px;
+        max-height: 80vh;
+    }
+
+    .settings-container h2 {
+        font-size: 1.5rem;
+    }
+
+    .setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .speed-options,
+    .difficulty-options {
+        flex-wrap: wrap;
+    }
+
+    .slider-container {
+        width: 100%;
+    }
+
+    .slider-container input[type="range"] {
+        flex: 1;
+    }
+}
+
+/* Notificação de configuração salva */
+.settings-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(45deg, #2ecc71, #27ae60);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 30px;
+    font-weight: bold;
+    box-shadow: 0 5px 20px rgba(46, 204, 113, 0.5);
+    animation: slideUp 0.3s ease, fadeOut 0.3s ease 2s forwards;
+    z-index: 10000;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateX(-50%) translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+}

@@ -22,6 +22,231 @@ function goBackToPortal() {
     }
 }
 
+// ==========================================
+// SISTEMA DE CONFIGURAÇÕES DO USUÁRIO
+// ==========================================
+
+const DEFAULT_SETTINGS = {
+    sound: true,
+    volume: 70,
+    music: true,
+    speed: 'normal',      // slow, normal, fast
+    difficulty: 'normal', // easy, normal, hard
+    vibration: true,
+    effects: true,
+    particles: true
+};
+
+// Multiplicadores de velocidade
+const SPEED_MULTIPLIERS = {
+    slow: 0.6,
+    normal: 1.0,
+    fast: 1.4
+};
+
+// Multiplicadores de dificuldade
+const DIFFICULTY_MULTIPLIERS = {
+    easy: 0.7,
+    normal: 1.0,
+    hard: 1.5
+};
+
+let userSettings = { ...DEFAULT_SETTINGS };
+
+function loadUserSettings() {
+    try {
+        const saved = localStorage.getItem('bigHero_settings');
+        if (saved) {
+            userSettings = { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+        }
+    } catch (e) {
+        console.warn('Erro ao carregar configurações:', e);
+    }
+    return userSettings;
+}
+
+function saveUserSettings() {
+    try {
+        localStorage.setItem('bigHero_settings', JSON.stringify(userSettings));
+        showSettingsToast('Configurações salvas!');
+    } catch (e) {
+        console.warn('Erro ao salvar configurações:', e);
+    }
+}
+
+function resetUserSettings() {
+    userSettings = { ...DEFAULT_SETTINGS };
+    updateSettingsUI();
+    showSettingsToast('Configurações resetadas!');
+}
+
+function showSettingsToast(message) {
+    const existing = document.querySelector('.settings-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.className = 'settings-toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => toast.remove(), 2500);
+}
+
+function updateSettingsUI() {
+    // Som
+    const soundToggle = document.getElementById('sound-toggle');
+    if (soundToggle) soundToggle.checked = userSettings.sound;
+
+    // Volume
+    const volumeSlider = document.getElementById('volume-slider');
+    const volumeValue = document.getElementById('volume-value');
+    if (volumeSlider) volumeSlider.value = userSettings.volume;
+    if (volumeValue) volumeValue.textContent = userSettings.volume + '%';
+
+    // Música
+    const musicToggle = document.getElementById('music-toggle');
+    if (musicToggle) musicToggle.checked = userSettings.music;
+
+    // Velocidade
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.speed === userSettings.speed);
+    });
+
+    // Dificuldade
+    document.querySelectorAll('.difficulty-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.difficulty === userSettings.difficulty);
+    });
+
+    // Vibração
+    const vibrationToggle = document.getElementById('vibration-toggle');
+    if (vibrationToggle) vibrationToggle.checked = userSettings.vibration;
+
+    // Efeitos visuais
+    const effectsToggle = document.getElementById('effects-toggle');
+    if (effectsToggle) effectsToggle.checked = userSettings.effects;
+
+    // Partículas
+    const particlesToggle = document.getElementById('particles-toggle');
+    if (particlesToggle) particlesToggle.checked = userSettings.particles;
+}
+
+function initSettingsListeners() {
+    // Botão de abrir configurações
+    const settingsBtn = document.getElementById('settings-btn');
+    if (settingsBtn) {
+        settingsBtn.onclick = () => {
+            updateSettingsUI();
+            showScreen('settings');
+        };
+    }
+
+    // Botão voltar das configurações
+    const backSettingsBtn = document.getElementById('back-settings-btn');
+    if (backSettingsBtn) {
+        backSettingsBtn.onclick = () => showScreen('menu');
+    }
+
+    // Botão salvar
+    const saveSettingsBtn = document.getElementById('save-settings-btn');
+    if (saveSettingsBtn) {
+        saveSettingsBtn.onclick = () => {
+            collectSettingsFromUI();
+            saveUserSettings();
+        };
+    }
+
+    // Botão resetar
+    const resetSettingsBtn = document.getElementById('reset-settings-btn');
+    if (resetSettingsBtn) {
+        resetSettingsBtn.onclick = resetUserSettings;
+    }
+
+    // Toggle de som
+    const soundToggle = document.getElementById('sound-toggle');
+    if (soundToggle) {
+        soundToggle.onchange = () => userSettings.sound = soundToggle.checked;
+    }
+
+    // Slider de volume
+    const volumeSlider = document.getElementById('volume-slider');
+    const volumeValue = document.getElementById('volume-value');
+    if (volumeSlider) {
+        volumeSlider.oninput = () => {
+            userSettings.volume = parseInt(volumeSlider.value);
+            if (volumeValue) volumeValue.textContent = userSettings.volume + '%';
+        };
+    }
+
+    // Toggle de música
+    const musicToggle = document.getElementById('music-toggle');
+    if (musicToggle) {
+        musicToggle.onchange = () => userSettings.music = musicToggle.checked;
+    }
+
+    // Botões de velocidade
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+        btn.onclick = () => {
+            document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            userSettings.speed = btn.dataset.speed;
+        };
+    });
+
+    // Botões de dificuldade
+    document.querySelectorAll('.difficulty-btn').forEach(btn => {
+        btn.onclick = () => {
+            document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            userSettings.difficulty = btn.dataset.difficulty;
+        };
+    });
+
+    // Toggle de vibração
+    const vibrationToggle = document.getElementById('vibration-toggle');
+    if (vibrationToggle) {
+        vibrationToggle.onchange = () => userSettings.vibration = vibrationToggle.checked;
+    }
+
+    // Toggle de efeitos
+    const effectsToggle = document.getElementById('effects-toggle');
+    if (effectsToggle) {
+        effectsToggle.onchange = () => userSettings.effects = effectsToggle.checked;
+    }
+
+    // Toggle de partículas
+    const particlesToggle = document.getElementById('particles-toggle');
+    if (particlesToggle) {
+        particlesToggle.onchange = () => userSettings.particles = particlesToggle.checked;
+    }
+}
+
+function collectSettingsFromUI() {
+    const soundToggle = document.getElementById('sound-toggle');
+    const volumeSlider = document.getElementById('volume-slider');
+    const musicToggle = document.getElementById('music-toggle');
+    const vibrationToggle = document.getElementById('vibration-toggle');
+    const effectsToggle = document.getElementById('effects-toggle');
+    const particlesToggle = document.getElementById('particles-toggle');
+
+    if (soundToggle) userSettings.sound = soundToggle.checked;
+    if (volumeSlider) userSettings.volume = parseInt(volumeSlider.value);
+    if (musicToggle) userSettings.music = musicToggle.checked;
+    if (vibrationToggle) userSettings.vibration = vibrationToggle.checked;
+    if (effectsToggle) userSettings.effects = effectsToggle.checked;
+    if (particlesToggle) userSettings.particles = particlesToggle.checked;
+}
+
+// Funções auxiliares para obter multiplicadores
+function getSpeedMultiplier() {
+    return SPEED_MULTIPLIERS[userSettings.speed] || 1.0;
+}
+
+function getDifficultyMultiplier() {
+    return DIFFICULTY_MULTIPLIERS[userSettings.difficulty] || 1.0;
+}
+
+// ==========================================
+
 // Configurações do Jogo
 const CONFIG = {
     CANVAS_WIDTH: 1200,
@@ -436,8 +661,10 @@ if (document.readyState === 'loading') {
 function init() {
     console.log('Inicializando Big Hero 6 Runner...');
     try {
+        loadUserSettings();
         initCanvas();
         initEventListeners();
+        initSettingsListeners();
         loadGameData();
         showScreen('menu');
         console.log('Jogo inicializado com sucesso!');
@@ -870,7 +1097,11 @@ function gameLoop(currentTime) {
 function update(deltaTime) {
     const level = LEVELS[gameState.currentLevel];
     const char = CHARACTERS[gameState.selectedCharacter];
-    const baseSpeed = level.speed * (player.hasSpeedBoost ? 1.5 : 1);
+
+    // Aplicar multiplicadores de configuração do usuário
+    const speedMult = getSpeedMultiplier();
+    const diffMult = getDifficultyMultiplier();
+    const baseSpeed = level.speed * speedMult * (player.hasSpeedBoost ? 1.5 : 1);
 
     gameState.animationFrame++;
 
@@ -884,15 +1115,15 @@ function update(deltaTime) {
     // Atualizar background
     updateBackground(baseSpeed);
 
-    // Spawn
+    // Spawn (afetado pela dificuldade do usuário)
     obstacleTimer += deltaTime || 16;
-    if (obstacleTimer >= level.obstacleFrequency / level.difficulty) {
+    if (obstacleTimer >= (level.obstacleFrequency / level.difficulty) / diffMult) {
         spawnObstacle();
         obstacleTimer = 0;
     }
 
     powerupTimer += deltaTime || 16;
-    if (powerupTimer >= level.powerupFrequency) {
+    if (powerupTimer >= level.powerupFrequency / diffMult) {
         spawnPowerup();
         powerupTimer = 0;
     }
@@ -906,7 +1137,7 @@ function update(deltaTime) {
 
     // Spawn de vilões (a cada ~6 segundos, aumenta com dificuldade)
     villainTimer += deltaTime || 16;
-    if (villainTimer >= 6000 / level.difficulty) {
+    if (villainTimer >= (6000 / level.difficulty) / diffMult) {
         if (Math.random() > 0.4) spawnVillain();
         villainTimer = 0;
     }
@@ -916,7 +1147,7 @@ function update(deltaTime) {
     updatePowerups(baseSpeed);
     updateCivilians(baseSpeed);
     updateVillains(baseSpeed);
-    updateParticles();
+    if (userSettings.particles) updateParticles();
     checkCollisions();
     checkCivilianCollisions();
     updateHUD();
