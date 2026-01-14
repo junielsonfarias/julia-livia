@@ -399,6 +399,21 @@ body {
 }
 
 /* Responsive */
+@media (max-width: 768px) {
+    .game-header h1 {
+        font-size: 1.4rem;
+    }
+
+    .start-content h2, .win-content h2 {
+        font-size: 2rem;
+    }
+
+    .options-area {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+    }
+}
+
 @media (max-width: 600px) {
     .game-header h1 {
         font-size: 1.2rem;
@@ -418,5 +433,124 @@ body {
 
     .question-text {
         font-size: 1.4rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .game-header {
+        padding: 10px 15px;
+    }
+
+    .options-area {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
+    }
+
+    .option-btn {
+        font-size: 1.3rem;
+        border-width: 3px;
+    }
+
+    .objects-display {
+        padding: 20px;
+        min-height: 120px;
+    }
+
+    .object-item {
+        font-size: 2rem;
+    }
+
+    .counting-preview span {
+        width: 45px;
+        height: 45px;
+        font-size: 1.5rem;
+    }
+}
+
+/* Ajuste para modal/iframe */
+@media (max-height: 700px) {
+    .game-area {
+        padding: 10px;
+        align-items: flex-start;
+    }
+
+    .start-content, .game-content, .win-content {
+        padding: 15px;
+    }
+
+    .start-content h2, .win-content h2 {
+        font-size: 1.6rem;
+        margin-bottom: 8px;
+    }
+
+    .counting-preview {
+        margin-bottom: 15px;
+    }
+
+    .counting-preview span {
+        width: 40px;
+        height: 40px;
+        font-size: 1.3rem;
+    }
+
+    .mode-select {
+        gap: 10px;
+    }
+
+    .mode-btn {
+        padding: 12px 20px;
+    }
+
+    .objects-display {
+        padding: 15px;
+        min-height: 100px;
+    }
+
+    .question-text {
+        font-size: 1.3rem;
+        margin-bottom: 15px;
+    }
+
+    .win-icon {
+        font-size: 3.5rem;
+    }
+
+    .stars-earned {
+        font-size: 2rem;
+        margin: 10px 0;
+    }
+}
+
+/* Landscape mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+    .game-container {
+        min-height: auto;
+    }
+
+    .game-area {
+        padding: 5px;
+    }
+
+    .start-content, .game-content, .win-content {
+        padding: 12px;
+    }
+
+    .objects-display {
+        padding: 10px;
+        min-height: 80px;
+        gap: 10px;
+    }
+
+    .object-item {
+        font-size: 1.8rem;
+    }
+
+    .options-area {
+        grid-template-columns: repeat(10, 1fr);
+        gap: 5px;
+    }
+
+    .option-btn {
+        font-size: 1.2rem;
     }
 }

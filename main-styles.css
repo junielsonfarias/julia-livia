@@ -863,6 +863,21 @@ body {
    RESPONSIVIDADE
    ========================================== */
 
+/* Tablets (768px - 1024px) */
+@media (max-width: 1024px) {
+    .games-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .menu-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+}
+
+/* Tablets pequenos e celulares grandes (600px - 768px) */
 @media (max-width: 768px) {
     .girls-info {
         flex-direction: column;
@@ -877,6 +892,7 @@ body {
     .menu-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 15px;
+        padding: 5px;
     }
 
     .menu-card {
@@ -891,25 +907,179 @@ body {
         font-size: 1.1rem;
     }
 
+    .menu-card p {
+        font-size: 0.85rem;
+    }
+
     .games-container {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
         padding: 15px;
+        gap: 15px;
+    }
+
+    .game-thumbnail {
+        height: 140px;
+    }
+
+    .game-info {
+        padding: 15px;
+    }
+
+    .game-info h3 {
+        font-size: 1.1rem;
+    }
+
+    .game-info p {
+        font-size: 0.85rem;
+        margin-bottom: 10px;
+    }
+
+    .game-tags {
+        gap: 6px;
+    }
+
+    .tag {
+        font-size: 0.7rem;
+        padding: 4px 10px;
+    }
+
+    .play-btn {
+        padding: 14px;
+        font-size: 1rem;
     }
 
     .section-header {
         flex-direction: column;
         gap: 10px;
         text-align: center;
+        padding: 15px;
+    }
+
+    .section-header h1 {
+        font-size: 1.5rem;
     }
 
     .back-btn {
         width: 100%;
+        padding: 10px 20px;
+    }
+
+    .main-header {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 12px 15px;
+    }
+
+    .header-title {
+        order: 2;
+        width: 100%;
+        text-align: center;
+        font-size: 1.3rem;
+    }
+
+    .back-home-btn {
+        order: 1;
+        width: 40px;
+        height: 40px;
+    }
+
+    .audio-control {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .audio-control input[type=range] {
+        width: 150px;
+    }
+
+    /* Tela de boas-vindas */
+    .welcome-content {
+        padding: 20px;
+    }
+
+    .main-title {
+        margin-bottom: 20px;
+    }
+
+    .title-mundo {
+        font-size: 1.3rem;
+    }
+
+    .title-names {
+        font-size: 2.5rem;
+    }
+
+    .welcome-subtitle {
+        font-size: 1rem;
     }
 }
 
+/* Celulares (max-width: 480px) */
 @media (max-width: 480px) {
+    #main-menu {
+        padding: 10px;
+    }
+
     .menu-grid {
         grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .menu-card {
+        padding: 18px;
+        display: flex;
+        align-items: center;
+        text-align: left;
+        gap: 15px;
+    }
+
+    .card-icon {
+        font-size: 35px;
+        margin-bottom: 0;
+    }
+
+    .menu-card h2 {
+        font-size: 1.1rem;
+        margin-bottom: 2px;
+    }
+
+    .menu-card p {
+        font-size: 0.8rem;
+    }
+
+    .card-badge {
+        top: 10px;
+        right: 10px;
+        font-size: 0.65rem;
+        padding: 3px 8px;
+    }
+
+    .games-container {
+        grid-template-columns: 1fr;
+        padding: 10px;
+        gap: 12px;
+    }
+
+    .game-card {
+        border-radius: 18px;
+    }
+
+    .game-thumbnail {
+        height: 120px;
+    }
+
+    .game-info {
+        padding: 12px;
+    }
+
+    .game-info h3 {
+        font-size: 1rem;
+    }
+
+    .play-btn {
+        padding: 12px;
+        font-size: 0.95rem;
     }
 
     .enter-btn {
@@ -919,12 +1089,69 @@ body {
 
     .profile-card {
         padding: 25px;
+        margin: 10px;
     }
 
     .profile-avatar {
         width: 120px;
         height: 120px;
         font-size: 55px;
+    }
+
+    /* Tela de boas-vindas */
+    .girl-avatar {
+        width: 80px;
+        height: 80px;
+        font-size: 40px;
+    }
+
+    .age-badge {
+        font-size: 0.7rem;
+        padding: 3px 8px;
+    }
+
+    .girl-card h3 {
+        font-size: 1.1rem;
+    }
+
+    .girl-card p {
+        font-size: 0.85rem;
+    }
+
+    .title-names {
+        font-size: 2rem;
+    }
+
+    .section-header {
+        padding: 12px;
+    }
+
+    .section-header h1 {
+        font-size: 1.3rem;
+    }
+}
+
+/* Celulares muito pequenos (max-width: 360px) */
+@media (max-width: 360px) {
+    .menu-card {
+        padding: 15px;
+    }
+
+    .card-icon {
+        font-size: 30px;
+    }
+
+    .title-names {
+        font-size: 1.8rem;
+    }
+
+    .enter-btn {
+        padding: 12px 25px;
+        font-size: 1rem;
+    }
+
+    .game-thumbnail {
+        height: 100px;
     }
 }
 

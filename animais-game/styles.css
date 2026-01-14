@@ -399,6 +399,20 @@ body {
 }
 
 /* Responsive */
+@media (max-width: 768px) {
+    .game-header h1 {
+        font-size: 1.4rem;
+    }
+
+    .start-content h2, .win-content h2 {
+        font-size: 2rem;
+    }
+
+    .animals-preview span {
+        font-size: 3rem;
+    }
+}
+
 @media (max-width: 600px) {
     .game-header h1 {
         font-size: 1.2rem;
@@ -423,5 +437,122 @@ body {
 
     .question-text {
         font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .game-header {
+        padding: 10px 15px;
+    }
+
+    .animals-grid {
+        gap: 10px;
+    }
+
+    .animal-btn {
+        font-size: 2rem;
+        border-radius: 15px;
+    }
+
+    .sound-btn {
+        padding: 12px 25px;
+        font-size: 1rem;
+    }
+
+    .sound-text {
+        font-size: 1.5rem;
+    }
+}
+
+/* Ajuste para modal/iframe */
+@media (max-height: 700px) {
+    .game-area {
+        padding: 10px;
+        align-items: flex-start;
+    }
+
+    .start-content, .game-content, .win-content {
+        padding: 15px;
+    }
+
+    .start-content h2, .win-content h2 {
+        font-size: 1.6rem;
+        margin-bottom: 8px;
+    }
+
+    .animals-preview {
+        margin-bottom: 15px;
+    }
+
+    .animals-preview span {
+        font-size: 2.5rem;
+    }
+
+    .play-btn {
+        padding: 15px 30px;
+        font-size: 1.2rem;
+    }
+
+    .question-area {
+        margin-bottom: 15px;
+    }
+
+    .question-text {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+
+    .sound-btn {
+        padding: 10px 25px;
+    }
+
+    .sound-text {
+        font-size: 1.3rem;
+        margin-top: 10px;
+    }
+
+    .animals-grid {
+        gap: 10px;
+    }
+
+    .animal-btn {
+        font-size: 2rem;
+    }
+
+    .win-icon {
+        font-size: 3.5rem;
+    }
+
+    .stars-earned {
+        font-size: 2rem;
+        margin: 10px 0;
+    }
+}
+
+/* Landscape mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+    .game-container {
+        min-height: auto;
+    }
+
+    .game-area {
+        padding: 5px;
+    }
+
+    .start-content, .game-content, .win-content {
+        padding: 10px;
+    }
+
+    .animals-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+
+    .animal-btn {
+        font-size: 1.5rem;
+    }
+
+    .animal-btn .animal-name {
+        font-size: 0.65rem;
     }
 }

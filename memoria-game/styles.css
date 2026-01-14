@@ -369,6 +369,20 @@ body {
 }
 
 /* Responsive */
+@media (max-width: 768px) {
+    .game-header h1 {
+        font-size: 1.4rem;
+    }
+
+    .start-content h2, .win-content h2 {
+        font-size: 2rem;
+    }
+
+    .cards-grid {
+        gap: 12px;
+    }
+}
+
 @media (max-width: 600px) {
     .game-header h1 {
         font-size: 1.3rem;
@@ -401,5 +415,142 @@ body {
 
     .start-content h2, .win-content h2 {
         font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .game-header {
+        padding: 10px 15px;
+    }
+
+    .cards-grid {
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .card-front, .card-back {
+        font-size: 1.8rem;
+        border-radius: 12px;
+    }
+
+    .card-back::after {
+        font-size: 1.5rem;
+    }
+
+    .level-btn {
+        padding: 12px 18px;
+    }
+
+    .level-icon {
+        font-size: 2rem;
+    }
+
+    .level-name {
+        font-size: 1.2rem;
+    }
+
+    .win-stats {
+        gap: 25px;
+    }
+}
+
+/* Ajuste para modal/iframe */
+@media (max-height: 700px) {
+    .game-area {
+        padding: 10px;
+        align-items: flex-start;
+    }
+
+    .start-content, .win-content {
+        padding: 15px;
+    }
+
+    .start-content h2, .win-content h2 {
+        font-size: 1.6rem;
+        margin-bottom: 8px;
+    }
+
+    .game-icon, .win-icon {
+        font-size: 3rem;
+        margin-bottom: 10px;
+    }
+
+    .difficulty-select {
+        gap: 10px;
+    }
+
+    .level-btn {
+        padding: 10px 18px;
+    }
+
+    .cards-grid {
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .cards-grid.easy {
+        max-width: 400px;
+    }
+
+    .cards-grid.medium {
+        max-width: 480px;
+    }
+
+    .card-front, .card-back {
+        font-size: 1.8rem;
+        border-radius: 12px;
+    }
+
+    .card-back::after {
+        font-size: 1.5rem;
+    }
+
+    .stars-earned {
+        font-size: 2rem;
+        margin: 10px 0;
+    }
+
+    .win-stats {
+        gap: 25px;
+        margin-bottom: 15px;
+    }
+}
+
+/* Landscape mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+    .game-container {
+        min-height: auto;
+    }
+
+    .game-area {
+        padding: 5px;
+    }
+
+    .start-content, .win-content {
+        padding: 10px;
+    }
+
+    .cards-grid {
+        gap: 8px;
+        padding: 5px;
+    }
+
+    .cards-grid.easy {
+        grid-template-columns: repeat(4, 1fr);
+        max-width: 350px;
+    }
+
+    .cards-grid.medium {
+        grid-template-columns: repeat(4, 1fr);
+        max-width: 400px;
+    }
+
+    .cards-grid.hard {
+        grid-template-columns: repeat(5, 1fr);
+        max-width: 450px;
+    }
+
+    .card-front, .card-back {
+        font-size: 1.5rem;
     }
 }

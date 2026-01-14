@@ -440,6 +440,20 @@ body {
 }
 
 /* Responsive */
+@media (max-width: 768px) {
+    .game-header h1 {
+        font-size: 1.4rem;
+    }
+
+    .start-content h2, .result-content h2 {
+        font-size: 2rem;
+    }
+
+    .stats-row {
+        gap: 30px;
+    }
+}
+
 @media (max-width: 600px) {
     .game-header h1 {
         font-size: 1.3rem;
@@ -483,5 +497,138 @@ body {
 
     .score-number {
         font-size: 2.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .game-header {
+        padding: 10px 15px;
+    }
+
+    .category-btn {
+        padding: 12px 18px;
+    }
+
+    .cat-icon {
+        font-size: 1.6rem;
+    }
+
+    .cat-name {
+        font-size: 1.1rem;
+    }
+
+    .option-btn {
+        padding: 12px 15px;
+        gap: 10px;
+    }
+
+    .stats-row {
+        gap: 20px;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+}
+
+/* Ajuste para modal/iframe */
+@media (max-height: 700px) {
+    .game-area {
+        padding: 10px;
+        align-items: flex-start;
+    }
+
+    .start-content, .quiz-card, .result-content {
+        padding: 15px;
+    }
+
+    .start-content h2, .result-content h2 {
+        font-size: 1.6rem;
+        margin-bottom: 8px;
+    }
+
+    .game-icon, .result-icon {
+        font-size: 3rem;
+        margin-bottom: 10px;
+    }
+
+    .category-select {
+        gap: 8px;
+    }
+
+    .category-btn {
+        padding: 10px 18px;
+    }
+
+    .category-badge {
+        padding: 6px 15px;
+        margin-bottom: 15px;
+    }
+
+    .question-text {
+        font-size: 1.2rem;
+        margin-bottom: 18px;
+    }
+
+    .options-area {
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+
+    .option-btn {
+        padding: 12px 15px;
+    }
+
+    .score-circle {
+        width: 100px;
+        height: 100px;
+    }
+
+    .score-number {
+        font-size: 2rem;
+    }
+
+    .stars-earned {
+        font-size: 2rem;
+        margin: 10px 0;
+    }
+
+    .stats-row {
+        gap: 25px;
+        margin-bottom: 15px;
+    }
+}
+
+/* Landscape mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+    .game-container {
+        min-height: auto;
+    }
+
+    .game-area {
+        padding: 5px;
+    }
+
+    .start-content, .quiz-card, .result-content {
+        padding: 10px;
+    }
+
+    .options-area {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .option-btn {
+        padding: 10px 12px;
+    }
+
+    .score-circle {
+        width: 80px;
+        height: 80px;
+    }
+
+    .score-number {
+        font-size: 1.8rem;
     }
 }

@@ -480,6 +480,20 @@ body {
 }
 
 /* Responsive */
+@media (max-width: 768px) {
+    .game-header h1 {
+        font-size: 1.4rem;
+    }
+
+    .start-content h2, .win-content h2 {
+        font-size: 2rem;
+    }
+
+    .options-area {
+        gap: 15px;
+    }
+}
+
 @media (max-width: 600px) {
     .game-header h1 {
         font-size: 1.3rem;
@@ -515,5 +529,138 @@ body {
 
     .question-text {
         font-size: 1.4rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .game-header {
+        padding: 10px 15px;
+    }
+
+    .options-area {
+        gap: 12px;
+    }
+
+    .option-btn {
+        padding: 10px;
+        border-radius: 15px;
+    }
+
+    .target-shape {
+        width: 55px;
+        height: 55px;
+    }
+
+    .option-shape {
+        width: 45px;
+        height: 45px;
+    }
+
+    .mode-btn {
+        padding: 12px 18px;
+    }
+
+    .mode-icon {
+        font-size: 2rem;
+    }
+
+    .mode-name {
+        font-size: 1.2rem;
+    }
+}
+
+/* Ajuste para modal/iframe */
+@media (max-height: 700px) {
+    .game-area {
+        padding: 10px;
+        align-items: flex-start;
+    }
+
+    .start-content, #game-screen, .win-content {
+        padding: 15px;
+    }
+
+    .start-content h2, .win-content h2 {
+        font-size: 1.6rem;
+        margin-bottom: 8px;
+    }
+
+    .shapes-preview {
+        margin-bottom: 15px;
+    }
+
+    .preview-shape {
+        width: 40px;
+        height: 40px;
+    }
+
+    .mode-select {
+        gap: 10px;
+    }
+
+    .mode-btn {
+        padding: 12px 18px;
+    }
+
+    .question-area {
+        margin-bottom: 20px;
+    }
+
+    .question-text {
+        font-size: 1.3rem;
+        margin-bottom: 15px;
+    }
+
+    .target-display {
+        min-height: 80px;
+    }
+
+    .target-shape {
+        width: 60px;
+        height: 60px;
+    }
+
+    .options-area {
+        gap: 12px;
+        margin-bottom: 15px;
+    }
+
+    .win-icon {
+        font-size: 3.5rem;
+    }
+
+    .stars-earned {
+        font-size: 2rem;
+        margin: 10px 0;
+    }
+}
+
+/* Landscape mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+    .game-container {
+        min-height: auto;
+    }
+
+    .game-area {
+        padding: 5px;
+    }
+
+    .start-content, #game-screen, .win-content {
+        padding: 10px;
+    }
+
+    .options-area {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .target-shape {
+        width: 50px;
+        height: 50px;
+    }
+
+    .option-shape {
+        width: 40px;
+        height: 40px;
     }
 }
