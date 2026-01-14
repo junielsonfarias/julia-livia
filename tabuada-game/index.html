@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tabuada Divertida - Mundo de Julia & Livia</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main class="container">
+        <header class="game-header">
+            <button class="back" onclick="goBack()">← Voltar</button>
+            <h1>Tabuada Divertida</h1>
+        </header>
+
+        <section class="controls">
+            <label>Jogadora:
+                <select id="player-select" aria-label="Selecionar jogadora" title="Selecionar jogadora">
+                    <option value="julia" selected>Julia</option>
+                    <option value="livia">Livia</option>
+                </select>
+            </label>
+
+            <label>Escolha a tabuada:
+                <select id="base-select" aria-label="Escolher tabuada" title="Escolher tabuada">
+                    <option value="random">Aleatória (todas)</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                </select>
+            </label>
+
+            <label>Quantidade de perguntas:
+                <select id="count-select" aria-label="Quantidade de perguntas" title="Quantidade de perguntas">
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
+                    <option value="15">15</option>
+                </select>
+            </label>
+
+            <label>Modo:
+                <select id="mode-select" aria-label="Modo de resposta" title="Modo de resposta">
+                    <option value="mcq" selected>Múltipla Escolha</option>
+                    <option value="input">Entrada Numérica</option>
+                </select>
+            </label>
+            <label class="use-settings-label">
+                <input type="checkbox" id="use-settings-checkbox" checked>
+                <span>Usar Configurações do Painel</span>
+            </label>
+
+            <label>Dificuldade:
+            <button id="open-settings-btn" class="primary btn-open-settings">Configurações</button>
+                <select id="difficulty-select" aria-label="Nível de dificuldade" title="Nível de dificuldade">
+                    <option value="easy">Fácil</option>
+                    <option value="medium" selected>Médio</option>
+                    <option value="hard">Difícil</option>
+                </select>
+            </label>
+
+            <label>Temporizador?
+                <select id="timer-select" aria-label="Tempo por pergunta" title="Tempo por pergunta">
+                    <option value="0">Não</option>
+                    <option value="10">10s</option>
+                    <option value="20" selected>20s</option>
+                </select>
+            </label>
+
+            <label>Som:
+                <select id="sound-select" aria-label="Ativar som" title="Ativar som">
+                    <option value="on" selected>Ligado</option>
+                    <option value="off">Desligado</option>
+                </select>
+            </label>
+
+            <button id="start-btn" class="primary">Começar</button>
+            <button id="view-progress-btn" class="primary btn-progress">Progresso da Jogadora</button>
+        </section>
+
+        <section id="play-area" class="play-area hidden">
+            <div class="status">
+                <div id="progress">Pergunta 0 / 0</div>
+                <div id="score">Pontos: 0</div>
+                <div id="game-timer" class="game-timer">Tempo: 10:00</div>
+            </div>
+
+            <div id="question-card" class="question-card">
+                <div id="question-text" class="question-text">Quanto é 2 × 3 ?</div>
+
+                <div class="question-timer" aria-hidden="true">
+                    <div id="question-timer-bar" class="question-timer-bar"></div>
+                </div>
+
+                <div id="choices" class="choices"></div>
+
+                <div class="controls-row">
+                    <button id="hint-btn" class="hint">Dica</button>
+                    <button id="next-btn" class="primary hidden">Próxima</button>
+                    <button id="restart-btn" class="primary hidden">Reiniciar</button>
+                </div>
+
+                <div id="hint-area" class="hint-area hidden"></div>
+            </div>
+        </section>
+
+        <section id="result-area" class="result-area hidden">
+            <h2>Resultado</h2>
+            <p id="result-summary"></p>
+            <div id="result-achievements" class="achievements"></div>
+            <div class="result-actions">
+                <button id="retry-btn" class="primary">Jogar novamente</button>
+                <button id="memtest-btn" class="primary btn-memtest">Teste de Memorização</button>
+            </div>
+        </section>
+
+        <section id="progress-panel" class="result-area hidden">
+            <h2>Progresso da Jogadora</h2>
+            <div id="progress-list"></div>
+            <button id="close-progress" class="primary btn-close-progress">Fechar</button>
+        </section>
+
+    <!-- Settings modal -->
+    <div id="settings-panel" class="result-area hidden">
+        <h2>Configurações do Jogo</h2>
+        <div class="settings-grid">
+            <label>Operações:</label>
+            <div>
+                <label><input type="checkbox" id="op-add"> +</label>
+                <label><input type="checkbox" id="op-sub"> -</label>
+                <label><input type="checkbox" id="op-mul" checked> ×</label>
+                <label><input type="checkbox" id="op-div"> ÷</label>
+            </div>
+
+            <label>Nível padrão:</label>
+            <select id="settings-default-level" aria-label="Nível padrão" title="Nível padrão">
+                <option value="easy">Fácil</option>
+                <option value="medium" selected>Médio</option>
+                <option value="hard">Difícil</option>
+            </select>
+
+            <label>Modo padrão:</label>
+            <select id="settings-default-mode" aria-label="Modo padrão" title="Modo padrão">
+                <option value="mcq">Múltipla Escolha</option>
+                <option value="input">Entrada Numérica</option>
+            </select>
+
+            <label>Quantidade padrão de perguntas:</label>
+            <input type="number" id="settings-default-count" value="10" min="1" max="100" aria-label="Quantidade padrão de perguntas" title="Quantidade padrão de perguntas">
+
+            <label>Tempo total da sessão (min):</label>
+            <input type="number" id="settings-session-min" value="10" min="1" max="60" aria-label="Tempo total da sessão em minutos" title="Tempo total da sessão (min)">
+
+            <label>Tempo por pergunta (s):</label>
+            <input type="number" id="settings-per-question" value="20" min="0" max="300" aria-label="Tempo por pergunta em segundos" title="Tempo por pergunta (s)">
+
+            <label>Som por padrão:</label>
+            <select id="settings-sound" aria-label="Som padrão" title="Som por padrão">
+                <option value="on">Ligado</option>
+                <option value="off">Desligado</option>
+            </select>
+
+            <label>Evitar repetir sequência:</label>
+            <select id="settings-avoid-repeat" aria-label="Evitar repetir sequência" title="Evitar repetir sequência">
+                <option value="1" selected>Sim</option>
+                <option value="0">Não</option>
+            </select>
+        </div>
+
+        <div class="settings-actions">
+            <button id="save-settings" class="primary">Salvar</button>
+            <button id="cancel-settings" class="primary btn-cancel-settings">Cancelar</button>
+        </div>
+    </div>
+
+        <section class="achievements-panel">
+            <h3>Conquistas</h3>
+            <div id="achievements" class="achievements"></div>
+        </section>
+    </main>
+
+    <script src="game.js"></script>
+</body>
+</html>

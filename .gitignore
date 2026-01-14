@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+tmpclaude-*
+
+# Vercel
+.vercel/
+
+# Local env files
+.env
+.env.local
+.env.*.local

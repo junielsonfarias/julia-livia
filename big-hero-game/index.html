@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Big Hero 6 - Runner Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Botao de Voltar ao Portal -->
+    <button id="back-to-portal" class="back-to-portal" onclick="goBackToPortal()">
+        <span class="home-icon">&#127968;</span>
+        <span>Voltar ao Portal</span>
+    </button>
+
+    <!-- Tela de Menu Principal -->
+    <div id="menu-screen" class="screen active">
+        <div class="menu-container">
+            <h1 class="game-title">BIG HERO 6</h1>
+            <h2 class="game-subtitle">RUNNER</h2>
+            <button id="start-btn" class="menu-btn">JOGAR</button>
+            <button id="instructions-btn" class="menu-btn">INSTRUÇÕES</button>
+        </div>
+    </div>
+
+    <!-- Tela de Instruções -->
+    <div id="instructions-screen" class="screen">
+        <div class="instructions-container">
+            <h2>COMO JOGAR</h2>
+            <div class="controls-info">
+                <div class="control-item">
+                    <span class="key">↑ / ESPAÇO</span>
+                    <span class="action">Pular</span>
+                </div>
+                <div class="control-item">
+                    <span class="key">↓</span>
+                    <span class="action">Abaixar</span>
+                </div>
+                <div class="control-item">
+                    <span class="key">SHIFT</span>
+                    <span class="action">Voar (segure)</span>
+                </div>
+                <div class="control-item">
+                    <span class="key">X</span>
+                    <span class="action">Usar Poder Especial</span>
+                </div>
+            </div>
+            <div class="powerups-info">
+                <h3>POWER-UPS</h3>
+                <div class="powerup-item">
+                    <span class="powerup-icon speed">⚡</span>
+                    <span>Velocidade - Aumenta a velocidade</span>
+                </div>
+                <div class="powerup-item">
+                    <span class="powerup-icon shield">🛡️</span>
+                    <span>Escudo - Proteção temporária</span>
+                </div>
+                <div class="powerup-item">
+                    <span class="powerup-icon power">🔥</span>
+                    <span>Poder - Carrega poder especial</span>
+                </div>
+                <div class="powerup-item">
+                    <span class="powerup-icon points">⭐</span>
+                    <span>Estrela - Pontos bônus</span>
+                </div>
+            </div>
+            <button id="back-menu-btn" class="menu-btn">VOLTAR</button>
+        </div>
+    </div>
+
+    <!-- Tela de Seleção de Personagem -->
+    <div id="character-screen" class="screen">
+        <div class="character-container">
+            <h2>ESCOLHA SEU HERÓI</h2>
+            <div class="characters-grid">
+                <div class="character-card" data-character="hiro">
+                    <div class="character-avatar hiro"></div>
+                    <h3>HIRO</h3>
+                    <p class="character-power">Poder: Micro-bots</p>
+                    <p class="character-desc">Velocidade média, pulo alto</p>
+                </div>
+                <div class="character-card" data-character="baymax">
+                    <div class="character-avatar baymax"></div>
+                    <h3>BAYMAX</h3>
+                    <p class="character-power">Poder: Laser</p>
+                    <p class="character-desc">Voo prolongado, resistente</p>
+                </div>
+                <div class="character-card" data-character="gogo">
+                    <div class="character-avatar gogo"></div>
+                    <h3>GO GO</h3>
+                    <p class="character-power">Poder: Discos magnéticos</p>
+                    <p class="character-desc">Mais rápida, ágil</p>
+                </div>
+                <div class="character-card" data-character="wasabi">
+                    <div class="character-avatar wasabi"></div>
+                    <h3>WASABI</h3>
+                    <p class="character-power">Poder: Lâminas de plasma</p>
+                    <p class="character-desc">Força extra, corte de obstáculos</p>
+                </div>
+                <div class="character-card" data-character="honey">
+                    <div class="character-avatar honey"></div>
+                    <h3>HONEY LEMON</h3>
+                    <p class="character-power">Poder: Bolhas químicas</p>
+                    <p class="character-desc">Cria plataformas temporárias</p>
+                </div>
+                <div class="character-card" data-character="fred">
+                    <div class="character-avatar fred"></div>
+                    <h3>FRED</h3>
+                    <p class="character-power">Poder: Fogo de dragão</p>
+                    <p class="character-desc">Super pulo, queima obstáculos</p>
+                </div>
+            </div>
+            <button id="back-from-char-btn" class="menu-btn small">VOLTAR</button>
+        </div>
+    </div>
+
+    <!-- Tela de Seleção de Fase -->
+    <div id="level-screen" class="screen">
+        <div class="level-container">
+            <h2>SELECIONE A FASE</h2>
+            <div class="levels-grid">
+                <div class="level-card" data-level="1">
+                    <div class="level-number">1</div>
+                    <h3>SAN FRANSOKYO</h3>
+                    <p>Cidade - Fácil</p>
+                    <div class="level-stars">⭐⭐⭐</div>
+                </div>
+                <div class="level-card locked" data-level="2">
+                    <div class="level-number">2</div>
+                    <h3>LABORATÓRIO</h3>
+                    <p>Tech - Médio</p>
+                    <div class="level-stars">⭐⭐⭐</div>
+                    <div class="lock-overlay">🔒</div>
+                </div>
+                <div class="level-card locked" data-level="3">
+                    <div class="level-number">3</div>
+                    <h3>ILHA AKUMA</h3>
+                    <p>Perigo - Difícil</p>
+                    <div class="level-stars">⭐⭐⭐</div>
+                    <div class="lock-overlay">🔒</div>
+                </div>
+                <div class="level-card locked" data-level="4">
+                    <div class="level-number">4</div>
+                    <h3>PORTAL</h3>
+                    <p>Dimensional - Expert</p>
+                    <div class="level-stars">⭐⭐⭐</div>
+                    <div class="lock-overlay">🔒</div>
+                </div>
+                <div class="level-card locked" data-level="5">
+                    <div class="level-number">5</div>
+                    <h3>BOSS FINAL</h3>
+                    <p>Yokai - Mestre</p>
+                    <div class="level-stars">⭐⭐⭐</div>
+                    <div class="lock-overlay">🔒</div>
+                </div>
+            </div>
+            <button id="back-from-level-btn" class="menu-btn small">VOLTAR</button>
+        </div>
+    </div>
+
+    <!-- Tela do Jogo -->
+    <div id="game-screen" class="screen">
+        <!-- HUD -->
+        <div class="game-hud">
+            <div class="hud-left">
+                <div class="hud-item">
+                    <span class="hud-label">FASE</span>
+                    <span id="current-level" class="hud-value">1</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">PONTOS</span>
+                    <span id="score" class="hud-value">0</span>
+                </div>
+            </div>
+            <div class="hud-center">
+                <div class="timer-container">
+                    <span id="timer" class="timer">3:00</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+            </div>
+            <div class="hud-right">
+                <div class="hud-item">
+                    <span class="hud-label">PODER</span>
+                    <div class="power-bar">
+                        <div id="power-fill" class="power-fill"></div>
+                    </div>
+                </div>
+                <div class="hud-item status-effects">
+                    <span id="speed-indicator" class="status-icon hidden">⚡</span>
+                    <span id="shield-indicator" class="status-icon hidden">🛡️</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Canvas do Jogo -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Controles Mobile Touch -->
+        <div id="mobile-controls" class="mobile-controls">
+            <!-- Controles lado esquerdo -->
+            <div class="controls-left">
+                <button id="btn-jump" class="touch-btn jump-btn">
+                    <span class="btn-icon">&#8593;</span>
+                    <span class="btn-label">PULAR</span>
+                </button>
+                <button id="btn-crouch" class="touch-btn crouch-btn">
+                    <span class="btn-icon">&#8595;</span>
+                    <span class="btn-label">ABAIXAR</span>
+                </button>
+            </div>
+
+            <!-- Controles lado direito -->
+            <div class="controls-right">
+                <button id="btn-fly" class="touch-btn fly-btn">
+                    <span class="btn-icon">&#9650;</span>
+                    <span class="btn-label">VOAR</span>
+                </button>
+                <button id="btn-power" class="touch-btn power-btn">
+                    <span class="btn-icon">&#9733;</span>
+                    <span class="btn-label">PODER</span>
+                </button>
+            </div>
+
+            <!-- Botao de pausa mobile -->
+            <button id="btn-pause-mobile" class="touch-btn pause-mobile-btn">
+                <span class="btn-icon">&#10074;&#10074;</span>
+            </button>
+        </div>
+
+        <!-- Pause Menu -->
+        <div id="pause-menu" class="overlay hidden">
+            <div class="overlay-content">
+                <h2>PAUSADO</h2>
+                <button id="resume-btn" class="menu-btn">CONTINUAR</button>
+                <button id="restart-btn" class="menu-btn">REINICIAR</button>
+                <button id="quit-btn" class="menu-btn">SAIR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela de Resultado -->
+    <div id="result-screen" class="screen">
+        <div class="result-container">
+            <h2 id="result-title">FASE COMPLETA!</h2>
+            <div class="result-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Pontuação</span>
+                    <span id="final-score" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Tempo</span>
+                    <span id="final-time" class="stat-value">0:00</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Obstáculos</span>
+                    <span id="obstacles-passed" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Power-ups</span>
+                    <span id="powerups-collected" class="stat-value">0</span>
+                </div>
+            </div>
+            <div id="stars-earned" class="stars-display">
+                <span class="star">☆</span>
+                <span class="star">☆</span>
+                <span class="star">☆</span>
+            </div>
+            <div class="result-buttons">
+                <button id="next-level-btn" class="menu-btn">PRÓXIMA FASE</button>
+                <button id="replay-btn" class="menu-btn">JOGAR NOVAMENTE</button>
+                <button id="menu-btn" class="menu-btn">MENU PRINCIPAL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over -->
+    <div id="gameover-screen" class="screen">
+        <div class="gameover-container">
+            <h2>GAME OVER</h2>
+            <p id="gameover-reason">Você colidiu com um obstáculo!</p>
+            <div class="result-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Pontuação Final</span>
+                    <span id="gameover-score" class="stat-value">0</span>
+                </div>
+            </div>
+            <div class="result-buttons">
+                <button id="retry-btn" class="menu-btn">TENTAR NOVAMENTE</button>
+                <button id="gameover-menu-btn" class="menu-btn">MENU PRINCIPAL</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

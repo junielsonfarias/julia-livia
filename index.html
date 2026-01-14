@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <!-- keep viewport responsive; avoid disabling zoom to preserve accessibility -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mundo de Julia e Livia</title>
+    <link rel="stylesheet" href="main-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Tela de Boas-vindas -->
+    <div id="welcome-screen" class="screen active">
+        <div class="floating-elements">
+            <div class="star star1"></div>
+            <div class="star star2"></div>
+            <div class="star star3"></div>
+            <div class="heart heart1"></div>
+            <div class="heart heart2"></div>
+            <div class="butterfly butterfly1"></div>
+            <div class="butterfly butterfly2"></div>
+        </div>
+
+        <div class="welcome-content">
+            <h1 class="main-title">
+                <span class="title-mundo">Mundo de</span>
+                <span class="title-names">
+                    <span class="name-julia">Julia</span>
+                    <span class="name-e">&</span>
+                    <span class="name-livia">Livia</span>
+                </span>
+            </h1>
+
+            <p class="welcome-subtitle">Um cantinho especial para duas princesas!</p>
+
+            <div class="girls-info">
+                <div class="girl-card julia-card">
+                    <div class="girl-avatar julia-avatar">
+                        <span class="age-badge">9 anos</span>
+                    </div>
+                    <h3>Julia Caroline</h3>
+                    <p>Aventureira e criativa!</p>
+                </div>
+
+                <div class="girl-card livia-card">
+                    <div class="girl-avatar livia-avatar">
+                        <span class="age-badge">4 anos</span>
+                    </div>
+                    <h3>Livia Marina</h3>
+                    <p>Doce e encantadora!</p>
+                </div>
+            </div>
+
+            <button class="enter-btn" onclick="enterWorld()">
+                <span>Entrar no Mundo Magico</span>
+                <div class="btn-sparkle"></div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Menu Principal -->
+    <div id="main-menu" class="screen">
+        <header class="main-header">
+            <h1 class="header-title">Mundo de Julia & Livia</h1>
+            <div class="audio-control">
+                <label for="audio-volume" title="Volume do som">🔊</label>
+                <input id="audio-volume" type="range" min="0" max="1" step="0.05" value="1" aria-label="Controle de volume">
+            </div>
+            <button class="back-home-btn" onclick="goToWelcome()">
+                <span class="home-icon">&#127968;</span>
+            </button>
+        </header>
+
+        <nav class="menu-grid">
+            <div class="menu-card games-card" onclick="openSection('games')">
+                <div class="card-icon">&#127918;</div>
+                <h2>Jogos</h2>
+                <p>Diversao garantida!</p>
+                <div class="card-badge">Novo!</div>
+            </div>
+
+            <div class="menu-card photos-card" onclick="openSection('photos')">
+                <div class="card-icon">&#128247;</div>
+                <h2>Fotos</h2>
+                <p>Momentos especiais</p>
+            </div>
+
+            <div class="menu-card drawings-card" onclick="openSection('drawings')">
+                <div class="card-icon">&#127912;</div>
+                <h2>Desenhos</h2>
+                <p>Arte das meninas</p>
+            </div>
+
+            <div class="menu-card julia-card-menu" onclick="openSection('julia')">
+                <div class="card-icon">&#128124;</div>
+                <h2>Julia</h2>
+                <p>9 aninhos de alegria</p>
+            </div>
+
+            <div class="menu-card livia-card-menu" onclick="openSection('livia')">
+                <div class="card-icon">&#128118;</div>
+                <h2>Livia</h2>
+                <p>4 aninhos de amor</p>
+            </div>
+
+            <div class="menu-card memories-card" onclick="openSection('memories')">
+                <div class="card-icon">&#128150;</div>
+                <h2>Memorias</h2>
+                <p>Nossa historia</p>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Secao de Jogos -->
+    <div id="games-section" class="screen section-screen">
+        <header class="section-header games-header">
+            <button class="back-btn" onclick="backToMenu()">&#8592; Voltar</button>
+            <h1>&#127918; Jogos</h1>
+        </header>
+
+        <div class="games-container">
+            <div class="game-card" onclick="playGame('big-hero')">
+                <div class="game-thumbnail big-hero-thumb">
+                    <div class="game-characters">
+                        <div class="mini-baymax"></div>
+                        <div class="mini-hiro"></div>
+                    </div>
+                </div>
+                <div class="game-info">
+                    <h3>Big Hero 6</h3>
+                    <p>Corra com Hiro, Baymax e toda a equipe!</p>
+                    <div class="game-tags">
+                        <span class="tag">Acao</span>
+                        <span class="tag">Aventura</span>
+                    </div>
+                </div>
+                <button class="play-btn">JOGAR</button>
+            </div>
+
+            <div class="game-card tabuada-card" onclick="playGame('tabuada')">
+                <div class="game-thumbnail tabuada-thumb">
+                    <div class="tabuada-icon">×</div>
+                </div>
+                <div class="game-info">
+                    <h3>Tabuada Divertida</h3>
+                    <p>Pratique a tabuada com desafios, dicas e recompensas.</p>
+                    <div class="game-tags">
+                        <span class="tag">Matematica</span>
+                        <span class="tag">4º ano</span>
+                    </div>
+                </div>
+                <button class="play-btn">JOGAR</button>
+            </div>
+
+            <div class="game-card coming-soon">
+                <div class="game-thumbnail coming-thumb">
+                    <span class="coming-icon">&#128679;</span>
+                </div>
+                <div class="game-info">
+                    <h3>Em Breve...</h3>
+                    <p>Novos jogos estao chegando!</p>
+                </div>
+            </div>
+
+            <div class="game-card coming-soon">
+                <div class="game-thumbnail coming-thumb">
+                    <span class="coming-icon">&#128679;</span>
+                </div>
+                <div class="game-info">
+                    <h3>Em Breve...</h3>
+                    <p>Mais diversao a caminho!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secao de Fotos -->
+    <div id="photos-section" class="screen section-screen">
+        <header class="section-header photos-header">
+            <button class="back-btn" onclick="backToMenu()">&#8592; Voltar</button>
+            <h1>&#128247; Fotos</h1>
+        </header>
+
+        <div class="photos-container">
+            <div class="photo-upload-area">
+                <p>&#128248; Arraste fotos aqui ou clique para adicionar</p>
+                <input type="file" accept="image/*" multiple id="photo-input" aria-label="Adicionar fotos" title="Adicionar fotos">
+            </div>
+
+            <div class="photo-gallery" id="photo-gallery">
+                <p class="empty-message">Nenhuma foto ainda... Adicione momentos especiais!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secao de Desenhos -->
+    <div id="drawings-section" class="screen section-screen">
+        <header class="section-header drawings-header">
+            <button class="back-btn" onclick="backToMenu()">&#8592; Voltar</button>
+            <h1>&#127912; Desenhos</h1>
+        </header>
+
+        <div class="drawings-container">
+            <div class="drawing-upload-area">
+                <p>&#127912; Adicione os desenhos das meninas!</p>
+                <input type="file" accept="image/*" multiple id="drawing-input" aria-label="Adicionar desenhos" title="Adicionar desenhos">
+            </div>
+
+            <div class="drawings-gallery" id="drawings-gallery">
+                <p class="empty-message">Os desenhos de Julia e Livia aparecerao aqui!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secao Julia -->
+    <div id="julia-section" class="screen section-screen">
+        <header class="section-header julia-header">
+            <button class="back-btn" onclick="backToMenu()">&#8592; Voltar</button>
+            <h1>&#128124; Julia Caroline</h1>
+        </header>
+
+        <div class="profile-container">
+            <div class="profile-card julia-profile">
+                <div class="profile-avatar julia-big-avatar">
+                    <span class="profile-age">9</span>
+                </div>
+                <h2>Julia Caroline</h2>
+                <p class="profile-subtitle">Nossa aventureira de 9 anos!</p>
+
+                <div class="profile-info">
+                    <div class="info-item">
+                        <span class="info-icon">&#127874;</span>
+                        <span>Aniversario: [Data]</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-icon">&#128150;</span>
+                        <span>Coisas favoritas:</span>
+                    </div>
+                </div>
+
+                <div class="profile-gallery">
+                    <h3>Momentos Especiais</h3>
+                    <div class="mini-gallery" id="julia-gallery">
+                        <p class="empty-message">Adicione fotos da Julia!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secao Livia -->
+    <div id="livia-section" class="screen section-screen">
+        <header class="section-header livia-header">
+            <button class="back-btn" onclick="backToMenu()">&#8592; Voltar</button>
+            <h1>&#128118; Livia Marina</h1>
+        </header>
+
+        <div class="profile-container">
+            <div class="profile-card livia-profile">
+                <div class="profile-avatar livia-big-avatar">
+                    <span class="profile-age">4</span>
+                </div>
+                <h2>Livia Marina</h2>
+                <p class="profile-subtitle">Nossa princesinha de 4 anos!</p>
+
+                <div class="profile-info">
+                    <div class="info-item">
+                        <span class="info-icon">&#127874;</span>
+                        <span>Aniversario: [Data]</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-icon">&#128150;</span>
+                        <span>Coisas favoritas:</span>
+                    </div>
+                </div>
+
+                <div class="profile-gallery">
+                    <h3>Momentos Especiais</h3>
+                    <div class="mini-gallery" id="livia-gallery">
+                        <p class="empty-message">Adicione fotos da Livia!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secao Memorias -->
+    <div id="memories-section" class="screen section-screen">
+        <header class="section-header memories-header">
+            <button class="back-btn" onclick="backToMenu()">&#8592; Voltar</button>
+            <h1>&#128150; Memorias</h1>
+        </header>
+
+        <div class="memories-container">
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-date">2024</div>
+                    <div class="timeline-content">
+                        <h3>Um ano de aventuras!</h3>
+                        <p>Adicione memorias especiais...</p>
+                    </div>
+                </div>
+            </div>
+
+            <button class="add-memory-btn">+ Adicionar Memoria</button>
+        </div>
+    </div>
+
+    <script src="main-script.js"></script>
+
+    <!-- Modal para carregar jogos inline (iframe) -->
+    <div id="game-modal" class="game-modal hidden" aria-hidden="true">
+        <div class="modal-backdrop" onclick="closeGameModal()"></div>
+        <div class="modal-content" role="dialog" aria-modal="true">
+            <button class="modal-close" onclick="closeGameModal()" aria-label="Fechar jogo">✕</button>
+            <iframe id="game-iframe" src="" frameborder="0" title="Jogo" allow="autoplay; clipboard-write"></iframe>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,966 @@
+/* ==========================================
+   MUNDO DE JULIA E LIVIA - ESTILOS PRINCIPAIS
+   ========================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Nunito', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.screen {
+    display: none;
+    min-height: 100vh;
+    width: 100%;
+}
+
+.screen.active {
+    display: flex;
+    flex-direction: column;
+}
+
+/* ==========================================
+   TELA DE BOAS-VINDAS
+   ========================================== */
+
+#welcome-screen {
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.floating-elements {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.star, .heart, .butterfly {
+    position: absolute;
+    animation: float 6s ease-in-out infinite;
+}
+
+.star {
+    width: 30px;
+    height: 30px;
+    background: #FFD700;
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+
+.star1 { top: 10%; left: 10%; animation-delay: 0s; }
+.star2 { top: 20%; right: 15%; animation-delay: 1s; }
+.star3 { bottom: 30%; left: 20%; animation-delay: 2s; }
+
+.heart {
+    width: 25px;
+    height: 25px;
+    background: #FF6B6B;
+    transform: rotate(-45deg);
+    border-radius: 50% 50% 0 0;
+}
+
+.heart::before {
+    content: '';
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    background: #FF6B6B;
+    border-radius: 50%;
+    top: -12.5px;
+    left: 0;
+}
+
+.heart::after {
+    content: '';
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    background: #FF6B6B;
+    border-radius: 50%;
+    left: 12.5px;
+    top: 0;
+}
+
+.heart1 { top: 15%; right: 25%; animation-delay: 0.5s; }
+.heart2 { bottom: 20%; right: 10%; animation-delay: 1.5s; }
+
+.butterfly {
+    font-size: 30px;
+}
+
+.butterfly1 { top: 30%; left: 5%; animation-delay: 0.8s; }
+.butterfly1::before { content: '🦋'; }
+.butterfly2 { bottom: 40%; right: 5%; animation-delay: 1.8s; }
+.butterfly2::before { content: '🦋'; }
+
+@keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(10deg); }
+}
+
+.welcome-content {
+    text-align: center;
+    z-index: 10;
+    padding: 20px;
+}
+
+.main-title {
+    margin-bottom: 20px;
+}
+
+.title-mundo {
+    display: block;
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    color: #fff;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.2);
+}
+
+.title-names {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.name-julia {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    color: #9B59B6;
+    text-shadow: 4px 4px 8px rgba(0,0,0,0.3);
+    animation: colorPulse 3s ease-in-out infinite;
+}
+
+.name-e {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    color: #fff;
+}
+
+.name-livia {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    color: #E91E63;
+    text-shadow: 4px 4px 8px rgba(0,0,0,0.3);
+    animation: colorPulse 3s ease-in-out infinite 1.5s;
+}
+
+@keyframes colorPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.welcome-subtitle {
+    font-size: clamp(1rem, 3vw, 1.5rem);
+    color: #fff;
+    margin-bottom: 40px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.girls-info {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+}
+
+.girl-card {
+    background: rgba(255,255,255,0.95);
+    border-radius: 20px;
+    padding: 20px;
+    width: 180px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease;
+}
+
+.girl-card:hover {
+    transform: translateY(-10px) scale(1.05);
+}
+
+.julia-card {
+    border: 4px solid #9B59B6;
+}
+
+.livia-card {
+    border: 4px solid #E91E63;
+}
+
+.girl-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin: 0 auto 15px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 50px;
+}
+
+.julia-avatar {
+    background: linear-gradient(135deg, #9B59B6, #8E44AD);
+}
+
+.julia-avatar::before {
+    content: '👧';
+}
+
+.livia-avatar {
+    background: linear-gradient(135deg, #E91E63, #C2185B);
+}
+
+.livia-avatar::before {
+    content: '👶';
+}
+
+.age-badge {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background: #FFD700;
+    color: #333;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 15px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+
+.girl-card h3 {
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
+
+.girl-card p {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.enter-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 20px 50px;
+    font-size: clamp(1.2rem, 4vw, 1.5rem);
+    font-family: 'Fredoka One', cursive;
+    border-radius: 50px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+}
+
+.enter-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+}
+
+.enter-btn:active {
+    transform: scale(0.95);
+}
+
+.btn-sparkle {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: sparkle 2s infinite;
+}
+
+@keyframes sparkle {
+    0% { left: -100%; }
+    50%, 100% { left: 100%; }
+}
+
+/* ==========================================
+   MENU PRINCIPAL
+   ========================================== */
+
+#main-menu {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+}
+
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 20px;
+    margin-bottom: 30px;
+    -webkit-backdrop-filter: blur(10px); /* Safari support */
+    backdrop-filter: blur(10px);
+}
+
+.header-title {
+    font-family: 'Fredoka One', cursive;
+    color: white;
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.back-home-btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.back-home-btn:hover {
+    background: rgba(255,255,255,0.4);
+    transform: scale(1.1);
+}
+
+/* audio control styling */
+.audio-control{display:flex;align-items:center;gap:8px;margin-right:12px}
+.audio-control input[type=range]{width:120px}
+
+.home-icon {
+    font-size: 24px;
+}
+
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    padding: 10px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.menu-card {
+    background: white;
+    border-radius: 25px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.menu-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+}
+
+.games-card::before { background: linear-gradient(90deg, #E74C3C, #F39C12); }
+.photos-card::before { background: linear-gradient(90deg, #3498DB, #2ECC71); }
+.drawings-card::before { background: linear-gradient(90deg, #9B59B6, #E91E63); }
+.julia-card-menu::before { background: linear-gradient(90deg, #9B59B6, #8E44AD); }
+.livia-card-menu::before { background: linear-gradient(90deg, #E91E63, #C2185B); }
+.memories-card::before { background: linear-gradient(90deg, #F39C12, #E74C3C); }
+
+.menu-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+}
+
+.menu-card:active {
+    transform: scale(0.98);
+}
+
+.card-icon {
+    font-size: 60px;
+    margin-bottom: 15px;
+}
+
+.menu-card h2 {
+    font-family: 'Fredoka One', cursive;
+    color: #333;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.menu-card p {
+    color: #666;
+    font-size: 1rem;
+}
+
+.card-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #E74C3C;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* ==========================================
+   SECOES
+   ========================================== */
+
+.section-screen {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    gap: 20px;
+    color: white;
+}
+
+.games-header { background: linear-gradient(135deg, #E74C3C, #F39C12); }
+.photos-header { background: linear-gradient(135deg, #3498DB, #2ECC71); }
+.drawings-header { background: linear-gradient(135deg, #9B59B6, #E91E63); }
+.julia-header { background: linear-gradient(135deg, #9B59B6, #8E44AD); }
+.livia-header { background: linear-gradient(135deg, #E91E63, #C2185B); }
+.memories-header { background: linear-gradient(135deg, #F39C12, #E74C3C); }
+
+.back-btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    padding: 12px 25px;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    background: rgba(255,255,255,0.4);
+    transform: scale(1.05);
+}
+
+.section-header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+/* ==========================================
+   SECAO DE JOGOS
+   ========================================== */
+
+.games-container {
+    padding: 30px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.game-card {
+    background: white;
+    border-radius: 25px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    transition: all 0.4s ease;
+}
+
+.game-card:hover:not(.coming-soon) {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+}
+
+.game-thumbnail {
+    height: 180px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.big-hero-thumb {
+    background: linear-gradient(135deg, #E74C3C 0%, #9B59B6 100%);
+}
+
+.game-characters {
+    display: flex;
+    gap: 20px;
+}
+
+.mini-baymax {
+    width: 60px;
+    height: 80px;
+    background: white;
+    border-radius: 50% 50% 45% 45%;
+    position: relative;
+}
+
+.mini-baymax::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 3px;
+    background: #333;
+    border-radius: 3px;
+}
+
+.mini-baymax::after {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 8px;
+    background: #333;
+    border-radius: 50%;
+    box-shadow: 20px 0 0 #333, -20px 0 0 #333;
+}
+
+.mini-hiro {
+    width: 40px;
+    height: 60px;
+    background: #9B59B6;
+    border-radius: 10px 10px 5px 5px;
+    position: relative;
+}
+
+.mini-hiro::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 30px;
+    background: #F5D0A9;
+    border-radius: 50%;
+}
+
+.mini-hiro::after {
+    content: '';
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 35px;
+    height: 20px;
+    background: #1A1A1A;
+    border-radius: 50% 50% 0 0;
+    clip-path: polygon(0% 100%, 10% 30%, 25% 80%, 40% 20%, 60% 80%, 75% 30%, 90% 70%, 100% 100%);
+}
+
+.coming-thumb {
+    background: linear-gradient(135deg, #BDC3C7, #95A5A6);
+}
+
+.coming-icon {
+    font-size: 60px;
+    opacity: 0.7;
+}
+
+.coming-soon {
+    opacity: 0.7;
+}
+
+.game-info {
+    padding: 20px;
+}
+
+.game-info h3 {
+    font-family: 'Fredoka One', cursive;
+    color: #333;
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+}
+
+.game-info p {
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 15px;
+}
+
+.game-tags {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.tag {
+    background: #f0f0f0;
+    color: #555;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.play-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #E74C3C, #C0392B);
+    color: white;
+    border: none;
+    padding: 18px;
+    font-size: 1.2rem;
+    font-family: 'Fredoka One', cursive;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.play-btn:hover {
+    background: linear-gradient(135deg, #C0392B, #A93226);
+}
+
+/* ==========================================
+   OUTRAS SECOES (Fotos, Desenhos, etc)
+   ========================================== */
+
+.photos-container,
+.drawings-container,
+.profile-container,
+.memories-container {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+    flex: 1;
+}
+
+.photo-upload-area,
+.drawing-upload-area {
+    background: white;
+    border: 3px dashed #ccc;
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    margin-bottom: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.photo-upload-area:hover,
+.drawing-upload-area:hover {
+    border-color: #667eea;
+    background: #f8f9ff;
+}
+
+.photo-upload-area input,
+.drawing-upload-area input {
+    display: none;
+}
+
+.photo-gallery,
+.drawings-gallery,
+.mini-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.empty-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #999;
+    font-size: 1.1rem;
+    padding: 40px;
+}
+
+/* Profile Cards */
+.profile-card {
+    background: white;
+    border-radius: 30px;
+    padding: 40px;
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+}
+
+.profile-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 70px;
+    position: relative;
+}
+
+.julia-big-avatar {
+    background: linear-gradient(135deg, #9B59B6, #8E44AD);
+}
+
+.julia-big-avatar::before {
+    content: '👧';
+}
+
+.livia-big-avatar {
+    background: linear-gradient(135deg, #E91E63, #C2185B);
+}
+
+.livia-big-avatar::before {
+    content: '👶';
+}
+
+.profile-age {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: #FFD700;
+    color: #333;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    font-weight: bold;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.profile-card h2 {
+    font-family: 'Fredoka One', cursive;
+    color: #333;
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.profile-subtitle {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+}
+
+.profile-info {
+    text-align: left;
+    margin-bottom: 30px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 15px;
+    margin-bottom: 10px;
+}
+
+.info-icon {
+    font-size: 1.5rem;
+}
+
+.profile-gallery h3 {
+    font-family: 'Fredoka One', cursive;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Timeline */
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #F39C12, #E74C3C);
+    border-radius: 2px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -26px;
+    top: 5px;
+    width: 16px;
+    height: 16px;
+    background: #F39C12;
+    border-radius: 50%;
+    border: 4px solid white;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+
+.timeline-date {
+    font-family: 'Fredoka One', cursive;
+    color: #F39C12;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.timeline-content {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+.timeline-content h3 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.timeline-content p {
+    color: #666;
+}
+
+.add-memory-btn {
+    background: linear-gradient(135deg, #F39C12, #E74C3C);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+}
+
+.add-memory-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 30px rgba(243, 156, 18, 0.4);
+}
+
+/* ==========================================
+   RESPONSIVIDADE
+   ========================================== */
+
+@media (max-width: 768px) {
+    .girls-info {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .girl-card {
+        width: 90%;
+        max-width: 250px;
+    }
+
+    .menu-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .menu-card {
+        padding: 20px;
+    }
+
+    .card-icon {
+        font-size: 40px;
+    }
+
+    .menu-card h2 {
+        font-size: 1.1rem;
+    }
+
+    .games-container {
+        grid-template-columns: 1fr;
+        padding: 15px;
+    }
+
+    .section-header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .back-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .menu-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .enter-btn {
+        padding: 15px 35px;
+        font-size: 1.1rem;
+    }
+
+    .profile-card {
+        padding: 25px;
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        font-size: 55px;
+    }
+}
+
+/* ==========================================
+   ANIMACOES EXTRAS
+   ========================================== */
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-30px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.screen.active {
+    animation: fadeIn 0.5s ease;
+}
+
+.menu-card {
+    animation: fadeIn 0.5s ease backwards;
+}
+
+.menu-card:nth-child(1) { animation-delay: 0.1s; }
+.menu-card:nth-child(2) { animation-delay: 0.2s; }
+.menu-card:nth-child(3) { animation-delay: 0.3s; }
+.menu-card:nth-child(4) { animation-delay: 0.4s; }
+.menu-card:nth-child(5) { animation-delay: 0.5s; }
+.menu-card:nth-child(6) { animation-delay: 0.6s; }
+
+/* Modal de jogo inline */
+#game-modal.hidden { display: none; }
+#game-modal { position: fixed; inset: 0; z-index: 100000; display:flex; align-items:center; justify-content:center; }
+.modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
+.modal-content { position: relative; width: min(1100px, 95%); max-height: 90vh; background: white; padding: 18px; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); overflow: auto; z-index: 2; }
+.modal-close { position: absolute; top: 12px; right: 12px; background: #fff; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px }
+.modal-content iframe { width: 100%; height: 70vh; border: none; border-radius: 8px }
