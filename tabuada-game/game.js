@@ -142,7 +142,7 @@
             state.total = parseInt(s.defaultCount,10) || 10;
             state.mode = s.defaultMode || 'mcq';
             state.difficulty = s.defaultLevel || 'medium';
-            state.timePerQuestion = parseInt(s.perQuestion,10) || 0;
+            state.timePerQuestion = (s.perQuestion !== undefined && s.perQuestion !== null) ? (parseInt(s.perQuestion,10) || 0) : difficultyDefaultTime(state.difficulty);
             state.sound = (s.sound||'on') === 'on';
             // if operations explicitly defined in settings, use them
             state.opsFromSettings = s.ops || null;
@@ -254,6 +254,21 @@
                     btn.onclick = ()=> chooseAnswer(c, btn);
                     container.appendChild(btn);
                 });
+                // animate choices with a small stagger
+                setTimeout(()=>{
+                    const els = container.querySelectorAll('.choice-btn');
+                    els.forEach((el,i)=>{
+                        try{
+                            el.classList.remove('choice-pop');
+                            el.style.animationDelay = (i*70) + 'ms';
+                            // force reflow to restart animation
+                            void el.offsetWidth;
+                            el.classList.add('choice-pop');
+                            // cleanup after animation
+                            setTimeout(()=>{ el.classList.remove('choice-pop'); el.style.animationDelay = ''; }, 900);
+                        }catch(e){}
+                    });
+                }, 40);
             } else {
                 const inputWrap = document.createElement('div');
                 inputWrap.className = 'input-wrap';
@@ -276,6 +291,8 @@
                 inputWrap.appendChild(submit);
                 container.appendChild(inputWrap);
                 input.focus();
+                // animate input wrap for pop effect
+                setTimeout(()=>{ try{ inputWrap.classList.add('pop-in'); setTimeout(()=>{ inputWrap.classList.remove('pop-in'); }, 700); }catch(e){} }, 60);
             }
 
             $('hint-area').classList.add('hidden');
@@ -294,8 +311,15 @@
             setTimeout(()=>{
                 card.classList.remove('fade-out');
                 doRender();
+                // pop-in and fade-in for nicer entrance
                 card.classList.add('fade-in');
-                setTimeout(()=>card.classList.remove('fade-in'), 360);
+                // also add pop-in for scale effect
+                card.classList.add('pop-in');
+                // remove classes after animations finish
+                setTimeout(()=>{
+                    card.classList.remove('fade-in');
+                    card.classList.remove('pop-in');
+                }, 560);
             }, 200);
         } else {
             doRender();
@@ -384,6 +408,26 @@
         if (kind === 'wrong') el.classList.add('wrong');
     }
 
+    // confetti implementation (small, lightweight) - moved to top-level so other helpers can use it
+    function createConfetti(count){
+        const colors = ['#ff6b6b','#ffd166','#6ee7b7','#7dd3fc','#b39ddb','#ffb86b'];
+        for (let i=0;i<count;i++){
+            const el = document.createElement('div');
+            el.className = 'confetti-piece';
+            const size = Math.floor(Math.random()*10)+8;
+            el.style.width = size + 'px'; el.style.height = Math.floor(size*1.2)+'px';
+            el.style.left = (50 + (Math.random()*40-20)) + '%';
+            el.style.top = '-10vh';
+            el.style.background = colors[Math.floor(Math.random()*colors.length)];
+            const delay = Math.random()*300;
+            el.style.transform = `translate3d(0,0,0) rotate(${Math.random()*360}deg)`;
+            el.style.animation = `confettiFall ${1200 + Math.random()*1400}ms linear ${delay}ms forwards`;
+            document.body.appendChild(el);
+            // remove after animation
+            setTimeout(()=>{ try{ el.remove(); }catch(e){} }, 3000 + delay);
+        }
+    }
+
     // visual feedback (confetti, glow, vibration)
     function provideFeedback(isCorrect){
         const card = document.getElementById('question-card');
@@ -430,50 +474,15 @@
     function finishGame(){
         clearTimer();
         clearSessionTimer();
-
-    // visual + som feedback
-    function triggerCorrectFeedback(){
-        // pulse score
-        const scoreEl = $('score'); if (scoreEl){ scoreEl.classList.add('pulse'); setTimeout(()=>scoreEl.classList.remove('pulse'),900); }
-        // glow card
-        const card = document.getElementById('question-card'); if (card){ card.classList.add('correct-glow'); setTimeout(()=>card.classList.remove('correct-glow'),900); }
-        // confetti
-        createConfetti(18);
-    // som: prefer parent audio, fallback to local melody
-    const parentPlayed = postMessageToParent('correct');
-    if (!parentPlayed && state.sound) playMelody('correct');
-        // small vibration if supported
-        try{ if (navigator.vibrate) navigator.vibrate(120); }catch(e){}
-    }
-
-    function triggerWrongFeedback(){
-        // shake card
-        const card = document.getElementById('question-card'); if (card){ card.classList.add('shake','wrong-glow'); setTimeout(()=>card.classList.remove('shake','wrong-glow'),800); }
-    // sound: try parent then local melody
-    const parentPlayedW = postMessageToParent('wrong');
-    if (!parentPlayedW && state.sound) playMelody('wrong');
-    try{ if (navigator.vibrate) navigator.vibrate([80,40,80]); }catch(e){}
-    }
-
-    // confetti implementation (small, lightweight)
-    function createConfetti(count){
-        const colors = ['#ff6b6b','#ffd166','#6ee7b7','#7dd3fc','#b39ddb','#ffb86b'];
-        for (let i=0;i<count;i++){
-            const el = document.createElement('div');
-            el.className = 'confetti-piece';
-            const size = Math.floor(Math.random()*10)+8;
-            el.style.width = size + 'px'; el.style.height = Math.floor(size*1.2)+'px';
-            el.style.left = (50 + (Math.random()*40-20)) + '%';
-            el.style.top = '-10vh';
-            el.style.background = colors[Math.floor(Math.random()*colors.length)];
-            const delay = Math.random()*300;
-            el.style.transform = `translate3d(0,0,0) rotate(${Math.random()*360}deg)`;
-            el.style.animation = `confettiFall ${1200 + Math.random()*1400}ms linear ${delay}ms forwards`;
-            document.body.appendChild(el);
-            // remove after animation
-            setTimeout(()=>{ try{ el.remove(); }catch(e){} }, 3000 + delay);
-        }
-    }
+        // visual + som feedback de final de sessão
+        try{
+            createConfetti(18);
+            const percent = Math.round((state.correct / state.total) * 100);
+            // play special melody for perfect or a correct cue otherwise
+            if (percent === 100 && state.sound){ const p = postMessageToParent('perfect'); if (!p) playMelody('perfect'); }
+            else if (state.sound){ const p = postMessageToParent('correct'); if (!p) playMelody('correct'); }
+            try{ if (navigator.vibrate) navigator.vibrate(160); }catch(e){}
+        }catch(e){}
         $('play-area').classList.add('hidden');
         $('result-area').classList.remove('hidden');
         const percent = Math.round((state.correct / state.total) * 100);
@@ -661,11 +670,18 @@
             defaultMode: 'mcq',
             defaultCount: 10,
             sessionMin: 10,
-            perQuestion: 20,
+            perQuestion: 40,
             sound: 'on',
             avoidRepeat: '1',
             base: 'random'
         };
+    }
+
+    // default per-question time by difficulty (in seconds)
+    function difficultyDefaultTime(level){
+        if (level === 'easy') return 60;
+        if (level === 'hard') return 15;
+        return 40; // medium
     }
 
     function openSettings(){
@@ -907,6 +923,16 @@
         const os = $('open-settings-btn'); if (os) os.addEventListener('click', openSettings);
         const ss = $('save-settings'); if (ss) ss.addEventListener('click', saveSettings);
         const cs = $('cancel-settings'); if (cs) cs.addEventListener('click', closeSettings);
+        // when difficulty changes, update per-question timer default to match difficulty
+        const diffSel = document.getElementById('difficulty-select');
+        const timerSel = document.getElementById('timer-select');
+        if (diffSel && timerSel){
+            diffSel.addEventListener('change', (e)=>{
+                const v = difficultyDefaultTime(e.target.value);
+                // set timer-select to difficulty default (user can override)
+                timerSel.value = String(v);
+            });
+        }
         // initialize quick controls from saved settings if use-settings is checked
         const ucb = document.getElementById('use-settings-checkbox');
         if (ucb && ucb.checked){

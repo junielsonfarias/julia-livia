@@ -41,7 +41,7 @@ select{padding:8px;border-radius:10px;border:1px solid #ddd}
 .hidden{display:none}
 .status{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .game-timer{font-weight:700;color:#333}
-.question-card{background:var(--card);padding:18px;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.08)}
+.question-card{background:linear-gradient(180deg,#ffffff,#f7fbff);padding:22px;border-radius:14px;border:1px solid rgba(100,116,139,0.06);box-shadow:0 18px 50px rgba(20,30,60,0.08);position:relative}
 .question-text{font-size:1.6rem;font-weight:700;margin-bottom:14px}
 .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
 .choice-btn{padding:12px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;font-weight:700}
@@ -75,6 +75,35 @@ select{padding:8px;border-radius:10px;border:1px solid #ddd}
     75%{transform:translateX(-4px)}
  100%{transform:translateX(0)}
 }
+
+/* enhanced question moment visuals */
+.question-card::before{
+    content:'🧮';
+    position:absolute;
+    right:14px;
+    top:12px;
+    font-size:22px;
+    opacity:0.14;
+}
+
+.question-card.pop-in{animation:cardPop 420ms cubic-bezier(.2,.9,.2,1);}
+@keyframes cardPop{
+    0%{transform:scale(0.98);opacity:0}
+    60%{transform:scale(1.02);opacity:1}
+    100%{transform:scale(1);opacity:1}
+}
+
+/* pop animation for individual choice buttons */
+.choice-pop{animation:choicePop 380ms cubic-bezier(.2,.9,.2,1) both}
+@keyframes choicePop{
+    0%{transform:translateY(12px) scale(.98); opacity:0}
+    60%{transform:translateY(-4px) scale(1.04); opacity:1}
+    100%{transform:translateY(0) scale(1); opacity:1}
+}
+
+/* slightly bigger and punchier question text when focused */
+.question-card .question-text{font-size:1.85rem;letter-spacing:0.4px}
+@media (max-width:480px){.question-card .question-text{font-size:1.3rem}}
 
 .score.pulse{animation:scorePulse 800ms ease}
 @keyframes scorePulse{ 0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)} }
@@ -113,6 +142,9 @@ select{padding:8px;border-radius:10px;border:1px solid #ddd}
 
 /* input mode */
 .choice-input{width:160px}
+
+/* input wrap pop animation */
+.input-wrap.pop-in{animation:choicePop 380ms cubic-bezier(.2,.9,.2,1) both}
 
 /* Achievements badges */
 .achievements{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
