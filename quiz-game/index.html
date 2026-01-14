@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Educativo - Mundo de Julia & Livia</title>
+    <base href="/quiz-game/">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1>Quiz Educativo</h1>
+            <div class="game-stats">
+                <span class="score">Pontos: <strong id="score">0</strong></span>
+                <span class="question-num">Pergunta: <strong id="question-num">1</strong>/<strong id="total-questions">10</strong></span>
+            </div>
+        </header>
+
+        <main class="game-area">
+            <!-- Tela de Inicio -->
+            <div id="start-screen" class="screen active">
+                <div class="start-content">
+                    <div class="game-icon">🎓</div>
+                    <h2>Quiz Educativo!</h2>
+                    <p>Teste seus conhecimentos e aprenda coisas novas!</p>
+
+                    <div class="category-select">
+                        <h3>Escolha uma categoria:</h3>
+                        <button class="category-btn" onclick="startGame('matematica')">
+                            <span class="cat-icon">🔢</span>
+                            <span class="cat-name">Matematica</span>
+                        </button>
+                        <button class="category-btn" onclick="startGame('ciencias')">
+                            <span class="cat-icon">🔬</span>
+                            <span class="cat-name">Ciencias</span>
+                        </button>
+                        <button class="category-btn" onclick="startGame('geografia')">
+                            <span class="cat-icon">🌍</span>
+                            <span class="cat-name">Geografia</span>
+                        </button>
+                        <button class="category-btn" onclick="startGame('portugues')">
+                            <span class="cat-icon">📚</span>
+                            <span class="cat-name">Portugues</span>
+                        </button>
+                        <button class="category-btn mixed" onclick="startGame('misturado')">
+                            <span class="cat-icon">🌟</span>
+                            <span class="cat-name">Misturado</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tela do Jogo -->
+            <div id="game-screen" class="screen">
+                <div class="quiz-card">
+                    <div class="category-badge" id="category-badge">Matematica</div>
+                    <div class="question-text" id="question-text">
+                        Carregando pergunta...
+                    </div>
+                    <div class="options-area" id="options-area">
+                        <!-- Opcoes serao inseridas via JavaScript -->
+                    </div>
+                    <div class="feedback" id="feedback"></div>
+                    <div class="timer-bar">
+                        <div class="timer-fill" id="timer-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tela de Resultado -->
+            <div id="result-screen" class="screen">
+                <div class="result-content">
+                    <div class="result-icon" id="result-icon">🏆</div>
+                    <h2 id="result-title">Resultado</h2>
+                    <p id="result-message">Voce terminou o quiz!</p>
+
+                    <div class="score-display">
+                        <div class="score-circle">
+                            <span class="score-number" id="final-score">0</span>
+                            <span class="score-text">pontos</span>
+                        </div>
+                    </div>
+
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <span class="stat-value" id="correct-count">0</span>
+                            <span class="stat-label">Acertos</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="wrong-count">0</span>
+                            <span class="stat-label">Erros</span>
+                        </div>
+                    </div>
+
+                    <div class="stars-earned" id="stars-display">
+                        <span class="star">⭐</span>
+                        <span class="star">⭐</span>
+                        <span class="star">⭐</span>
+                    </div>
+
+                    <div class="result-buttons">
+                        <button class="play-again-btn" onclick="playAgain()">Jogar Novamente</button>
+                        <button class="menu-btn" onclick="goToMenu()">Categorias</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

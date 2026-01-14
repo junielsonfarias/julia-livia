@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sequencia Logica - Mundo de Julia & Livia</title>
+    <base href="/sequencia-game/">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1>Sequencia Logica</h1>
+            <div class="game-stats">
+                <span class="score">Pontos: <strong id="score">0</strong></span>
+                <span class="level">Nivel: <strong id="current-level">1</strong></span>
+            </div>
+        </header>
+
+        <main class="game-area">
+            <!-- Tela de Inicio -->
+            <div id="start-screen" class="screen active">
+                <div class="start-content">
+                    <div class="game-icon">🧩</div>
+                    <h2>Sequencia Logica!</h2>
+                    <p>Complete as sequencias e desafie seu raciocinio!</p>
+
+                    <div class="mode-select">
+                        <button class="mode-btn" onclick="startGame('numbers')">
+                            <span class="mode-icon">🔢</span>
+                            <span class="mode-name">Numeros</span>
+                            <span class="mode-desc">Sequencias numericas</span>
+                        </button>
+                        <button class="mode-btn" onclick="startGame('patterns')">
+                            <span class="mode-icon">🎨</span>
+                            <span class="mode-name">Padroes</span>
+                            <span class="mode-desc">Padroes de formas</span>
+                        </button>
+                        <button class="mode-btn" onclick="startGame('mixed')">
+                            <span class="mode-icon">🌟</span>
+                            <span class="mode-name">Desafio</span>
+                            <span class="mode-desc">Tudo misturado!</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tela do Jogo -->
+            <div id="game-screen" class="screen">
+                <div class="question-area">
+                    <div class="question-text" id="question-text">Complete a sequencia:</div>
+                    <div class="sequence-display" id="sequence-display">
+                        <!-- Sequencia sera mostrada aqui -->
+                    </div>
+                </div>
+
+                <div class="options-area" id="options-area">
+                    <!-- Opcoes serao inseridas via JavaScript -->
+                </div>
+
+                <div class="feedback" id="feedback"></div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+
+            <!-- Tela de Vitoria -->
+            <div id="win-screen" class="screen">
+                <div class="win-content">
+                    <div class="win-icon">🏆</div>
+                    <h2>Fantastico!</h2>
+                    <p>Voce completou o nivel!</p>
+                    <div class="final-score">
+                        <span class="score-label">Pontuacao</span>
+                        <span class="score-value" id="final-score">0</span>
+                    </div>
+                    <div class="stars-earned" id="stars-display">
+                        <span class="star">⭐</span>
+                        <span class="star">⭐</span>
+                        <span class="star">⭐</span>
+                    </div>
+                    <div class="win-buttons">
+                        <button class="next-btn" onclick="nextLevel()">Proximo Nivel</button>
+                        <button class="menu-btn" onclick="goToMenu()">Menu</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

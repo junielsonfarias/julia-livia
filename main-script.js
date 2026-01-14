@@ -64,11 +64,23 @@ function openSection(section) {
 
 // Funcao para jogar
 function playGame(gameId) {
-    if (gameId === 'big-hero') {
-        window.location.href = 'big-hero-game/index.html';
-    } else if (gameId === 'tabuada') {
-        // abrir o jogo da tabuada em modal inline
-        openGameModal('tabuada-game/index.html');
+    const gameRoutes = {
+        'big-hero': 'big-hero-game/index.html',
+        'tabuada': 'tabuada-game/index.html',
+        'memoria': 'memoria-game/index.html',
+        'cores-formas': 'cores-formas-game/index.html',
+        'sequencia': 'sequencia-game/index.html',
+        'quiz': 'quiz-game/index.html'
+    };
+
+    const route = gameRoutes[gameId];
+    if (route) {
+        // Big Hero abre em nova pagina, outros em modal
+        if (gameId === 'big-hero') {
+            window.location.href = route;
+        } else {
+            openGameModal(route);
+        }
     }
 }
 

@@ -49,6 +49,22 @@
     {
       "source": "/tabuada",
       "destination": "/tabuada-game/index.html"
+    },
+    {
+      "source": "/memoria",
+      "destination": "/memoria-game/index.html"
+    },
+    {
+      "source": "/cores-formas",
+      "destination": "/cores-formas-game/index.html"
+    },
+    {
+      "source": "/sequencia",
+      "destination": "/sequencia-game/index.html"
+    },
+    {
+      "source": "/quiz",
+      "destination": "/quiz-game/index.html"
     }
   ]
 }

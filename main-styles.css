@@ -964,3 +964,85 @@ body {
 .modal-content { position: relative; width: min(1100px, 95%); max-height: 90vh; background: white; padding: 18px; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); overflow: auto; z-index: 2; }
 .modal-close { position: absolute; top: 12px; right: 12px; background: #fff; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px }
 .modal-content iframe { width: 100%; height: 70vh; border: none; border-radius: 8px }
+
+/* ==========================================
+   ESTILOS DOS NOVOS JOGOS
+   ========================================== */
+
+/* Tabuada Game */
+.tabuada-thumb {
+    background: linear-gradient(135deg, #3498db 0%, #2ecc71 100%);
+}
+
+.tabuada-icon {
+    font-size: 80px;
+    color: white;
+    font-family: 'Fredoka One', cursive;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* Memoria Game */
+.memoria-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.memoria-icon {
+    font-size: 70px;
+    animation: bounce 2s infinite;
+}
+
+/* Cores e Formas Game */
+.cores-thumb {
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+}
+
+.cores-icon {
+    font-size: 70px;
+    animation: spin 8s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Sequencia Game */
+.sequencia-thumb {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.sequencia-icon {
+    font-size: 70px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Quiz Game */
+.quiz-thumb {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.quiz-icon {
+    font-size: 70px;
+    animation: wiggle 1s infinite;
+}
+
+@keyframes wiggle {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* Tag para idade */
+.age-tag {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #333 !important;
+}

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Memoria - Mundo de Julia & Livia</title>
+    <base href="/memoria-game/">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1>Jogo da Memoria</h1>
+            <div class="game-stats">
+                <span class="moves">Jogadas: <strong id="moves-count">0</strong></span>
+                <span class="pairs">Pares: <strong id="pairs-count">0</strong>/<strong id="total-pairs">6</strong></span>
+            </div>
+        </header>
+
+        <main class="game-area">
+            <!-- Tela de Inicio -->
+            <div id="start-screen" class="screen active">
+                <div class="start-content">
+                    <div class="game-icon">🧠</div>
+                    <h2>Jogo da Memoria!</h2>
+                    <p>Encontre os pares de animais fofinhos!</p>
+
+                    <div class="difficulty-select">
+                        <h3>Escolha o nivel:</h3>
+                        <button class="level-btn" data-level="easy" onclick="startGame('easy')">
+                            <span class="level-icon">🐣</span>
+                            <span class="level-name">Facil</span>
+                            <span class="level-desc">6 pares</span>
+                        </button>
+                        <button class="level-btn" data-level="medium" onclick="startGame('medium')">
+                            <span class="level-icon">🐥</span>
+                            <span class="level-name">Medio</span>
+                            <span class="level-desc">8 pares</span>
+                        </button>
+                        <button class="level-btn" data-level="hard" onclick="startGame('hard')">
+                            <span class="level-icon">🦅</span>
+                            <span class="level-name">Dificil</span>
+                            <span class="level-desc">10 pares</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tela do Jogo -->
+            <div id="game-screen" class="screen">
+                <div id="cards-grid" class="cards-grid">
+                    <!-- Cards serao inseridos via JavaScript -->
+                </div>
+            </div>
+
+            <!-- Tela de Vitoria -->
+            <div id="win-screen" class="screen">
+                <div class="win-content">
+                    <div class="win-icon">🎉</div>
+                    <h2>Parabens!</h2>
+                    <p>Voce encontrou todos os pares!</p>
+                    <div class="win-stats">
+                        <div class="stat">
+                            <span class="stat-label">Jogadas</span>
+                            <span class="stat-value" id="final-moves">0</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Tempo</span>
+                            <span class="stat-value" id="final-time">0:00</span>
+                        </div>
+                    </div>
+                    <div class="stars-earned" id="stars-display">
+                        <span class="star">⭐</span>
+                        <span class="star">⭐</span>
+                        <span class="star">⭐</span>
+                    </div>
+                    <div class="win-buttons">
+                        <button class="play-again-btn" onclick="restartGame()">Jogar Novamente</button>
+                        <button class="menu-btn" onclick="goToMenu()">Menu</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cores e Formas - Mundo de Julia & Livia</title>
+    <base href="/cores-formas-game/">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1>Cores e Formas</h1>
+            <div class="game-stats">
+                <span class="score">Pontos: <strong id="score">0</strong></span>
+                <span class="level">Nivel: <strong id="current-level">1</strong></span>
+            </div>
+        </header>
+
+        <main class="game-area">
+            <!-- Tela de Inicio -->
+            <div id="start-screen" class="screen active">
+                <div class="start-content">
+                    <div class="shapes-preview">
+                        <div class="preview-shape circle red"></div>
+                        <div class="preview-shape square blue"></div>
+                        <div class="preview-shape triangle yellow"></div>
+                    </div>
+                    <h2>Cores e Formas!</h2>
+                    <p>Aprenda cores e formas de um jeito divertido!</p>
+
+                    <div class="mode-select">
+                        <button class="mode-btn" onclick="startGame('colors')">
+                            <span class="mode-icon">🎨</span>
+                            <span class="mode-name">Cores</span>
+                            <span class="mode-desc">Encontre a cor certa!</span>
+                        </button>
+                        <button class="mode-btn" onclick="startGame('shapes')">
+                            <span class="mode-icon">🔷</span>
+                            <span class="mode-name">Formas</span>
+                            <span class="mode-desc">Descubra as formas!</span>
+                        </button>
+                        <button class="mode-btn" onclick="startGame('mixed')">
+                            <span class="mode-icon">🌈</span>
+                            <span class="mode-name">Misturado</span>
+                            <span class="mode-desc">Cores e formas juntos!</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tela do Jogo -->
+            <div id="game-screen" class="screen">
+                <div class="question-area">
+                    <div class="question-text" id="question-text">Encontre o...</div>
+                    <div class="target-display" id="target-display">
+                        <!-- Forma/cor alvo sera mostrada aqui -->
+                    </div>
+                </div>
+
+                <div class="options-area" id="options-area">
+                    <!-- Opcoes serao inseridas via JavaScript -->
+                </div>
+
+                <div class="feedback" id="feedback"></div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+
+            <!-- Tela de Vitoria -->
+            <div id="win-screen" class="screen">
+                <div class="win-content">
+                    <div class="win-icon">🏆</div>
+                    <h2>Muito Bem!</h2>
+                    <p>Voce completou o nivel!</p>
+                    <div class="final-score">
+                        <span class="score-label">Pontuacao</span>
+                        <span class="score-value" id="final-score">0</span>
+                    </div>
+                    <div class="stars-earned" id="stars-display">
+                        <span class="star">⭐</span>
+                        <span class="star">⭐</span>
+                        <span class="star">⭐</span>
+                    </div>
+                    <div class="win-buttons">
+                        <button class="next-btn" onclick="nextLevel()">Proximo Nivel</button>
+                        <button class="menu-btn" onclick="goToMenu()">Menu</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
