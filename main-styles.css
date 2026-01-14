@@ -1046,3 +1046,48 @@ body {
     background: linear-gradient(135deg, #FFD700, #FFA500);
     color: #333 !important;
 }
+
+/* Desenhar Game */
+.desenhar-thumb {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+.desenhar-icon {
+    font-size: 70px;
+    animation: spin 8s linear infinite;
+}
+
+/* Contar Game */
+.contar-thumb {
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+}
+
+.contar-icon {
+    font-size: 70px;
+    animation: bounce 1s infinite;
+}
+
+/* Animais Game */
+.animais-thumb {
+    background: linear-gradient(135deg, #c3f0ca 0%, #a8e6cf 100%);
+}
+
+.animais-icon {
+    font-size: 70px;
+    animation: wiggle 1s infinite;
+}
+
+/* Puzzle Game */
+.puzzle-thumb {
+    background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+}
+
+.puzzle-icon {
+    font-size: 70px;
+    animation: rotate 3s ease-in-out infinite;
+}
+
+@keyframes rotate {
+    0%, 100% { transform: rotate(-10deg); }
+    50% { transform: rotate(10deg); }
+}

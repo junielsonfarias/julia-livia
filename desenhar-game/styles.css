@@ -1,0 +1,365 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Nunito', sans-serif;
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    min-height: 100vh;
+    overflow: hidden;
+    touch-action: none;
+}
+
+.game-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.game-header {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+}
+
+.game-header h1 {
+    font-family: 'Fredoka One', cursive;
+    color: #e91e63;
+    font-size: 1.5rem;
+}
+
+.back-btn {
+    background: linear-gradient(135deg, #e91e63, #c2185b);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.back-btn:hover {
+    transform: scale(1.05);
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    background: white;
+    border: 2px solid #e91e63;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    background: #fce4ec;
+    transform: scale(1.1);
+}
+
+/* Drawing Area */
+.drawing-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    gap: 10px;
+    overflow: hidden;
+}
+
+.canvas-container {
+    flex: 1;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    position: relative;
+}
+
+#drawing-canvas {
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+    touch-action: none;
+}
+
+/* Toolbar */
+.toolbar {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 15px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+}
+
+.tool-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.tool-section h3 {
+    font-family: 'Fredoka One', cursive;
+    color: #e91e63;
+    font-size: 0.9rem;
+}
+
+/* Color Palette */
+.color-palette {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.color-btn {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.color-btn:hover {
+    transform: scale(1.15);
+}
+
+.color-btn.active {
+    border-color: #333;
+    transform: scale(1.1);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+}
+
+/* Brush Sizes */
+.brush-sizes {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.brush-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 3px solid #ddd;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.brush-btn span {
+    background: #333;
+    border-radius: 50%;
+    display: block;
+}
+
+.brush-btn:hover {
+    border-color: #e91e63;
+}
+
+.brush-btn.active {
+    border-color: #e91e63;
+    background: #fce4ec;
+}
+
+/* Tools */
+.tools {
+    display: flex;
+    gap: 10px;
+}
+
+.tool-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 15px;
+    border: 3px solid #ddd;
+    background: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tool-btn:hover {
+    border-color: #e91e63;
+    transform: scale(1.05);
+}
+
+.tool-btn.active {
+    border-color: #e91e63;
+    background: #fce4ec;
+}
+
+/* Stickers */
+.stickers {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.sticker-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    border: 3px solid #ddd;
+    background: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sticker-btn:hover {
+    border-color: #e91e63;
+    transform: scale(1.1);
+}
+
+.sticker-btn.active {
+    border-color: #e91e63;
+    background: #fce4ec;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .toolbar {
+        padding: 10px;
+        gap: 15px;
+    }
+
+    .tool-section h3 {
+        font-size: 0.8rem;
+    }
+
+    .color-btn {
+        width: 30px;
+        height: 30px;
+    }
+
+    .brush-btn, .tool-btn {
+        width: 40px;
+        height: 40px;
+    }
+
+    .sticker-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 1.2rem;
+    }
+
+    .game-header h1 {
+        font-size: 1.2rem;
+    }
+
+    .stickers-section {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .drawing-area {
+        padding: 5px;
+    }
+
+    .toolbar {
+        padding: 8px;
+        gap: 10px;
+    }
+
+    .color-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    .brush-btn, .tool-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 1.2rem;
+    }
+
+    .brush-btn span {
+        transform: scale(0.7);
+    }
+}
+
+/* Save Modal */
+.save-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.save-modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 90%;
+}
+
+.save-modal h2 {
+    font-family: 'Fredoka One', cursive;
+    color: #e91e63;
+    margin-bottom: 15px;
+}
+
+.save-modal img {
+    max-width: 300px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+}
+
+.save-modal-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.save-modal button {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.save-modal .download-btn {
+    background: linear-gradient(135deg, #4caf50, #388e3c);
+    color: white;
+}
+
+.save-modal .close-btn {
+    background: linear-gradient(135deg, #e91e63, #c2185b);
+    color: white;
+}

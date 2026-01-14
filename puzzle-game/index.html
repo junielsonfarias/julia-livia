@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quebra-Cabeca - Mundo de Julia & Livia</title>
+    <base href="/puzzle-game/">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1>Quebra-Cabeca</h1>
+            <div class="game-stats">
+                <span class="moves">Jogadas: <strong id="moves">0</strong></span>
+            </div>
+        </header>
+
+        <main class="game-area">
+            <!-- Tela de Inicio -->
+            <div id="start-screen" class="screen active">
+                <div class="start-content">
+                    <div class="puzzle-preview">
+                        <span>🧩</span>
+                    </div>
+                    <h2>Quebra-Cabeca!</h2>
+                    <p>Monte a imagem colocando as pecas no lugar certo!</p>
+
+                    <div class="puzzle-select">
+                        <h3>Escolha uma imagem:</h3>
+                        <div class="puzzle-options" id="puzzle-options">
+                            <!-- Opcoes serao inseridas via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tela do Jogo -->
+            <div id="game-screen" class="screen">
+                <div class="game-content">
+                    <div class="puzzle-hint">
+                        <span id="puzzle-image"></span>
+                        <span class="hint-text">Monte esta imagem!</span>
+                    </div>
+
+                    <div class="puzzle-board" id="puzzle-board">
+                        <!-- Pecas do puzzle -->
+                    </div>
+
+                    <div class="pieces-tray" id="pieces-tray">
+                        <!-- Pecas para arrastar -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tela de Vitoria -->
+            <div id="win-screen" class="screen">
+                <div class="win-content">
+                    <div class="win-icon" id="win-image">🎉</div>
+                    <h2>Parabens!</h2>
+                    <p>Voce montou o quebra-cabeca!</p>
+                    <div class="win-stats">
+                        <span class="stat-label">Jogadas</span>
+                        <span class="stat-value" id="final-moves">0</span>
+                    </div>
+                    <div class="stars-earned" id="stars-display">
+                        <span class="star">⭐</span>
+                        <span class="star">⭐</span>
+                        <span class="star">⭐</span>
+                    </div>
+                    <div class="win-buttons">
+                        <button class="next-btn" onclick="showScreen('start-screen')">Outro Puzzle</button>
+                        <button class="menu-btn" onclick="goToMenu()">Menu</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

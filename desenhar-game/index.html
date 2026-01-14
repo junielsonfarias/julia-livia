@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Desenhar e Pintar - Mundo de Julia & Livia</title>
+    <base href="/desenhar-game/">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1>Desenhar e Pintar</h1>
+            <div class="header-actions">
+                <button class="action-btn" onclick="clearCanvas()" title="Limpar">🗑️</button>
+                <button class="action-btn" onclick="saveDrawing()" title="Salvar">💾</button>
+            </div>
+        </header>
+
+        <main class="drawing-area">
+            <div class="canvas-container">
+                <canvas id="drawing-canvas"></canvas>
+            </div>
+
+            <div class="toolbar">
+                <div class="tool-section">
+                    <h3>Cores</h3>
+                    <div class="color-palette" id="color-palette">
+                        <button class="color-btn active" data-color="#FF0000" style="background:#FF0000"></button>
+                        <button class="color-btn" data-color="#FF9800" style="background:#FF9800"></button>
+                        <button class="color-btn" data-color="#FFEB3B" style="background:#FFEB3B"></button>
+                        <button class="color-btn" data-color="#4CAF50" style="background:#4CAF50"></button>
+                        <button class="color-btn" data-color="#2196F3" style="background:#2196F3"></button>
+                        <button class="color-btn" data-color="#9C27B0" style="background:#9C27B0"></button>
+                        <button class="color-btn" data-color="#E91E63" style="background:#E91E63"></button>
+                        <button class="color-btn" data-color="#795548" style="background:#795548"></button>
+                        <button class="color-btn" data-color="#000000" style="background:#000000"></button>
+                        <button class="color-btn" data-color="#FFFFFF" style="background:#FFFFFF; border: 2px solid #ccc"></button>
+                    </div>
+                </div>
+
+                <div class="tool-section">
+                    <h3>Pincel</h3>
+                    <div class="brush-sizes" id="brush-sizes">
+                        <button class="brush-btn" data-size="5"><span style="width:10px;height:10px"></span></button>
+                        <button class="brush-btn active" data-size="15"><span style="width:20px;height:20px"></span></button>
+                        <button class="brush-btn" data-size="30"><span style="width:35px;height:35px"></span></button>
+                        <button class="brush-btn" data-size="50"><span style="width:50px;height:50px"></span></button>
+                    </div>
+                </div>
+
+                <div class="tool-section">
+                    <h3>Ferramentas</h3>
+                    <div class="tools" id="tools">
+                        <button class="tool-btn active" data-tool="brush" title="Pincel">🖌️</button>
+                        <button class="tool-btn" data-tool="eraser" title="Borracha">🧽</button>
+                        <button class="tool-btn" data-tool="fill" title="Balde">🪣</button>
+                        <button class="tool-btn" data-tool="spray" title="Spray">💨</button>
+                    </div>
+                </div>
+
+                <div class="tool-section stickers-section">
+                    <h3>Carimbos</h3>
+                    <div class="stickers" id="stickers">
+                        <button class="sticker-btn" data-sticker="⭐">⭐</button>
+                        <button class="sticker-btn" data-sticker="❤️">❤️</button>
+                        <button class="sticker-btn" data-sticker="🌈">🌈</button>
+                        <button class="sticker-btn" data-sticker="🦋">🦋</button>
+                        <button class="sticker-btn" data-sticker="🌸">🌸</button>
+                        <button class="sticker-btn" data-sticker="🐱">🐱</button>
+                        <button class="sticker-btn" data-sticker="🐶">🐶</button>
+                        <button class="sticker-btn" data-sticker="🌺">🌺</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

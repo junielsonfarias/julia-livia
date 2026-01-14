@@ -65,6 +65,22 @@
     {
       "source": "/quiz",
       "destination": "/quiz-game/index.html"
+    },
+    {
+      "source": "/desenhar",
+      "destination": "/desenhar-game/index.html"
+    },
+    {
+      "source": "/contar",
+      "destination": "/contar-game/index.html"
+    },
+    {
+      "source": "/animais",
+      "destination": "/animais-game/index.html"
+    },
+    {
+      "source": "/puzzle",
+      "destination": "/puzzle-game/index.html"
     }
   ]
 }

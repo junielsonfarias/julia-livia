@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sons dos Animais - Mundo de Julia & Livia</title>
+    <base href="/animais-game/">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1>Sons dos Animais</h1>
+            <div class="game-stats">
+                <span class="score">Pontos: <strong id="score">0</strong></span>
+            </div>
+        </header>
+
+        <main class="game-area">
+            <!-- Tela de Inicio -->
+            <div id="start-screen" class="screen active">
+                <div class="start-content">
+                    <div class="animals-preview">
+                        <span>🐶</span>
+                        <span>🐱</span>
+                        <span>🐮</span>
+                    </div>
+                    <h2>Sons dos Animais!</h2>
+                    <p>Ouca o som e encontre o animal certo!</p>
+
+                    <button class="play-btn" onclick="startGame()">
+                        <span class="play-icon">🎵</span>
+                        <span>Comecar!</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tela do Jogo -->
+            <div id="game-screen" class="screen">
+                <div class="game-content">
+                    <div class="question-area">
+                        <div class="question-text">Qual animal faz esse som?</div>
+                        <button class="sound-btn" id="sound-btn" onclick="playAnimalSound()">
+                            <span class="sound-icon">🔊</span>
+                            <span>Ouvir Som</span>
+                        </button>
+                        <div class="sound-text" id="sound-text"></div>
+                    </div>
+
+                    <div class="animals-grid" id="animals-grid">
+                        <!-- Animais aparecerao aqui -->
+                    </div>
+
+                    <div class="feedback" id="feedback"></div>
+
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tela de Vitoria -->
+            <div id="win-screen" class="screen">
+                <div class="win-content">
+                    <div class="win-icon">🏆</div>
+                    <h2>Parabens!</h2>
+                    <p>Voce conhece os sons dos animais!</p>
+                    <div class="final-score">
+                        <span class="score-label">Pontuacao</span>
+                        <span class="score-value" id="final-score">0</span>
+                    </div>
+                    <div class="stars-earned" id="stars-display">
+                        <span class="star">⭐</span>
+                        <span class="star">⭐</span>
+                        <span class="star">⭐</span>
+                    </div>
+                    <div class="win-buttons">
+                        <button class="next-btn" onclick="startGame()">Jogar de Novo</button>
+                        <button class="menu-btn" onclick="goToMenu()">Menu</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

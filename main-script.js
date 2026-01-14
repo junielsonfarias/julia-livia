@@ -70,7 +70,11 @@ function playGame(gameId) {
         'memoria': 'memoria-game/index.html',
         'cores-formas': 'cores-formas-game/index.html',
         'sequencia': 'sequencia-game/index.html',
-        'quiz': 'quiz-game/index.html'
+        'quiz': 'quiz-game/index.html',
+        'desenhar': 'desenhar-game/index.html',
+        'contar': 'contar-game/index.html',
+        'animais': 'animais-game/index.html',
+        'puzzle': 'puzzle-game/index.html'
     };
 
     const route = gameRoutes[gameId];

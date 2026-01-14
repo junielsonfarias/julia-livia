@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprender a Contar - Mundo de Julia & Livia</title>
+    <base href="/contar-game/">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1>Aprender a Contar</h1>
+            <div class="game-stats">
+                <span class="score">Pontos: <strong id="score">0</strong></span>
+                <span class="stars">&#11088; <strong id="stars">0</strong></span>
+            </div>
+        </header>
+
+        <main class="game-area">
+            <!-- Tela de Inicio -->
+            <div id="start-screen" class="screen active">
+                <div class="start-content">
+                    <div class="counting-preview">
+                        <span>1</span>
+                        <span>2</span>
+                        <span>3</span>
+                    </div>
+                    <h2>Vamos Contar!</h2>
+                    <p>Conte os objetos e escolha o numero certo!</p>
+
+                    <div class="mode-select">
+                        <button class="mode-btn" onclick="startGame('easy')">
+                            <span class="mode-icon">🐣</span>
+                            <span class="mode-name">Facil</span>
+                            <span class="mode-desc">1 a 5</span>
+                        </button>
+                        <button class="mode-btn" onclick="startGame('medium')">
+                            <span class="mode-icon">🐥</span>
+                            <span class="mode-name">Medio</span>
+                            <span class="mode-desc">1 a 10</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tela do Jogo -->
+            <div id="game-screen" class="screen">
+                <div class="game-content">
+                    <div class="question-text" id="question-text">Quantos tem?</div>
+
+                    <div class="objects-display" id="objects-display">
+                        <!-- Objetos aparecerao aqui -->
+                    </div>
+
+                    <div class="options-area" id="options-area">
+                        <!-- Opcoes de numeros -->
+                    </div>
+
+                    <div class="feedback" id="feedback"></div>
+
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tela de Vitoria -->
+            <div id="win-screen" class="screen">
+                <div class="win-content">
+                    <div class="win-icon">🎉</div>
+                    <h2>Muito Bem!</h2>
+                    <p>Voce sabe contar!</p>
+                    <div class="final-score">
+                        <span class="score-label">Pontuacao</span>
+                        <span class="score-value" id="final-score">0</span>
+                    </div>
+                    <div class="stars-earned" id="stars-display">
+                        <span class="star">⭐</span>
+                        <span class="star">⭐</span>
+                        <span class="star">⭐</span>
+                    </div>
+                    <div class="win-buttons">
+                        <button class="next-btn" onclick="playAgain()">Jogar de Novo</button>
+                        <button class="menu-btn" onclick="goToMenu()">Menu</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
