@@ -1,17 +1,54 @@
 // Jogo da Memoria - Para criancas de 4 anos
 // Mundo de Julia & Livia
 
-// Emojis de animais fofinhos para as cartas
-const ANIMALS = [
-    '🐶', '🐱', '🐰', '🦊', '🐻', '🐼',
-    '🐨', '🦁', '🐯', '🐮', '🐷', '🐸',
-    '🐵', '🐔', '🦄', '🐝', '🦋', '🐢',
-    '🐙', '🦀'
-];
+// Temas com diferentes tipos de personagens
+const THEMES = {
+    animais: {
+        name: 'Animais',
+        icon: '🐶',
+        items: ['🐶', '🐱', '🐰', '🦊', '🐻', '🐼', '🐨', '🦁', '🐯', '🐮', '🐷', '🐸', '🐵', '🦄', '🐝', '🦋', '🐢', '🐙', '🦀', '🐧']
+    },
+    frutas: {
+        name: 'Frutas',
+        icon: '🍎',
+        items: ['🍎', '🍊', '🍋', '🍇', '🍓', '🍑', '🍒', '🍌', '🍉', '🥝', '🍍', '🥭', '🍐', '🫐', '🍈', '🥥', '🍏', '🍅', '🥑', '🍆']
+    },
+    veiculos: {
+        name: 'Veiculos',
+        icon: '🚗',
+        items: ['🚗', '🚕', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '✈️', '🚀', '🛸', '🚁', '⛵', '🚢', '🚂', '🚲', '🛵', '🏍️', '🚜', '🛺']
+    },
+    comidas: {
+        name: 'Comidas',
+        icon: '🍕',
+        items: ['🍕', '🍔', '🍟', '🌭', '🍿', '🧁', '🍩', '🍪', '🎂', '🍰', '🍫', '🍬', '🍭', '🧇', '🥞', '🍦', '🥧', '🧀', '🥐', '🥯']
+    },
+    natureza: {
+        name: 'Natureza',
+        icon: '🌸',
+        items: ['🌸', '🌺', '🌻', '🌹', '🌷', '💐', '🌵', '🍀', '🌈', '⭐', '🌙', '☀️', '🌊', '❄️', '🍁', '🍂', '🌴', '🌲', '🎄', '🪻']
+    },
+    brinquedos: {
+        name: 'Brinquedos',
+        icon: '🎈',
+        items: ['🎈', '🎁', '🪀', '🧸', '🎮', '🎯', '🎨', '🎭', '🎪', '🎠', '🎡', '🎢', '🪁', '⚽', '🏀', '🎾', '🎳', '🎲', '🧩', '🪆']
+    },
+    espaco: {
+        name: 'Espaco',
+        icon: '🚀',
+        items: ['🚀', '🛸', '🌎', '🌍', '🌏', '🌕', '🌖', '🌗', '🌘', '🌑', '🌒', '🌓', '🌔', '⭐', '🌟', '💫', '✨', '☄️', '🪐', '👽']
+    },
+    rostos: {
+        name: 'Carinhas',
+        icon: '😊',
+        items: ['😊', '😄', '😃', '🥰', '😍', '🤩', '😎', '🤗', '🤭', '😇', '🥳', '😺', '😸', '😻', '🙈', '🙉', '🙊', '👶', '🧒', '👧']
+    }
+};
 
 // Estado do jogo
 let gameState = {
     level: 'easy',
+    theme: 'animais',
     cards: [],
     flippedCards: [],
     matchedPairs: 0,
@@ -58,6 +95,22 @@ function goToMenu() {
     showScreen('start-screen');
 }
 
+// Selecionar tema
+function selectTheme(themeName) {
+    gameState.theme = themeName;
+
+    // Atualizar visual dos botoes de tema
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.classList.remove('selected');
+        if (btn.dataset.theme === themeName) {
+            btn.classList.add('selected');
+        }
+    });
+
+    // Tocar som de selecao
+    playSound('select');
+}
+
 // Iniciar jogo
 function startGame(level) {
     gameState.level = level;
@@ -72,6 +125,9 @@ function startGame(level) {
     document.getElementById('moves-count').textContent = '0';
     document.getElementById('pairs-count').textContent = '0';
     document.getElementById('total-pairs').textContent = gameState.totalPairs;
+
+    // Tocar som de inicio
+    playSound('start');
 
     // Criar cartas
     createCards();
@@ -96,26 +152,29 @@ function createCards() {
     grid.innerHTML = '';
     grid.className = 'cards-grid ' + gameState.level;
 
-    // Selecionar animais aleatorios
-    const shuffledAnimals = [...ANIMALS].sort(() => Math.random() - 0.5);
-    const selectedAnimals = shuffledAnimals.slice(0, gameState.totalPairs);
+    // Obter itens do tema selecionado
+    const themeItems = THEMES[gameState.theme].items;
+
+    // Selecionar itens aleatorios
+    const shuffledItems = [...themeItems].sort(() => Math.random() - 0.5);
+    const selectedItems = shuffledItems.slice(0, gameState.totalPairs);
 
     // Criar pares
-    const cardPairs = [...selectedAnimals, ...selectedAnimals];
+    const cardPairs = [...selectedItems, ...selectedItems];
 
     // Embaralhar
     gameState.cards = cardPairs.sort(() => Math.random() - 0.5);
 
     // Criar elementos
-    gameState.cards.forEach((animal, index) => {
+    gameState.cards.forEach((item, index) => {
         const card = document.createElement('div');
         card.className = 'memory-card';
         card.dataset.index = index;
-        card.dataset.animal = animal;
+        card.dataset.item = item;
         card.innerHTML = `
             <div class="card-inner">
                 <div class="card-back"></div>
-                <div class="card-front">${animal}</div>
+                <div class="card-front">${item}</div>
             </div>
         `;
         card.addEventListener('click', () => flipCard(card));
@@ -130,7 +189,7 @@ function flipCard(card) {
     if (card.classList.contains('matched')) return;
     if (gameState.flippedCards.length >= 2) return;
 
-    // Som de clique
+    // Som de virar carta
     playSound('flip');
 
     card.classList.add('flipped');
@@ -146,12 +205,14 @@ function flipCard(card) {
 // Verificar par
 function checkMatch() {
     const [card1, card2] = gameState.flippedCards;
-    const match = card1.dataset.animal === card2.dataset.animal;
+    const match = card1.dataset.item === card2.dataset.item;
 
     gameState.isLocked = true;
 
     if (match) {
+        // Som de acerto
         playSound('match');
+
         card1.classList.add('matched');
         card2.classList.add('matched');
         gameState.matchedPairs++;
@@ -163,7 +224,9 @@ function checkMatch() {
             setTimeout(showWinScreen, 500);
         }
     } else {
+        // Som de erro
         playSound('wrong');
+
         setTimeout(() => {
             card1.classList.remove('flipped');
             card2.classList.remove('flipped');
@@ -199,11 +262,13 @@ function showWinScreen() {
             setTimeout(() => {
                 star.classList.add('earned');
                 playSound('star');
-            }, i * 300);
+            }, i * 400);
         }
     });
 
-    playSound('win');
+    // Som de vitoria
+    setTimeout(() => playSound('win'), 200);
+
     showScreen('win-screen');
 }
 
@@ -212,65 +277,136 @@ function restartGame() {
     startGame(gameState.level);
 }
 
-// Sons simples com Web Audio API
+// ==========================================
+// SISTEMA DE AUDIO MELHORADO
+// ==========================================
+
 function playSound(type) {
     try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (!AudioCtx) return;
 
         const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
+        const masterGain = ctx.createGain();
+        masterGain.connect(ctx.destination);
+        masterGain.gain.setValueAtTime(0.15, ctx.currentTime);
 
         const now = ctx.currentTime;
-        gain.gain.setValueAtTime(0.1, now);
 
         switch(type) {
             case 'flip':
-                osc.frequency.setValueAtTime(600, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                osc.start(now);
-                osc.stop(now + 0.1);
+                // Som suave de virar carta
+                playTone(ctx, masterGain, 880, now, 0.08, 'sine');
+                playTone(ctx, masterGain, 1100, now + 0.03, 0.06, 'sine');
                 break;
+
+            case 'select':
+                // Som de selecao de tema
+                playTone(ctx, masterGain, 660, now, 0.1, 'sine');
+                playTone(ctx, masterGain, 880, now + 0.08, 0.1, 'sine');
+                break;
+
+            case 'start':
+                // Som animado de inicio de jogo
+                playTone(ctx, masterGain, 523, now, 0.15, 'sine');
+                playTone(ctx, masterGain, 659, now + 0.12, 0.15, 'sine');
+                playTone(ctx, masterGain, 784, now + 0.24, 0.2, 'sine');
+                break;
+
             case 'match':
-                osc.frequency.setValueAtTime(523, now);
-                osc.frequency.setValueAtTime(659, now + 0.1);
-                osc.frequency.setValueAtTime(784, now + 0.2);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
+                // Melodia alegre de acerto - Do Mi Sol (acorde maior)
+                playTone(ctx, masterGain, 523, now, 0.15, 'sine'); // Do
+                playTone(ctx, masterGain, 659, now + 0.1, 0.15, 'sine'); // Mi
+                playTone(ctx, masterGain, 784, now + 0.2, 0.2, 'sine'); // Sol
+                playTone(ctx, masterGain, 1047, now + 0.3, 0.25, 'sine'); // Do agudo
                 break;
+
             case 'wrong':
-                osc.frequency.setValueAtTime(200, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
+                // Som triste mas gentil - notas descendentes
+                playTone(ctx, masterGain, 330, now, 0.2, 'sine');
+                playTone(ctx, masterGain, 277, now + 0.15, 0.25, 'sine');
                 break;
-            case 'win':
-                osc.frequency.setValueAtTime(523, now);
-                osc.frequency.setValueAtTime(659, now + 0.15);
-                osc.frequency.setValueAtTime(784, now + 0.3);
-                osc.frequency.setValueAtTime(1047, now + 0.45);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
-                osc.start(now);
-                osc.stop(now + 0.6);
-                break;
+
             case 'star':
-                osc.frequency.setValueAtTime(880, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                osc.start(now);
-                osc.stop(now + 0.2);
+                // Som brilhante de estrela
+                playTone(ctx, masterGain, 1047, now, 0.1, 'sine');
+                playTone(ctx, masterGain, 1319, now + 0.08, 0.15, 'sine');
+                playTone(ctx, masterGain, 1568, now + 0.16, 0.2, 'triangle');
+                break;
+
+            case 'win':
+                // Fanfarra de vitoria - melodia completa
+                const melody = [
+                    { freq: 523, time: 0, dur: 0.15 },     // Do
+                    { freq: 523, time: 0.15, dur: 0.15 },  // Do
+                    { freq: 523, time: 0.3, dur: 0.15 },   // Do
+                    { freq: 659, time: 0.45, dur: 0.3 },   // Mi
+                    { freq: 784, time: 0.75, dur: 0.15 },  // Sol
+                    { freq: 784, time: 0.9, dur: 0.15 },   // Sol
+                    { freq: 659, time: 1.05, dur: 0.15 },  // Mi
+                    { freq: 784, time: 1.2, dur: 0.15 },   // Sol
+                    { freq: 1047, time: 1.35, dur: 0.4 }   // Do agudo
+                ];
+                melody.forEach(note => {
+                    playTone(ctx, masterGain, note.freq, now + note.time, note.dur, 'sine');
+                });
                 break;
         }
 
-        setTimeout(() => ctx.close(), 1000);
-    } catch(e) {}
+        // Fechar contexto depois de um tempo
+        const maxDuration = type === 'win' ? 2000 : 800;
+        setTimeout(() => {
+            try { ctx.close(); } catch(e) {}
+        }, maxDuration);
+
+    } catch(e) {
+        console.log('Audio error:', e);
+    }
+}
+
+// Funcao auxiliar para tocar um tom
+function playTone(ctx, masterGain, frequency, startTime, duration, waveType = 'sine') {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = waveType;
+    osc.frequency.setValueAtTime(frequency, startTime);
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+
+    // Envelope suave
+    gain.gain.setValueAtTime(0.001, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.3, startTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+    osc.start(startTime);
+    osc.stop(startTime + duration + 0.05);
+}
+
+// Criar botoes de tema dinamicamente
+function createThemeButtons() {
+    const container = document.getElementById('theme-selector');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    Object.keys(THEMES).forEach(themeKey => {
+        const theme = THEMES[themeKey];
+        const btn = document.createElement('button');
+        btn.className = 'theme-btn' + (themeKey === 'animais' ? ' selected' : '');
+        btn.dataset.theme = themeKey;
+        btn.onclick = () => selectTheme(themeKey);
+        btn.innerHTML = `
+            <span class="theme-icon">${theme.icon}</span>
+            <span class="theme-name">${theme.name}</span>
+        `;
+        container.appendChild(btn);
+    });
 }
 
 // Inicializacao
 document.addEventListener('DOMContentLoaded', () => {
+    createThemeButtons();
     showScreen('start-screen');
 });

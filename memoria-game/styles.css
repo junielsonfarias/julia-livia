@@ -119,19 +119,78 @@ body {
 .start-content p {
     font-size: 1.2rem;
     color: #666;
-    margin-bottom: 30px;
-}
-
-.difficulty-select h3 {
-    font-size: 1.3rem;
-    color: #764ba2;
     margin-bottom: 20px;
 }
 
-.difficulty-select {
+/* Theme Section */
+.theme-section {
+    margin-bottom: 25px;
+}
+
+.theme-section h3 {
+    font-size: 1.2rem;
+    color: #764ba2;
+    margin-bottom: 15px;
+}
+
+.theme-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.theme-btn {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    align-items: center;
+    gap: 5px;
+    padding: 12px 16px;
+    border: 3px solid #e0e0e0;
+    border-radius: 15px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 80px;
+}
+
+.theme-btn:hover {
+    border-color: #667eea;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+}
+
+.theme-btn.selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #f0f4ff, #e8edff);
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+}
+
+.theme-icon {
+    font-size: 2rem;
+}
+
+.theme-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #555;
+}
+
+.theme-btn.selected .theme-name {
+    color: #667eea;
+}
+
+.difficulty-select {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.difficulty-select h3 {
+    font-size: 1.2rem;
+    color: #764ba2;
+    margin-bottom: 5px;
 }
 
 .level-btn {
@@ -416,6 +475,19 @@ body {
     .start-content h2, .win-content h2 {
         font-size: 1.8rem;
     }
+
+    .theme-btn {
+        padding: 10px 12px;
+        min-width: 70px;
+    }
+
+    .theme-icon {
+        font-size: 1.6rem;
+    }
+
+    .theme-name {
+        font-size: 0.7rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -470,17 +542,65 @@ body {
         margin-bottom: 8px;
     }
 
+    .start-content p {
+        margin-bottom: 12px;
+        font-size: 1rem;
+    }
+
     .game-icon, .win-icon {
-        font-size: 3rem;
+        font-size: 2.5rem;
+        margin-bottom: 8px;
+    }
+
+    .theme-section {
+        margin-bottom: 15px;
+    }
+
+    .theme-section h3 {
+        font-size: 1rem;
         margin-bottom: 10px;
     }
 
+    .theme-selector {
+        gap: 8px;
+    }
+
+    .theme-btn {
+        padding: 8px 10px;
+        min-width: 60px;
+    }
+
+    .theme-icon {
+        font-size: 1.4rem;
+    }
+
+    .theme-name {
+        font-size: 0.65rem;
+    }
+
     .difficulty-select {
-        gap: 10px;
+        gap: 8px;
+    }
+
+    .difficulty-select h3 {
+        font-size: 1rem;
+        margin-bottom: 5px;
     }
 
     .level-btn {
-        padding: 10px 18px;
+        padding: 8px 15px;
+    }
+
+    .level-icon {
+        font-size: 1.5rem;
+    }
+
+    .level-name {
+        font-size: 1rem;
+    }
+
+    .level-desc {
+        font-size: 0.85rem;
     }
 
     .cards-grid {
