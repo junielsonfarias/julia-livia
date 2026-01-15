@@ -42,6 +42,22 @@ const THEMES = {
         name: 'Carinhas',
         icon: '😊',
         items: ['😊', '😄', '😃', '🥰', '😍', '🤩', '😎', '🤗', '🤭', '😇', '🥳', '😺', '😸', '😻', '🙈', '🙉', '🙊', '👶', '🧒', '👧']
+    },
+    numeros: {
+        name: 'Numeros',
+        icon: '🔢',
+        items: ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '💯', '🥇', '🥈', '🥉', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣'],
+        // Versao alternativa com numeros estilizados para facilitar reconhecimento
+        useStyled: true,
+        styledItems: ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩', '⑪', '⑫', '⑬', '⑭', '⑮', '⑯', '⑰', '⑱', '⑲', '⑳']
+    },
+    letras: {
+        name: 'Letras',
+        icon: '🔤',
+        items: ['🅰️', '🅱️', '©️', '®️', '🅾️', '🅿️', 'Ⓜ️', '🆎', '🆑', '🆒'],
+        // Versao com letras estilizadas para o alfabeto completo
+        useStyled: true,
+        styledItems: ['Ⓐ', 'Ⓑ', 'Ⓒ', 'Ⓓ', 'Ⓔ', 'Ⓕ', 'Ⓖ', 'Ⓗ', 'Ⓘ', 'Ⓙ', 'Ⓚ', 'Ⓛ', 'Ⓜ', 'Ⓝ', 'Ⓞ', 'Ⓟ', 'Ⓠ', 'Ⓡ', 'Ⓢ', 'Ⓣ', 'Ⓤ', 'Ⓥ', 'Ⓦ', 'Ⓧ', 'Ⓨ', 'Ⓩ']
     }
 };
 
@@ -153,7 +169,9 @@ function createCards() {
     grid.className = 'cards-grid ' + gameState.level;
 
     // Obter itens do tema selecionado
-    const themeItems = THEMES[gameState.theme].items;
+    const theme = THEMES[gameState.theme];
+    // Usar itens estilizados se disponiveis, senao usar itens normais
+    const themeItems = (theme.useStyled && theme.styledItems) ? theme.styledItems : theme.items;
 
     // Selecionar itens aleatorios
     const shuffledItems = [...themeItems].sort(() => Math.random() - 0.5);
@@ -165,16 +183,23 @@ function createCards() {
     // Embaralhar
     gameState.cards = cardPairs.sort(() => Math.random() - 0.5);
 
+    // Verificar se e tema de numeros ou letras para estilo especial
+    const isTextTheme = gameState.theme === 'numeros' || gameState.theme === 'letras';
+
     // Criar elementos
     gameState.cards.forEach((item, index) => {
         const card = document.createElement('div');
         card.className = 'memory-card';
         card.dataset.index = index;
         card.dataset.item = item;
+
+        // Adicionar classe especial para temas de texto
+        const textClass = isTextTheme ? ' text-theme' : '';
+
         card.innerHTML = `
             <div class="card-inner">
                 <div class="card-back"></div>
-                <div class="card-front">${item}</div>
+                <div class="card-front${textClass}">${item}</div>
             </div>
         `;
         card.addEventListener('click', () => flipCard(card));

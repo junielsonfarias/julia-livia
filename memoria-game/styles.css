@@ -312,6 +312,20 @@ body {
     box-shadow: 0 0 20px rgba(168, 237, 234, 0.5);
 }
 
+/* Estilo especial para temas de texto (numeros e letras) */
+.card-front.text-theme {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: #667eea;
+    background: linear-gradient(135deg, #fff, #f5f7ff);
+}
+
+.memory-card.matched .card-front.text-theme {
+    color: #2ecc71;
+    background: linear-gradient(135deg, #e8f8f0, #d4f5e4);
+}
+
 /* Win Screen */
 .win-content {
     background: rgba(255, 255, 255, 0.95);
