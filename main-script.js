@@ -77,7 +77,8 @@ function playGame(gameId) {
         'puzzle': 'puzzle-game/index.html',
         'emocoes': 'emocoes-game/index.html',
         'fracoes': 'fracoes-game/index.html',
-        'ortografia': 'ortografia-game/index.html'
+        'ortografia': 'ortografia-game/index.html',
+        'corpo': 'corpo-game/index.html'
     };
 
     const route = gameRoutes[gameId];

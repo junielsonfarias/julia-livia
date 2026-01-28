@@ -1433,3 +1433,18 @@ body {
     0%, 100% { transform: scale(1) rotate(0deg); }
     50% { transform: scale(1.1) rotate(-5deg); }
 }
+
+/* Corpo Game */
+.corpo-thumb {
+    background: linear-gradient(135deg, #e1bee7 0%, #ce93d8 100%);
+}
+
+.corpo-icon {
+    font-size: 70px;
+    animation: bodyWave 2s ease-in-out infinite;
+}
+
+@keyframes bodyWave {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+}

@@ -93,6 +93,10 @@
     {
       "source": "/ortografia",
       "destination": "/ortografia-game/index.html"
+    },
+    {
+      "source": "/corpo",
+      "destination": "/corpo-game/index.html"
     }
   ]
 }

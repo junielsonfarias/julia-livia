@@ -116,13 +116,83 @@ body {
 .start-content p {
     font-size: 1.2rem;
     color: #666;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
-.puzzle-select h3 {
+/* Difficulty Selection */
+.difficulty-select {
+    margin-bottom: 20px;
+}
+
+.difficulty-select h3, .puzzle-select h3 {
     font-family: 'Fredoka One', cursive;
     color: #7b1fa2;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.difficulty-options {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.difficulty-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 20px;
+    border: 3px solid #ddd;
+    border-radius: 15px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.difficulty-btn:hover {
+    border-color: #9c27b0;
+    transform: scale(1.05);
+}
+
+.difficulty-btn.selected {
+    border-color: #9c27b0;
+    background: #f3e5f5;
+}
+
+.difficulty-btn.easy {
+    border-color: #4caf50;
+}
+
+.difficulty-btn.easy.selected {
+    background: #e8f5e9;
+}
+
+.difficulty-btn.medium {
+    border-color: #ff9800;
+}
+
+.difficulty-btn.medium.selected {
+    background: #fff8e1;
+}
+
+.difficulty-btn.hard {
+    border-color: #f44336;
+}
+
+.difficulty-btn.hard.selected {
+    background: #ffebee;
+}
+
+.diff-grid {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    color: #333;
+}
+
+.diff-name {
+    font-size: 0.8rem;
+    color: #666;
 }
 
 .puzzle-options {
@@ -148,6 +218,39 @@ body {
     border-color: #9c27b0;
     transform: scale(1.05);
     box-shadow: 0 5px 20px rgba(156, 39, 176, 0.3);
+}
+
+/* Number and Letter puzzle options */
+.number-puzzle, .letter-puzzle {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+}
+
+.number-icon, .letter-icon {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    color: #1976d2;
+}
+
+.letter-puzzle {
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+}
+
+.letter-icon {
+    color: #388e3c;
+}
+
+/* Text pieces (numbers/letters) */
+.puzzle-piece.text-piece {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    color: #333;
+    background: linear-gradient(135deg, #fff, #f5f5f5);
+}
+
+.puzzle-slot.text-filled {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    color: #333;
 }
 
 /* Game Screen */

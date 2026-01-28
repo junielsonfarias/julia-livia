@@ -1,20 +1,46 @@
 // Jogo de Sons dos Animais - Para criancas de 4 anos
 // Mundo de Julia & Livia
+// BNCC: EI03ET03 - Identificar e selecionar fontes de informacoes, seres vivos e ambiente
 
-// Animais e seus sons
+// Animais e seus sons com habitats
 const ANIMALS = [
-    { emoji: '🐶', name: 'Cachorro', sound: 'Au au!', freq: [300, 400, 300] },
-    { emoji: '🐱', name: 'Gato', sound: 'Miau!', freq: [600, 800, 600] },
-    { emoji: '🐮', name: 'Vaca', sound: 'Muuu!', freq: [150, 150, 120] },
-    { emoji: '🐷', name: 'Porco', sound: 'Oinc oinc!', freq: [350, 380, 350] },
-    { emoji: '🐔', name: 'Galinha', sound: 'Cocorico!', freq: [500, 700, 900] },
-    { emoji: '🐸', name: 'Sapo', sound: 'Croac!', freq: [200, 250, 200] },
-    { emoji: '🦁', name: 'Leao', sound: 'Roar!', freq: [100, 120, 80] },
-    { emoji: '🐴', name: 'Cavalo', sound: 'Rinchar!', freq: [400, 500, 600] },
-    { emoji: '🐑', name: 'Ovelha', sound: 'Bee!', freq: [450, 500, 450] },
-    { emoji: '🦆', name: 'Pato', sound: 'Quack!', freq: [350, 400, 350] },
-    { emoji: '🐝', name: 'Abelha', sound: 'Bzzzz!', freq: [300, 320, 300] },
-    { emoji: '🦊', name: 'Raposa', sound: 'Yip yip!', freq: [500, 600, 500] }
+    // Fazenda
+    { emoji: '🐶', name: 'Cachorro', sound: 'Au au!', freq: [300, 400, 300], habitat: 'fazenda' },
+    { emoji: '🐱', name: 'Gato', sound: 'Miau!', freq: [600, 800, 600], habitat: 'fazenda' },
+    { emoji: '🐮', name: 'Vaca', sound: 'Muuu!', freq: [150, 150, 120], habitat: 'fazenda' },
+    { emoji: '🐷', name: 'Porco', sound: 'Oinc oinc!', freq: [350, 380, 350], habitat: 'fazenda' },
+    { emoji: '🐔', name: 'Galinha', sound: 'Cocorico!', freq: [500, 700, 900], habitat: 'fazenda' },
+    { emoji: '🐴', name: 'Cavalo', sound: 'Rinchar!', freq: [400, 500, 600], habitat: 'fazenda' },
+    { emoji: '🐑', name: 'Ovelha', sound: 'Bee!', freq: [450, 500, 450], habitat: 'fazenda' },
+    { emoji: '🦆', name: 'Pato', sound: 'Quack!', freq: [350, 400, 350], habitat: 'fazenda' },
+
+    // Floresta
+    { emoji: '🐸', name: 'Sapo', sound: 'Croac!', freq: [200, 250, 200], habitat: 'floresta' },
+    { emoji: '🦁', name: 'Leao', sound: 'Roar!', freq: [100, 120, 80], habitat: 'floresta' },
+    { emoji: '🦊', name: 'Raposa', sound: 'Yip yip!', freq: [500, 600, 500], habitat: 'floresta' },
+    { emoji: '🐻', name: 'Urso', sound: 'Grrr!', freq: [120, 100, 90], habitat: 'floresta' },
+    { emoji: '🦉', name: 'Coruja', sound: 'Uhu uhu!', freq: [300, 350, 300], habitat: 'floresta' },
+    { emoji: '🐒', name: 'Macaco', sound: 'Uh uh ah!', freq: [400, 500, 450], habitat: 'floresta' },
+
+    // Mar/Agua
+    { emoji: '🐟', name: 'Peixe', sound: 'Blub blub!', freq: [500, 400, 500], habitat: 'mar' },
+    { emoji: '🐢', name: 'Tartaruga', sound: '...', freq: [200, 200, 200], habitat: 'mar' },
+    { emoji: '🐬', name: 'Golfinho', sound: 'Click click!', freq: [800, 1000, 800], habitat: 'mar' },
+    { emoji: '🦀', name: 'Caranguejo', sound: 'Clac clac!', freq: [600, 650, 600], habitat: 'mar' },
+
+    // Jardim
+    { emoji: '🐝', name: 'Abelha', sound: 'Bzzzz!', freq: [300, 320, 300], habitat: 'jardim' },
+    { emoji: '🦋', name: 'Borboleta', sound: '...', freq: [700, 800, 700], habitat: 'jardim' },
+    { emoji: '🐦', name: 'Passaro', sound: 'Piu piu!', freq: [800, 900, 800], habitat: 'jardim' },
+    { emoji: '🐌', name: 'Caracol', sound: '...', freq: [200, 200, 200], habitat: 'jardim' }
+];
+
+// Habitats disponiveis
+const HABITATS = [
+    { id: 'fazenda', name: 'Fazenda', emoji: '🏡', color: '#8B4513' },
+    { id: 'floresta', name: 'Floresta', emoji: '🌲', color: '#228B22' },
+    { id: 'mar', name: 'Mar', emoji: '🌊', color: '#1E90FF' },
+    { id: 'jardim', name: 'Jardim', emoji: '🌻', color: '#FFD700' }
 ];
 
 // Estado do jogo
@@ -23,7 +49,8 @@ let gameState = {
     currentAnimal: null,
     questionsAnswered: 0,
     questionsPerLevel: 8,
-    usedAnimals: []
+    usedAnimals: [],
+    gameMode: 'sounds' // 'sounds' ou 'habitat'
 };
 
 // Funcao para voltar
@@ -57,13 +84,23 @@ function goToMenu() {
     showScreen('start-screen');
 }
 
-// Iniciar jogo
-function startGame() {
+// Iniciar jogo com modo selecionado
+function startGame(mode) {
+    gameState.gameMode = mode || 'sounds';
     gameState.score = 0;
     gameState.questionsAnswered = 0;
     gameState.usedAnimals = [];
     updateStats();
     updateProgress();
+
+    // Atualizar titulo do header baseado no modo
+    const headerTitle = document.querySelector('.game-header h1');
+    if (gameState.gameMode === 'habitat') {
+        headerTitle.textContent = 'Onde Mora?';
+    } else {
+        headerTitle.textContent = 'Sons dos Animais';
+    }
+
     nextQuestion();
     showScreen('game-screen');
 }
@@ -77,7 +114,19 @@ function updateStats() {
 function nextQuestion() {
     document.getElementById('feedback').textContent = '';
     document.getElementById('feedback').className = 'feedback';
-    document.getElementById('sound-text').textContent = '';
+
+    const soundText = document.getElementById('sound-text');
+    const soundBtn = document.getElementById('sound-btn');
+    const questionText = document.getElementById('question-text');
+
+    if (gameState.gameMode === 'sounds') {
+        soundText.textContent = '';
+        soundBtn.style.display = 'inline-flex';
+        questionText.textContent = 'Qual animal faz esse som?';
+    } else {
+        soundText.textContent = '';
+        soundBtn.style.display = 'none';
+    }
 
     // Selecionar animal aleatorio nao usado
     let availableAnimals = ANIMALS.filter(a => !gameState.usedAnimals.includes(a.name));
@@ -89,6 +138,15 @@ function nextQuestion() {
     gameState.currentAnimal = availableAnimals[Math.floor(Math.random() * availableAnimals.length)];
     gameState.usedAnimals.push(gameState.currentAnimal.name);
 
+    if (gameState.gameMode === 'habitat') {
+        setupHabitatQuestion();
+    } else {
+        setupSoundQuestion();
+    }
+}
+
+// Configurar pergunta de som
+function setupSoundQuestion() {
     // Criar opcoes (animal correto + 5 aleatorios)
     const otherAnimals = ANIMALS.filter(a => a.name !== gameState.currentAnimal.name);
     const shuffledOthers = otherAnimals.sort(() => Math.random() - 0.5).slice(0, 5);
@@ -97,6 +155,7 @@ function nextQuestion() {
     // Criar grid de animais
     const grid = document.getElementById('animals-grid');
     grid.innerHTML = '';
+    grid.className = 'animals-grid';
 
     options.forEach(animal => {
         const btn = document.createElement('button');
@@ -111,6 +170,32 @@ function nextQuestion() {
 
     // Tocar som automaticamente apos um pequeno delay
     setTimeout(playAnimalSound, 500);
+}
+
+// Configurar pergunta de habitat
+function setupHabitatQuestion() {
+    const questionText = document.getElementById('question-text');
+    questionText.innerHTML = `Onde vive o <span class="highlight-animal">${gameState.currentAnimal.emoji} ${gameState.currentAnimal.name}</span>?`;
+
+    // Criar grid de habitats
+    const grid = document.getElementById('animals-grid');
+    grid.innerHTML = '';
+    grid.className = 'animals-grid habitat-grid';
+
+    // Embaralhar habitats
+    const shuffledHabitats = [...HABITATS].sort(() => Math.random() - 0.5);
+
+    shuffledHabitats.forEach(habitat => {
+        const btn = document.createElement('button');
+        btn.className = 'habitat-btn';
+        btn.style.setProperty('--habitat-color', habitat.color);
+        btn.innerHTML = `
+            <span class="habitat-emoji">${habitat.emoji}</span>
+            <span class="habitat-name">${habitat.name}</span>
+        `;
+        btn.onclick = () => checkHabitatAnswer(habitat);
+        grid.appendChild(btn);
+    });
 }
 
 // Tocar som do animal
@@ -153,7 +238,7 @@ function playAnimalTone(frequencies) {
     } catch(e) {}
 }
 
-// Verificar resposta
+// Verificar resposta (modo som)
 function checkAnswer(animal) {
     const feedbackEl = document.getElementById('feedback');
     const buttons = document.querySelectorAll('.animal-btn');
@@ -171,6 +256,35 @@ function checkAnswer(animal) {
         }
     });
 
+    handleAnswerResult(isCorrect, feedbackEl, `Era o ${gameState.currentAnimal.name}!`);
+}
+
+// Verificar resposta (modo habitat)
+function checkHabitatAnswer(habitat) {
+    const feedbackEl = document.getElementById('feedback');
+    const buttons = document.querySelectorAll('.habitat-btn');
+    const isCorrect = habitat.id === gameState.currentAnimal.habitat;
+
+    // Encontrar o habitat correto
+    const correctHabitat = HABITATS.find(h => h.id === gameState.currentAnimal.habitat);
+
+    // Desabilitar botoes
+    buttons.forEach(btn => {
+        btn.style.pointerEvents = 'none';
+        const name = btn.querySelector('.habitat-name').textContent;
+        if (name === habitat.name) {
+            btn.classList.add(isCorrect ? 'correct' : 'wrong');
+        }
+        if (name === correctHabitat.name) {
+            btn.classList.add('correct');
+        }
+    });
+
+    handleAnswerResult(isCorrect, feedbackEl, `${gameState.currentAnimal.name} vive na ${correctHabitat.name}!`);
+}
+
+// Processar resultado da resposta
+function handleAnswerResult(isCorrect, feedbackEl, wrongMessage) {
     if (isCorrect) {
         playSound('correct');
         feedbackEl.textContent = getRandomPraise();
@@ -187,7 +301,7 @@ function checkAnswer(animal) {
         }
     } else {
         playSound('wrong');
-        feedbackEl.textContent = `Era o ${gameState.currentAnimal.name}!`;
+        feedbackEl.textContent = wrongMessage;
         feedbackEl.className = 'feedback wrong';
 
         setTimeout(nextQuestion, 2000);
@@ -219,6 +333,14 @@ function updateProgress() {
 function showWinScreen() {
     document.getElementById('final-score').textContent = gameState.score;
 
+    // Atualizar mensagem baseado no modo
+    const winMessage = document.querySelector('.win-content p');
+    if (gameState.gameMode === 'habitat') {
+        winMessage.textContent = 'Voce sabe onde os animais moram!';
+    } else {
+        winMessage.textContent = 'Voce conhece os sons dos animais!';
+    }
+
     // Calcular estrelas
     const maxScore = gameState.questionsPerLevel * 10;
     const percentage = gameState.score / maxScore;
@@ -240,6 +362,11 @@ function showWinScreen() {
 
     playSound('win');
     showScreen('win-screen');
+}
+
+// Jogar novamente com mesmo modo
+function playAgain() {
+    startGame(gameState.gameMode);
 }
 
 // Sons do sistema

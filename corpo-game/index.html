@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo dos Animais - Mundo de Julia & Livia</title>
-    <base href="/animais-game/">
+    <title>Corpo Humano - Mundo de Julia & Livia</title>
+    <base href="/corpo-game/">
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
@@ -12,7 +12,7 @@
     <div class="game-container">
         <header class="game-header">
             <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
-            <h1>Jogo dos Animais</h1>
+            <h1>Corpo Humano</h1>
             <div class="game-stats">
                 <span class="score">Pontos: <strong id="score">0</strong></span>
             </div>
@@ -22,27 +22,28 @@
             <!-- Tela de Inicio -->
             <div id="start-screen" class="screen active">
                 <div class="start-content">
-                    <div class="animals-preview">
-                        <span>🐶</span>
-                        <span>🦁</span>
-                        <span>🐬</span>
+                    <div class="body-preview">
+                        <div class="preview-person">
+                            <div class="preview-head">😊</div>
+                            <div class="preview-body">🧍</div>
+                        </div>
                     </div>
-                    <h2>Jogo dos Animais!</h2>
-                    <p>Escolha como quer brincar:</p>
+                    <h2>Corpo Humano!</h2>
+                    <p>Aprenda as partes do corpo!</p>
 
                     <div class="mode-select">
-                        <button class="mode-btn sounds-mode" onclick="startGame('sounds')">
-                            <span class="mode-icon">🔊</span>
+                        <button class="mode-btn identify-mode" onclick="startGame('identify')">
+                            <span class="mode-icon">👆</span>
                             <div class="mode-info">
-                                <span class="mode-name">Sons dos Animais</span>
-                                <span class="mode-desc">Ouca e encontre o animal!</span>
+                                <span class="mode-name">Onde Esta?</span>
+                                <span class="mode-desc">Encontre a parte do corpo!</span>
                             </div>
                         </button>
-                        <button class="mode-btn habitat-mode" onclick="startGame('habitat')">
-                            <span class="mode-icon">🏡</span>
+                        <button class="mode-btn name-mode" onclick="startGame('name')">
+                            <span class="mode-icon">📝</span>
                             <div class="mode-info">
-                                <span class="mode-name">Onde Mora?</span>
-                                <span class="mode-desc">Descubra onde os animais vivem!</span>
+                                <span class="mode-name">Qual e o Nome?</span>
+                                <span class="mode-desc">Descubra o nome da parte!</span>
                             </div>
                         </button>
                     </div>
@@ -53,16 +54,11 @@
             <div id="game-screen" class="screen">
                 <div class="game-content">
                     <div class="question-area">
-                        <div class="question-text" id="question-text">Qual animal faz esse som?</div>
-                        <button class="sound-btn" id="sound-btn" onclick="playAnimalSound()">
-                            <span class="sound-icon">🔊</span>
-                            <span>Ouvir Som</span>
-                        </button>
-                        <div class="sound-text" id="sound-text"></div>
+                        <div class="question-text" id="question-text">Onde esta a cabeca?</div>
                     </div>
 
-                    <div class="animals-grid" id="animals-grid">
-                        <!-- Animais/Habitats aparecerao aqui -->
+                    <div class="body-area" id="body-area">
+                        <!-- Corpo ou opcoes aparecerao aqui -->
                     </div>
 
                     <div class="feedback" id="feedback"></div>
@@ -78,7 +74,7 @@
                 <div class="win-content">
                     <div class="win-icon">🏆</div>
                     <h2>Parabens!</h2>
-                    <p>Voce conhece os animais!</p>
+                    <p>Voce conhece o corpo humano!</p>
                     <div class="final-score">
                         <span class="score-label">Pontuacao</span>
                         <span class="score-value" id="final-score">0</span>
