@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo das Fracoes - Mundo de Julia & Livia</title>
+    <base href="/fracoes-game/">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1>Jogo das Fracoes</h1>
+            <div class="game-stats">
+                <span class="score">Pontos: <strong id="score">0</strong></span>
+                <span class="question-num">Pergunta: <strong id="question-num">1</strong>/<strong id="total-questions">10</strong></span>
+            </div>
+        </header>
+
+        <main class="game-area">
+            <!-- Tela de Inicio -->
+            <div id="start-screen" class="screen active">
+                <div class="start-content">
+                    <div class="fractions-preview">
+                        <div class="preview-fraction">
+                            <span class="num">1</span>
+                            <span class="bar"></span>
+                            <span class="den">2</span>
+                        </div>
+                        <div class="preview-fraction">
+                            <span class="num">3</span>
+                            <span class="bar"></span>
+                            <span class="den">4</span>
+                        </div>
+                    </div>
+                    <h2>Jogo das Fracoes!</h2>
+                    <p>Aprenda fracoes de forma visual e divertida!</p>
+
+                    <div class="mode-select">
+                        <button class="mode-btn" onclick="startGame('identify')">
+                            <span class="mode-icon">🍕</span>
+                            <span class="mode-name">Identificar Fracao</span>
+                            <span class="mode-desc">Veja a figura, escolha a fracao</span>
+                        </button>
+                        <button class="mode-btn" onclick="startGame('compare')">
+                            <span class="mode-icon">⚖️</span>
+                            <span class="mode-name">Comparar Fracoes</span>
+                            <span class="mode-desc">Qual fracao e maior?</span>
+                        </button>
+                        <button class="mode-btn" onclick="startGame('equivalent')">
+                            <span class="mode-icon">🎯</span>
+                            <span class="mode-name">Fracoes Equivalentes</span>
+                            <span class="mode-desc">Encontre a fracao igual</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tela do Jogo -->
+            <div id="game-screen" class="screen">
+                <div class="game-content">
+                    <div class="question-text" id="question-text">Qual fracao representa a parte colorida?</div>
+
+                    <div class="fraction-display" id="fraction-display">
+                        <!-- Visualizacao da fracao -->
+                    </div>
+
+                    <div class="options-area" id="options-area">
+                        <!-- Opcoes -->
+                    </div>
+
+                    <div class="feedback" id="feedback"></div>
+
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tela de Resultado -->
+            <div id="result-screen" class="screen">
+                <div class="result-content">
+                    <div class="result-icon" id="result-icon">🏆</div>
+                    <h2 id="result-title">Muito Bem!</h2>
+                    <p id="result-message">Voce entende fracoes!</p>
+
+                    <div class="score-display">
+                        <div class="score-circle">
+                            <span class="score-number" id="final-score">0</span>
+                            <span class="score-text">pontos</span>
+                        </div>
+                    </div>
+
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <span class="stat-value" id="correct-count">0</span>
+                            <span class="stat-label">Acertos</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="wrong-count">0</span>
+                            <span class="stat-label">Erros</span>
+                        </div>
+                    </div>
+
+                    <div class="stars-earned" id="stars-display">
+                        <span class="star">⭐</span>
+                        <span class="star">⭐</span>
+                        <span class="star">⭐</span>
+                    </div>
+
+                    <div class="result-buttons">
+                        <button class="play-again-btn" onclick="playAgain()">Jogar Novamente</button>
+                        <button class="menu-btn" onclick="goToMenu()">Menu</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

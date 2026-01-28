@@ -1387,3 +1387,49 @@ body {
     0%, 100% { transform: rotate(-10deg); }
     50% { transform: rotate(10deg); }
 }
+
+/* Emocoes Game */
+.emocoes-thumb {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+.emocoes-icon {
+    font-size: 70px;
+    animation: emotionPulse 2s ease-in-out infinite;
+}
+
+@keyframes emotionPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+}
+
+/* Fracoes Game */
+.fracoes-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.fracoes-icon {
+    font-size: 70px;
+    animation: pizzaSpin 3s ease-in-out infinite;
+}
+
+@keyframes pizzaSpin {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(10deg); }
+    75% { transform: rotate(-10deg); }
+}
+
+/* Ortografia Game */
+.ortografia-thumb {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.ortografia-icon {
+    font-size: 70px;
+    animation: writePulse 2s ease-in-out infinite;
+}
+
+@keyframes writePulse {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.1) rotate(-5deg); }
+}

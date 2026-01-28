@@ -81,6 +81,18 @@
     {
       "source": "/puzzle",
       "destination": "/puzzle-game/index.html"
+    },
+    {
+      "source": "/emocoes",
+      "destination": "/emocoes-game/index.html"
+    },
+    {
+      "source": "/fracoes",
+      "destination": "/fracoes-game/index.html"
+    },
+    {
+      "source": "/ortografia",
+      "destination": "/ortografia-game/index.html"
     }
   ]
 }

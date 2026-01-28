@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Ortografia - Mundo de Julia & Livia</title>
+    <base href="/ortografia-game/">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1>Jogo de Ortografia</h1>
+            <div class="game-stats">
+                <span class="score">Pontos: <strong id="score">0</strong></span>
+                <span class="question-num">Pergunta: <strong id="question-num">1</strong>/<strong id="total-questions">10</strong></span>
+            </div>
+        </header>
+
+        <main class="game-area">
+            <!-- Tela de Inicio -->
+            <div id="start-screen" class="screen active">
+                <div class="start-content">
+                    <div class="letters-preview">
+                        <span class="letter">A</span>
+                        <span class="letter">B</span>
+                        <span class="letter">C</span>
+                    </div>
+                    <h2>Jogo de Ortografia!</h2>
+                    <p>Complete as palavras com a letra correta!</p>
+
+                    <div class="mode-select">
+                        <button class="mode-btn" onclick="startGame('ss_s')">
+                            <span class="mode-icon">S</span>
+                            <span class="mode-name">S ou SS</span>
+                            <span class="mode-desc">ca_a, pa_aro</span>
+                        </button>
+                        <button class="mode-btn" onclick="startGame('c_ç')">
+                            <span class="mode-icon">Ç</span>
+                            <span class="mode-name">C ou Ç</span>
+                            <span class="mode-desc">crian_a, _asa</span>
+                        </button>
+                        <button class="mode-btn" onclick="startGame('g_j')">
+                            <span class="mode-icon">G</span>
+                            <span class="mode-name">G ou J</span>
+                            <span class="mode-desc">via_em, _irafa</span>
+                        </button>
+                        <button class="mode-btn" onclick="startGame('x_ch')">
+                            <span class="mode-icon">X</span>
+                            <span class="mode-name">X ou CH</span>
+                            <span class="mode-desc">_uva, _ave</span>
+                        </button>
+                        <button class="mode-btn mixed" onclick="startGame('mixed')">
+                            <span class="mode-icon">🌟</span>
+                            <span class="mode-name">Misturado</span>
+                            <span class="mode-desc">Todos os tipos</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tela do Jogo -->
+            <div id="game-screen" class="screen">
+                <div class="game-content">
+                    <div class="question-text" id="question-text">Complete a palavra:</div>
+
+                    <div class="word-display" id="word-display">
+                        <!-- Palavra com lacuna -->
+                    </div>
+
+                    <div class="hint-text" id="hint-text"></div>
+
+                    <div class="options-area" id="options-area">
+                        <!-- Opcoes de letras -->
+                    </div>
+
+                    <div class="feedback" id="feedback"></div>
+
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tela de Resultado -->
+            <div id="result-screen" class="screen">
+                <div class="result-content">
+                    <div class="result-icon" id="result-icon">🏆</div>
+                    <h2 id="result-title">Muito Bem!</h2>
+                    <p id="result-message">Voce escreve muito bem!</p>
+
+                    <div class="score-display">
+                        <div class="score-circle">
+                            <span class="score-number" id="final-score">0</span>
+                            <span class="score-text">pontos</span>
+                        </div>
+                    </div>
+
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <span class="stat-value" id="correct-count">0</span>
+                            <span class="stat-label">Acertos</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="wrong-count">0</span>
+                            <span class="stat-label">Erros</span>
+                        </div>
+                    </div>
+
+                    <div class="stars-earned" id="stars-display">
+                        <span class="star">⭐</span>
+                        <span class="star">⭐</span>
+                        <span class="star">⭐</span>
+                    </div>
+
+                    <div class="result-buttons">
+                        <button class="play-again-btn" onclick="playAgain()">Jogar Novamente</button>
+                        <button class="menu-btn" onclick="goToMenu()">Menu</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

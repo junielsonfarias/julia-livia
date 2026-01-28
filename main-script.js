@@ -74,7 +74,10 @@ function playGame(gameId) {
         'desenhar': 'desenhar-game/index.html',
         'contar': 'contar-game/index.html',
         'animais': 'animais-game/index.html',
-        'puzzle': 'puzzle-game/index.html'
+        'puzzle': 'puzzle-game/index.html',
+        'emocoes': 'emocoes-game/index.html',
+        'fracoes': 'fracoes-game/index.html',
+        'ortografia': 'ortografia-game/index.html'
     };
 
     const route = gameRoutes[gameId];
