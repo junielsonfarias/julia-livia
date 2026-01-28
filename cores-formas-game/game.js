@@ -15,7 +15,11 @@ const COLORS = [
 const SHAPES = [
     { name: 'circulo', class: 'circle', ptName: 'Circulo' },
     { name: 'quadrado', class: 'square', ptName: 'Quadrado' },
-    { name: 'triangulo', class: 'triangle', ptName: 'Triangulo' }
+    { name: 'triangulo', class: 'triangle', ptName: 'Triangulo' },
+    { name: 'retangulo', class: 'rectangle', ptName: 'Retangulo' },
+    { name: 'losango', class: 'diamond', ptName: 'Losango' },
+    { name: 'oval', class: 'oval', ptName: 'Oval' },
+    { name: 'estrela', class: 'star', ptName: 'Estrela' }
 ];
 
 // Estado do jogo

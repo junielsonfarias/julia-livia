@@ -250,6 +250,68 @@ const QUESTIONS = {
             options: ["Bando", "Alcateia", "Manada", "Cardume"],
             correct: 1
         }
+    ],
+    historia: [
+        {
+            question: "Quem descobriu o Brasil?",
+            options: ["Cristovao Colombo", "Pedro Alvares Cabral", "Vasco da Gama", "Americo Vespucio"],
+            correct: 1
+        },
+        {
+            question: "Em que ano o Brasil foi descoberto?",
+            options: ["1492", "1500", "1530", "1600"],
+            correct: 1
+        },
+        {
+            question: "Quem proclamou a Independencia do Brasil?",
+            options: ["Tiradentes", "Dom Pedro I", "Dom Pedro II", "Getulio Vargas"],
+            correct: 1
+        },
+        {
+            question: "Em que ano o Brasil se tornou independente?",
+            options: ["1500", "1792", "1822", "1889"],
+            correct: 2
+        },
+        {
+            question: "Qual foi o grito de independencia do Brasil?",
+            options: ["Liberdade ou Morte!", "Independencia ou Morte!", "Viva o Brasil!", "Patria Amada!"],
+            correct: 1
+        },
+        {
+            question: "Em que ano foi proclamada a Republica no Brasil?",
+            options: ["1822", "1850", "1889", "1900"],
+            correct: 2
+        },
+        {
+            question: "Quem proclamou a Republica no Brasil?",
+            options: ["Dom Pedro II", "Marechal Deodoro", "Getulio Vargas", "Tiradentes"],
+            correct: 1
+        },
+        {
+            question: "Quem foi Tiradentes?",
+            options: ["Um imperador", "Um lider da Inconfidencia Mineira", "Um presidente", "Um bandeirante"],
+            correct: 1
+        },
+        {
+            question: "Em que dia comemoramos a Independencia do Brasil?",
+            options: ["15 de Novembro", "7 de Setembro", "21 de Abril", "1 de Maio"],
+            correct: 1
+        },
+        {
+            question: "Qual era o nome do Brasil quando foi descoberto?",
+            options: ["Brasil", "Terra de Santa Cruz", "Republica", "Imperio"],
+            correct: 1
+        },
+        {
+            question: "Quem foi o primeiro presidente do Brasil?",
+            options: ["Getulio Vargas", "Marechal Deodoro", "Dom Pedro I", "Juscelino"],
+            correct: 1
+        },
+        {
+            question: "De qual pais o Brasil foi colonia?",
+            options: ["Espanha", "Franca", "Portugal", "Inglaterra"],
+            correct: 2
+        }
     ]
 };
 
@@ -344,7 +406,8 @@ function showQuestion() {
         matematica: 'Matematica',
         ciencias: 'Ciencias',
         geografia: 'Geografia',
-        portugues: 'Portugues'
+        portugues: 'Portugues',
+        historia: 'Historia'
     };
 
     document.getElementById('category-badge').textContent = categoryNames[question.category] || 'Quiz';

@@ -240,14 +240,43 @@ body {
     border-bottom: 69px solid;
     background: transparent !important;
 }
+.target-shape.rectangle {
+    width: 100px;
+    height: 60px;
+    border-radius: 8px;
+}
+.target-shape.diamond {
+    width: 60px;
+    height: 60px;
+    transform: rotate(45deg);
+    border-radius: 5px;
+}
+.target-shape.oval {
+    width: 100px;
+    height: 60px;
+    border-radius: 50%;
+}
 .target-shape.star {
-    font-size: 80px;
-    line-height: 1;
+    width: 0;
+    height: 0;
+    background: transparent !important;
+    position: relative;
 }
-.target-shape.heart {
+.target-shape.star::before {
+    content: '★';
     font-size: 80px;
-    line-height: 1;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
+.target-shape.star.red::before { color: #f44336; }
+.target-shape.star.blue::before { color: #2196f3; }
+.target-shape.star.yellow::before { color: #ffeb3b; }
+.target-shape.star.green::before { color: #4caf50; }
+.target-shape.star.purple::before { color: #9c27b0; }
+.target-shape.star.orange::before { color: #ff9800; }
+.target-shape.star.pink::before { color: #e91e63; }
 
 /* Cores */
 .red { background: #f44336; }
@@ -330,6 +359,52 @@ body {
     border-bottom: 52px solid;
     background: transparent !important;
 }
+.option-shape.rectangle {
+    width: 70px;
+    height: 40px;
+    border-radius: 6px;
+}
+.option-shape.diamond {
+    width: 45px;
+    height: 45px;
+    transform: rotate(45deg);
+    border-radius: 4px;
+}
+.option-shape.oval {
+    width: 70px;
+    height: 45px;
+    border-radius: 50%;
+}
+.option-shape.star {
+    width: 60px;
+    height: 60px;
+    background: transparent !important;
+    position: relative;
+}
+.option-shape.star::before {
+    content: '★';
+    font-size: 50px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.option-shape.star.red::before { color: #f44336; }
+.option-shape.star.blue::before { color: #2196f3; }
+.option-shape.star.yellow::before { color: #ffeb3b; }
+.option-shape.star.green::before { color: #4caf50; }
+.option-shape.star.purple::before { color: #9c27b0; }
+.option-shape.star.orange::before { color: #ff9800; }
+.option-shape.star.pink::before { color: #e91e63; }
+
+/* Cores para losango */
+.diamond.red { background: #f44336; }
+.diamond.blue { background: #2196f3; }
+.diamond.yellow { background: #ffeb3b; }
+.diamond.green { background: #4caf50; }
+.diamond.purple { background: #9c27b0; }
+.diamond.orange { background: #ff9800; }
+.diamond.pink { background: #e91e63; }
 
 /* Feedback */
 .feedback {

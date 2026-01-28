@@ -31,6 +31,7 @@
                     <h2>Vamos Contar!</h2>
                     <p>Conte os objetos e escolha o numero certo!</p>
 
+                    <h3 class="section-title">Modo Contar:</h3>
                     <div class="mode-select">
                         <button class="mode-btn" onclick="startGame('easy')">
                             <span class="mode-icon">🐣</span>
@@ -41,6 +42,25 @@
                             <span class="mode-icon">🐥</span>
                             <span class="mode-name">Medio</span>
                             <span class="mode-desc">1 a 10</span>
+                        </button>
+                        <button class="mode-btn" onclick="startGame('hard')">
+                            <span class="mode-icon">🦅</span>
+                            <span class="mode-name">Dificil</span>
+                            <span class="mode-desc">1 a 20</span>
+                        </button>
+                    </div>
+
+                    <h3 class="section-title">Modo Comparar:</h3>
+                    <div class="mode-select">
+                        <button class="mode-btn compare" onclick="startCompareGame('easy')">
+                            <span class="mode-icon">🤔</span>
+                            <span class="mode-name">Qual tem mais?</span>
+                            <span class="mode-desc">Facil</span>
+                        </button>
+                        <button class="mode-btn compare" onclick="startCompareGame('medium')">
+                            <span class="mode-icon">🧐</span>
+                            <span class="mode-name">Qual tem mais?</span>
+                            <span class="mode-desc">Medio</span>
                         </button>
                     </div>
                 </div>
