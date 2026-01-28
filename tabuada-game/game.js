@@ -450,9 +450,23 @@
 
     function showExplanation(q){
         if (!q) return;
-        const plus = Array(q.b).fill(q.a).join(' + ');
-        const grid = generateGrid(q.a,q.b);
-        $('hint-area').innerHTML = `<strong>Adição repetida:</strong> ${plus} = ${q.answer}<br><strong>Visual:</strong><br>${grid}`;
+        let explanation = '';
+
+        if (q.op === '+') {
+            explanation = `<strong>Soma:</strong> ${q.a} + ${q.b} = ${q.answer}`;
+        } else if (q.op === '-') {
+            explanation = `<strong>Subtração:</strong> ${q.a} - ${q.b} = ${q.answer}`;
+        } else if (q.op === '×' || q.op === '*') {
+            const plus = Array(q.b).fill(q.a).join(' + ');
+            const grid = generateGrid(q.a,q.b);
+            explanation = `<strong>Adição repetida:</strong> ${plus} = ${q.answer}<br><strong>Visual:</strong><br>${grid}`;
+        } else if (q.op === '÷' || q.op === '/') {
+            explanation = `<strong>Divisão:</strong> ${q.a} ÷ ${q.b} = ${q.answer}<br><strong>Verificação:</strong> ${q.answer} × ${q.b} = ${q.a}`;
+        } else {
+            explanation = `<strong>Resultado:</strong> ${q.a} ${q.op} ${q.b} = ${q.answer}`;
+        }
+
+        $('hint-area').innerHTML = explanation;
         $('hint-area').classList.remove('hidden');
     }
 

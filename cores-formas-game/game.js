@@ -195,21 +195,12 @@ function generateShapeQuestion() {
     const targetDisplay = document.getElementById('target-display');
     const displayColor = COLORS[Math.floor(Math.random() * COLORS.length)];
 
-    if (targetShape.class === 'triangle') {
-        targetDisplay.innerHTML = `
-            <div class="target-shape ${targetShape.class} ${displayColor.class}"></div>
-            <span style="font-family: 'Fredoka One', cursive; font-size: 1.5rem; margin-left: 15px; color: #333;">
-                ${targetShape.ptName}
-            </span>
-        `;
-    } else {
-        targetDisplay.innerHTML = `
-            <div class="target-shape ${targetShape.class} ${displayColor.class}"></div>
-            <span style="font-family: 'Fredoka One', cursive; font-size: 1.5rem; margin-left: 15px; color: #333;">
-                ${targetShape.ptName}
-            </span>
-        `;
-    }
+    targetDisplay.innerHTML = `
+        <div class="target-shape ${targetShape.class} ${displayColor.class}"></div>
+        <span style="font-family: 'Fredoka One', cursive; font-size: 1.5rem; margin-left: 15px; color: #333;">
+            ${targetShape.ptName}
+        </span>
+    `;
 
     // Criar opcoes
     const optionsArea = document.getElementById('options-area');
@@ -220,13 +211,7 @@ function generateShapeQuestion() {
         btn.className = 'option-btn';
         btn.dataset.shape = option.shape.name;
         btn.dataset.correct = option.isCorrect;
-
-        if (option.shape.class === 'triangle') {
-            btn.innerHTML = `<div class="option-shape ${option.shape.class} ${option.color.class}"></div>`;
-        } else {
-            btn.innerHTML = `<div class="option-shape ${option.shape.class} ${option.color.class}"></div>`;
-        }
-
+        btn.innerHTML = `<div class="option-shape ${option.shape.class} ${option.color.class}"></div>`;
         btn.onclick = () => checkAnswer(option, 'shape');
         optionsArea.appendChild(btn);
     });

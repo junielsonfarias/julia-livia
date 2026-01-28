@@ -192,7 +192,7 @@ const QUESTIONS = {
     portugues: [
         {
             question: "Qual e o plural de 'cidadao'?",
-            options: ["Cidadoes", "Cidadaos", "Cidadaes", "Cidadoes"],
+            options: ["Cidadoes", "Cidadaos", "Cidadaes", "Cidadans"],
             correct: 1
         },
         {
