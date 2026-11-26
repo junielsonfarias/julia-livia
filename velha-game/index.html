@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Velha do Saber - Mundo de Julia & Livia</title>
+    <base href="/velha-game/">
+    <link rel="stylesheet" href="../shared/duelo.css">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1>⭕ Jogo da Velha do Saber</h1>
+            <div class="header-spacer"></div>
+        </header>
+
+        <main class="game-area">
+            <section id="start-screen" class="screen active">
+                <div class="panel">
+                    <div class="big-icon">⭕❌</div>
+                    <h2>Jogo da Velha do Saber</h2>
+                    <p class="lead">Escolha uma casa e <b>responda a pergunta</b>. Acertou? A casa é sua! Errou? Passa a vez.<br>Faça uma linha de 3 para vencer!</p>
+                    <div class="levels">
+                        <div data-level-for="julia"></div>
+                        <div data-level-for="livia"></div>
+                    </div>
+                    <p class="level-help">Cada uma responde perguntas do seu nível.</p>
+                    <p class="score-line" id="score-line"></p>
+                    <button class="big-btn primary" onclick="startGame()">Começar ⚔️</button>
+                </div>
+            </section>
+
+            <section id="game-screen" class="screen">
+                <div class="players">
+                    <div class="player" id="p-julia" style="--pc:#9b59b6"><span class="p-emoji">👸</span><span class="p-name">Julia</span></div>
+                    <div class="turn-banner" id="turn-banner">Vez da Julia</div>
+                    <div class="player" id="p-livia" style="--pc:#ff6b9d"><span class="p-emoji">🧚</span><span class="p-name">Livia</span></div>
+                </div>
+                <p class="hint" id="hint">Toque numa casa vazia</p>
+                <div class="ttt" id="ttt"></div>
+
+                <div class="q-overlay" id="q-overlay" hidden>
+                    <div class="question-card" id="question"></div>
+                </div>
+            </section>
+
+            <section id="result-screen" class="screen">
+                <div class="panel">
+                    <div class="winner-emoji" id="winner-emoji">🏆</div>
+                    <h2 id="winner-title">Venceu!</h2>
+                    <p class="score-line" id="score-line-end"></p>
+                    <div class="btn-row">
+                        <button class="big-btn primary" onclick="startGame()">Revanche! ⚔️</button>
+                        <button class="big-btn" onclick="goHome()">Menu</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../shared/kids-audio.js"></script>
+    <script src="../shared/palavras.js"></script>
+    <script src="../shared/duelo.js"></script>
+    <script src="../shared/duelo-perguntas.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

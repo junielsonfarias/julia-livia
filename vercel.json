@@ -155,6 +155,18 @@
     {
       "source": "/dinheiro",
       "destination": "/dinheiro-game/index.html"
+    },
+    {
+      "source": "/trilha",
+      "destination": "/trilha-game/index.html"
+    },
+    {
+      "source": "/relampago",
+      "destination": "/relampago-game/index.html"
+    },
+    {
+      "source": "/velha",
+      "destination": "/velha-game/index.html"
     }
   ]
 }

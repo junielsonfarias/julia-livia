@@ -1,0 +1,23 @@
+body { background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%); }
+.game-header h1 { color: #6c5ce7; }
+.hint { text-align: center; color: #fff; font-weight: 800; margin-bottom: 8px; text-shadow: 0 2px 6px rgba(0,0,0,.2); }
+
+.ttt {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 420px; margin: 0 auto;
+    background: var(--pc, #6c5ce7); padding: 10px; border-radius: 24px; box-shadow: 0 12px 30px rgba(0,0,0,.25); transition: background .3s;
+}
+.ttt-cell {
+    aspect-ratio: 1; border: none; border-radius: 16px; background: #fff; font-size: clamp(2.6rem, 14vw, 4.2rem);
+    cursor: pointer; touch-action: manipulation; transition: transform .15s;
+}
+.ttt-cell:not(:disabled):hover { transform: scale(1.04); }
+.ttt-cell:disabled { cursor: default; }
+.ttt-cell.julia { background: #f3e5f5; }
+.ttt-cell.livia { background: #ffe4ee; }
+.ttt-cell.picked { box-shadow: inset 0 0 0 5px #fdcb6e; }
+.ttt-cell.win { background: #ffeaa7; animation: winPulse .6s ease 3; }
+@keyframes winPulse { 50% { transform: scale(1.1); } }
+
+.q-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 50; }
+.q-overlay[hidden] { display: none; }
+.q-overlay .question-card { width: 100%; max-width: 520px; animation: fadeIn .25s ease; }

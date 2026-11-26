@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trilha do Saber - Mundo de Julia & Livia</title>
+    <base href="/trilha-game/">
+    <link rel="stylesheet" href="../shared/duelo.css">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1>🎲 Trilha do Saber</h1>
+            <div class="header-spacer"></div>
+        </header>
+
+        <main class="game-area">
+            <section id="start-screen" class="screen active">
+                <div class="panel">
+                    <div class="big-icon">🎲</div>
+                    <h2>Trilha do Saber</h2>
+                    <p class="lead">Uma de cada vez: <b>acertou a pergunta, joga o dado</b> e anda na trilha.<br>Quem chegar primeiro ao 🏁 vence!</p>
+                    <p class="lead">⭐ anda +2 · 🌀 volta 3 · 🎁 joga de novo</p>
+                    <div class="levels">
+                        <div data-level-for="julia"></div>
+                        <div data-level-for="livia"></div>
+                    </div>
+                    <p class="level-help">Cada uma responde perguntas do seu nível — assim o duelo fica justo!</p>
+                    <p class="score-line" id="score-line"></p>
+                    <button class="big-btn primary" onclick="startGame()">Começar o duelo ⚔️</button>
+                </div>
+            </section>
+
+            <section id="game-screen" class="screen">
+                <div class="players">
+                    <div class="player" id="p-julia" style="--pc:#9b59b6"><span class="p-emoji">👸</span><span class="p-name">Julia</span><span class="p-score" id="pos-julia">0</span></div>
+                    <div class="turn-banner" id="turn-banner">Vez da Julia</div>
+                    <div class="player" id="p-livia" style="--pc:#ff6b9d"><span class="p-emoji">🧚</span><span class="p-name">Livia</span><span class="p-score" id="pos-livia">0</span></div>
+                </div>
+                <div class="layout">
+                    <div class="board" id="board"></div>
+                    <div class="side">
+                        <div class="question-card" id="question"></div>
+                        <div class="dice-area" id="dice-area" hidden>
+                            <div class="dice" id="dice">🎲</div>
+                            <button class="big-btn primary" id="roll-btn" onclick="rollDice()">Jogar o dado 🎲</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="result-screen" class="screen">
+                <div class="panel">
+                    <div class="winner-emoji" id="winner-emoji">🏆</div>
+                    <h2 id="winner-title">Venceu!</h2>
+                    <p class="lead" id="winner-msg"></p>
+                    <p class="score-line" id="score-line-end"></p>
+                    <div class="btn-row">
+                        <button class="big-btn primary" onclick="startGame()">Revanche! ⚔️</button>
+                        <button class="big-btn" onclick="goHome()">Menu</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../shared/kids-audio.js"></script>
+    <script src="../shared/palavras.js"></script>
+    <script src="../shared/duelo.js"></script>
+    <script src="../shared/duelo-perguntas.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

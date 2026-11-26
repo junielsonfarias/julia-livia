@@ -7,7 +7,7 @@
 // ==========================================
 
 // <PRECACHE>
-const CACHE_VERSION = '17f6d37f6b';
+const CACHE_VERSION = '49abdc8213';
 const PRECACHE = [
     "/",
     "/animais-game/game.js",
@@ -76,12 +76,18 @@ const PRECACHE = [
     "/quiz-game/game.js",
     "/quiz-game/index.html",
     "/quiz-game/styles.css",
+    "/relampago-game/game.js",
+    "/relampago-game/index.html",
+    "/relampago-game/styles.css",
     "/rimas-game/game.js",
     "/rimas-game/index.html",
     "/rimas-game/styles.css",
     "/sequencia-game/game.js",
     "/sequencia-game/index.html",
     "/sequencia-game/styles.css",
+    "/shared/duelo-perguntas.js",
+    "/shared/duelo.css",
+    "/shared/duelo.js",
     "/shared/kids-audio.js",
     "/shared/palavras.js",
     "/silabas-game/game.js",
@@ -89,7 +95,13 @@ const PRECACHE = [
     "/silabas-game/styles.css",
     "/tabuada-game/game.js",
     "/tabuada-game/index.html",
-    "/tabuada-game/styles.css"
+    "/tabuada-game/styles.css",
+    "/trilha-game/game.js",
+    "/trilha-game/index.html",
+    "/trilha-game/styles.css",
+    "/velha-game/game.js",
+    "/velha-game/index.html",
+    "/velha-game/styles.css"
 ];
 // </PRECACHE>
 

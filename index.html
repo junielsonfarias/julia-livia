@@ -136,9 +136,59 @@
             <button class="filter-btn active" data-filter="todos">🎮 Todos</button>
             <button class="filter-btn" data-filter="livia">🧚 Livia · <span data-age="livia">5</span> anos</button>
             <button class="filter-btn" data-filter="julia">👸 Julia · 4º ano</button>
+            <button class="filter-btn" data-filter="duelo">⚔️ Duelos</button>
         </div>
+        <p class="duel-total" id="duel-total"></p>
 
         <div class="games-container">
+            <div class="game-card trilha-card" data-for="todas" data-duel="1" onclick="playGame('trilha')">
+                <div class="game-thumbnail trilha-thumb">
+                    <span class="trilha-icon">🎲</span>
+                </div>
+                <div class="game-info">
+                    <h3>Trilha do Saber</h3>
+                    <p>Acertou, joga o dado! Quem chegar primeiro ao 🏁 vence.</p>
+                    <div class="game-tags">
+                        <span class="tag duel-tag">⚔️ Duelo</span>
+                        <span class="tag">Julia × Livia</span>
+                        <span class="tag new-tag">Novo!</span>
+                    </div>
+                </div>
+                <button class="play-btn">JOGAR</button>
+            </div>
+
+            <div class="game-card relampago-card" data-for="todas" data-duel="1" onclick="playGame('relampago')">
+                <div class="game-thumbnail relampago-thumb">
+                    <span class="relampago-icon">⚡</span>
+                </div>
+                <div class="game-info">
+                    <h3>Duelo Relâmpago</h3>
+                    <p>As duas ao mesmo tempo na tela: quem acerta mais em 60 s?</p>
+                    <div class="game-tags">
+                        <span class="tag duel-tag">⚔️ Duelo</span>
+                        <span class="tag">Julia × Livia</span>
+                        <span class="tag new-tag">Novo!</span>
+                    </div>
+                </div>
+                <button class="play-btn">JOGAR</button>
+            </div>
+
+            <div class="game-card velha-card" data-for="todas" data-duel="1" onclick="playGame('velha')">
+                <div class="game-thumbnail velha-thumb">
+                    <span class="velha-icon">⭕</span>
+                </div>
+                <div class="game-info">
+                    <h3>Jogo da Velha do Saber</h3>
+                    <p>Responda certo para marcar a casa. Faça a linha de 3!</p>
+                    <div class="game-tags">
+                        <span class="tag duel-tag">⚔️ Duelo</span>
+                        <span class="tag">Julia × Livia</span>
+                        <span class="tag new-tag">Novo!</span>
+                    </div>
+                </div>
+                <button class="play-btn">JOGAR</button>
+            </div>
+
             <div class="game-card leitura-card" data-for="livia" onclick="playGame('leitura')">
                 <div class="game-thumbnail leitura-thumb">
                     <span class="leitura-icon">⚡📖</span>
@@ -301,7 +351,7 @@
                 <button class="play-btn">JOGAR</button>
             </div>
 
-            <div class="game-card memoria-card" data-for="todas" onclick="playGame('memoria')">
+            <div class="game-card memoria-card" data-for="todas" data-duel="1" onclick="playGame('memoria')">
                 <div class="game-thumbnail memoria-thumb">
                     <span class="memoria-icon">🧠</span>
                 </div>

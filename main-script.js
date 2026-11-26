@@ -86,7 +86,10 @@ function playGame(gameId) {
         'letras': 'letras-game/index.html',
         'rimas': 'rimas-game/index.html',
         'graficos': 'graficos-game/index.html',
-        'dinheiro': 'dinheiro-game/index.html'
+        'dinheiro': 'dinheiro-game/index.html',
+        'trilha': 'trilha-game/index.html',
+        'relampago': 'relampago-game/index.html',
+        'velha': 'velha-game/index.html'
     };
 
     const route = gameRoutes[gameId];
@@ -114,6 +117,7 @@ function openGameModal(src) {
 
 function closeGameModal() {
     playSound('click');
+    setTimeout(updateDuelTotal, 50);
     let modal = document.getElementById('game-modal');
     if (!modal) return;
     const iframe = document.getElementById('game-iframe');
@@ -575,13 +579,30 @@ function filterGames(who) {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === who));
     document.querySelectorAll('.games-container .game-card').forEach(card => {
         const forWho = card.dataset.for || 'todas';
-        card.style.display = (who === 'todos' || forWho === 'todas' || forWho === who) ? '' : 'none';
+        const show = who === 'duelo' ? card.dataset.duel === '1'
+            : (who === 'todos' || forWho === 'todas' || forWho === who);
+        card.style.display = show ? '' : 'none';
     });
     try { localStorage.setItem('gamesFilter', who); } catch (e) {}
 }
 
+// Placar geral dos duelos (jogos de duelo + jogo da memoria)
+function updateDuelTotal() {
+    const el = document.getElementById('duel-total');
+    if (!el) return;
+    let j = 0, l = 0;
+    try {
+        const d = JSON.parse(localStorage.getItem('duelos_placar_v1') || '{}');
+        if (d.total) { j += d.total.julia || 0; l += d.total.livia || 0; }
+        const m = JSON.parse(localStorage.getItem('memoria_duelos_v1') || '{}');
+        j += m.julia || 0; l += m.livia || 0;
+    } catch (e) {}
+    el.innerHTML = (j + l) ? `⚔️ Placar dos duelos: 👸 Julia <b>${j}</b> × <b>${l}</b> Livia 🧚` : '';
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     updateAges();
+    updateDuelTotal();
     document.querySelectorAll('.filter-btn').forEach(b => b.addEventListener('click', () => {
         filterGames(b.dataset.filter);
         playSound('click');

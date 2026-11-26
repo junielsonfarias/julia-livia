@@ -1503,3 +1503,14 @@ body.is-app { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-ar
 .graficos-icon { font-size: 72px; animation: pulse 2s infinite; }
 .dinheiro-thumb { background: linear-gradient(135deg, #55efc4 0%, #00a383 100%); }
 .dinheiro-icon { font-size: 72px; animation: rotate 3s ease-in-out infinite; }
+
+/* Duelos */
+.duel-tag { background: linear-gradient(135deg, #9b59b6, #ff6b9d); color: #fff !important; }
+.duel-total { text-align: center; color: #fff; font-weight: 800; font-size: 1.1rem; margin-top: 10px; text-shadow: 0 2px 6px rgba(0,0,0,.25); }
+.duel-total:empty { display: none; }
+.trilha-thumb { background: linear-gradient(135deg, #a8e063 0%, #56ab2f 100%); }
+.trilha-icon { font-size: 72px; animation: rotate 2s ease-in-out infinite; }
+.relampago-thumb { background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%); }
+.relampago-icon { font-size: 72px; animation: pulse 1s infinite; }
+.velha-thumb { background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%); }
+.velha-icon { font-size: 72px; animation: bounce 2s infinite; }

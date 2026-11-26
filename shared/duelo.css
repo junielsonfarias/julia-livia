@@ -1,0 +1,91 @@
+/* ==========================================
+   Estilos comuns dos jogos de duelo
+   ========================================== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Nunito', sans-serif; color: #2d3436; min-height: 100vh;
+    background: linear-gradient(135deg, #9b59b6 0%, #ff6b9d 100%); overflow-x: hidden;
+}
+.game-container { min-height: 100vh; display: flex; flex-direction: column; }
+.game-header {
+    background: rgba(255,255,255,.96); padding: 10px 18px; display: flex; justify-content: space-between;
+    align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,.12);
+}
+.game-header h1 { font-family: 'Fredoka One', cursive; font-size: clamp(1.15rem, 4vw, 1.7rem); color: #8e44ad; }
+.back-btn { background: linear-gradient(135deg, #9b59b6, #8e44ad); color: #fff; border: none; padding: 10px 18px; border-radius: 25px; font-weight: 800; font-size: 1rem; cursor: pointer; }
+.header-spacer { width: 80px; }
+.game-area { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding: 16px; }
+.screen { display: none; width: 100%; max-width: 900px; }
+.screen.active { display: block; animation: fadeIn .35s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+.panel { background: #fff; border-radius: 26px; padding: 24px 20px; box-shadow: 0 12px 40px rgba(0,0,0,.2); text-align: center; }
+.big-icon { font-size: 4rem; }
+.panel h2 { font-family: 'Fredoka One', cursive; color: #8e44ad; font-size: 2.1rem; margin: 6px 0; }
+.lead { font-size: 1.1rem; color: #555; line-height: 1.5; margin-bottom: 12px; }
+.score-line { margin: 10px 0; color: #555; }
+
+/* Escolha de nivel */
+.levels { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 14px 0; }
+.level-pick { display: flex; flex-direction: column; gap: 6px; padding: 12px 16px; border-radius: 18px; border: 3px solid var(--pc); background: #fff; min-width: 210px; }
+.lp-name { font-family: 'Fredoka One', cursive; font-size: 1.3rem; color: var(--pc); }
+.level-pick select { font-size: 1rem; padding: 8px; border-radius: 10px; border: 2px solid #ddd; font-family: 'Nunito', sans-serif; font-weight: 700; }
+.level-help { font-size: .9rem; color: #888; margin-top: -4px; }
+
+.big-btn { border: none; border-radius: 30px; padding: 14px 28px; font-family: 'Fredoka One', cursive; font-size: 1.2rem; cursor: pointer; background: #dfe6e9; color: #2d3436; }
+.big-btn.primary { background: linear-gradient(135deg, #9b59b6, #ff6b9d); color: #fff; box-shadow: 0 6px 0 rgba(0,0,0,.15); }
+.btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+
+/* Placar das jogadoras */
+.players { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; margin-bottom: 12px; }
+.player {
+    display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 12px; border-radius: 18px;
+    background: rgba(255,255,255,.75); border: 4px solid transparent; opacity: .6; transition: all .25s;
+}
+.player.active { opacity: 1; background: #fff; transform: scale(1.05); border-color: var(--pc); box-shadow: 0 0 20px var(--pc); }
+.player .p-emoji { font-size: 1.9rem; }
+.player .p-name { font-family: 'Fredoka One', cursive; font-size: 1.15rem; }
+.player .p-score { font-family: 'Fredoka One', cursive; font-size: 1.8rem; color: var(--pc); min-width: 28px; }
+.turn-banner { font-family: 'Fredoka One', cursive; color: #fff; padding: 8px 14px; border-radius: 16px; background: var(--pc, #888); text-align: center; }
+
+/* Cartao de pergunta */
+.question-card { background: #fff; border-radius: 24px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.18); text-align: center; border: 5px solid var(--pc, #ddd); }
+.q-title { font-family: 'Fredoka One', cursive; font-size: 1.4rem; margin-bottom: 8px; }
+.q-big { font-size: 4.2rem; line-height: 1.1; }
+.q-word { font-family: 'Fredoka One', cursive; font-size: 2.2rem; letter-spacing: .06em; }
+.q-gap { color: #e17055; border-bottom: 4px solid #e17055; padding: 0 .15em; }
+.q-calc { font-family: 'Fredoka One', cursive; font-size: clamp(2rem, 8vw, 3rem); }
+.q-text { font-size: 1.2rem; font-weight: 700; line-height: 1.5; text-align: left; }
+.q-group { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 4px; font-size: 2rem; max-width: 320px; }
+.q-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 14px; }
+.q-options.three { grid-template-columns: repeat(3, 1fr); }
+.q-options.wide { grid-template-columns: 1fr 1fr; }
+.q-opt {
+    border: none; border-radius: 18px; padding: 14px 8px; font-family: 'Fredoka One', cursive; font-size: 1.8rem;
+    background: #f1f2f6; color: #2d3436; cursor: pointer; box-shadow: 0 5px 0 #dcdde1; touch-action: manipulation; min-height: 70px;
+}
+.q-opt.big { font-size: 2.6rem; }
+.q-opt .q-group { font-size: 1.6rem; }
+.q-opt:active { transform: translateY(3px); box-shadow: 0 2px 0 #dcdde1; }
+.q-opt.right { background: #55efc4; box-shadow: 0 5px 0 #00b894; }
+.q-opt.wrong { background: #fab1a0; box-shadow: 0 5px 0 #e17055; animation: shake .35s ease; }
+.q-opt:disabled { cursor: default; }
+@keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+.q-feedback { margin-top: 10px; font-weight: 800; min-height: 1.4em; }
+.q-feedback.good { color: #00a383; }
+.q-feedback.bad { color: #d35400; }
+.hear { background: #74b9ff; color: #fff; border: none; border-radius: 16px; padding: 6px 14px; font-weight: 800; cursor: pointer; margin-bottom: 6px; }
+
+/* Resultado */
+.winner-emoji { font-size: 5rem; animation: bounce 1s infinite; }
+@keyframes bounce { 50% { transform: translateY(-12px); } }
+.final-scores { display: flex; justify-content: center; gap: 16px; align-items: center; margin: 12px 0; }
+.final-scores div { padding: 10px 18px; border-radius: 16px; border: 3px solid var(--pc); }
+.final-scores strong { display: block; font-family: 'Fredoka One', cursive; font-size: 2.2rem; color: var(--pc); }
+
+@media (max-width: 560px) {
+    .players { grid-template-columns: 1fr 1fr; }
+    .turn-banner { grid-column: 1 / -1; order: -1; }
+    .header-spacer { display: none; }
+    .q-opt { font-size: 1.5rem; }
+}
