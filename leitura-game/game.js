@@ -1,26 +1,35 @@
 // ==========================================
 // Leitura Relampago - Alfabetizacao (5 anos)
-// A crianca le a palavra em voz alta; um adulto (ou ela mesma) toca em
-// "Li certo!" e aparece a proxima. 60 segundos. Recorde por modo.
+// A crianca le a palavra em voz alta. Dois jeitos de conferir:
+//  - 🎤 Microfone: o reconhecimento de fala confere sozinho e avisa se
+//    a palavra foi lida certa ou diferente (sem ninguem precisar marcar).
+//  - 👆 Manual: um adulto toca em "Li certo!".
+// 60 segundos. Recorde por modo e por leitora.
 // ==========================================
 
 const GAME_SECONDS = 60;
 const RECORDS_KEY = 'leitura_recordes_v1';
 const SYL_COLORS = ['#e74c3c', '#2980b9', '#27ae60', '#8e44ad', '#e67e22'];
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 const state = {
     mode: 2,
     reader: 'Livia',
+    check: SpeechRec ? 'mic' : 'manual',
     deck: [],
     current: null,
     score: 0,
     readWords: [],
     skippedWords: [],
+    misheard: [],          // { word, heard }
     timeLeft: GAME_SECONDS,
     timer: null,
     running: false,
     locked: false,
-    recognizer: null
+    recognizer: null,
+    ignoreUntil: 0,        // ignora o microfone enquanto o jogo fala (botao 🔊)
+    consumedIndex: -1,     // resultado de fala ja usado (evita contar duas vezes)
+    lastWrongAt: 0
 };
 
 const MODE_NAMES = { 2: '2 sílabas', 3: '3 sílabas', 4: '4 sílabas', variadas: 'Variadas' };
@@ -47,7 +56,6 @@ function loadRecords() {
 function saveRecords(r) {
     try { localStorage.setItem(RECORDS_KEY, JSON.stringify(r)); } catch (e) {}
 }
-// Estrutura: { "2": [ {name, score, date}, ... top 10 ], ... }
 function bestFor(mode, reader) {
     const list = loadRecords()[mode] || [];
     const filtered = reader ? list.filter(r => r.name === reader) : list;
@@ -87,6 +95,24 @@ function showRanking() {
     showScreen('ranking-screen');
 }
 
+// ---------- Modo de conferencia ----------
+function setCheck(mode) {
+    if (mode === 'mic' && !SpeechRec) mode = 'manual';
+    state.check = mode;
+    document.querySelectorAll('.check').forEach(b => b.classList.toggle('selected', b.dataset.check === mode));
+    try { localStorage.setItem('leitura_check', mode); } catch (e) {}
+    applyCheckUI();
+}
+
+function applyCheckUI() {
+    const mic = state.check === 'mic';
+    document.getElementById('ok-btn').hidden = mic;
+    document.getElementById('actions').classList.toggle('mic-mode', mic);
+    document.getElementById('hint-keys').innerHTML = mic
+        ? 'Leia em voz alta, bem pertinho do aparelho 🎤 · <kbd>→</kbd> = pular'
+        : 'Teclado: <kbd>Espaço</kbd> = acertou · <kbd>→</kbd> = pular';
+}
+
 // ---------- Jogo ----------
 function startGame(mode) {
     state.mode = mode;
@@ -94,17 +120,21 @@ function startGame(mode) {
     state.score = 0;
     state.readWords = [];
     state.skippedWords = [];
+    state.misheard = [];
     state.timeLeft = GAME_SECONDS;
     document.getElementById('score').textContent = '0';
     document.getElementById('best').textContent = bestFor(mode, state.reader);
     updateTimer();
     applyWordStyle();
+    applyCheckUI();
+    // Liga o microfone ANTES da contagem: assim o pedido de permissao
+    // aparece antes do tempo comecar a correr.
+    if (state.check === 'mic') startMic();
     countdown(() => {
         state.running = true;
         showScreen('game-screen');
         nextWord();
         state.timer = setInterval(tick, 1000);
-        if (document.getElementById('opt-mic').checked) startMic();
     });
 }
 
@@ -153,6 +183,7 @@ function applyWordStyle() {
 function nextWord() {
     if (state.deck.length === 0) state.deck = shuffle(getPalavras(state.mode));
     state.current = state.deck.pop();
+    setHeard('', '');
     renderWord(state.current);
 }
 
@@ -168,15 +199,19 @@ function renderWord(w) {
     } else {
         wordEl.textContent = w.word;
     }
-    // Ajusta tamanho para palavras longas
     wordEl.style.fontSize = w.word.length > 8 ? 'clamp(2.2rem, 11vw, 5rem)' : '';
-
     document.getElementById('word-picture').textContent = showPic ? w.emoji : '';
 
     const card = document.getElementById('word-card');
-    card.classList.remove('pop', 'good', 'skip');
+    card.classList.remove('pop', 'good', 'skip', 'bad');
     void card.offsetWidth;
     card.classList.add('pop');
+}
+
+function setHeard(text, kind) {
+    const el = document.getElementById('heard');
+    el.innerHTML = text;
+    el.className = 'heard' + (kind ? ' ' + kind : '');
 }
 
 function correctWord() {
@@ -184,14 +219,28 @@ function correctWord() {
     state.locked = true;
     state.score++;
     state.readWords.push(state.current.word);
-    document.getElementById('score').textContent = state.score;
     const scoreEl = document.getElementById('score');
+    scoreEl.textContent = state.score;
     scoreEl.classList.remove('bump'); void scoreEl.offsetWidth; scoreEl.classList.add('bump');
     KidsAudio.play('correct');
-    const card = document.getElementById('word-card');
-    card.classList.add('good');
+    document.getElementById('word-card').classList.add('good');
+    if (state.check === 'mic') setHeard('✅ Leu certinho!', 'good');
     floatPoint();
-    setTimeout(() => { state.locked = false; if (state.running) nextWord(); }, 350);
+    setTimeout(() => { state.locked = false; if (state.running) nextWord(); }, state.check === 'mic' ? 650 : 350);
+}
+
+// Microfone ouviu outra palavra: avisa e deixa tentar de novo (ou pular)
+function wrongAttempt(heardText) {
+    if (!state.running || state.locked) return;
+    const now = Date.now();
+    if (now - state.lastWrongAt < 900) return;   // evita avisos repetidos em sequencia
+    state.lastWrongAt = now;
+    const heard = heardText.trim();
+    state.misheard.push({ word: state.current.word, heard });
+    KidsAudio.play('wrong');
+    setHeard(`🤔 Ouvi “<b>${escapeHtml(heard)}</b>”. Tente de novo!`, 'bad');
+    const card = document.getElementById('word-card');
+    card.classList.remove('bad'); void card.offsetWidth; card.classList.add('bad');
 }
 
 function skipWord() {
@@ -205,9 +254,11 @@ function skipWord() {
 
 function listenWord() {
     if (!state.current) return;
-    // Fala silaba por silaba e depois a palavra inteira
     const w = state.current;
-    KidsAudio.speak(w.syllables.join('... ') + '... ' + w.word.toLowerCase(), { rate: 0.8 });
+    const text = w.syllables.join('... ') + '... ' + w.word.toLowerCase();
+    // Nao deixar o microfone "ouvir" a voz do proprio jogo
+    state.ignoreUntil = Date.now() + 1500 + text.length * 120;
+    KidsAudio.speak(text, { rate: 0.8 });
 }
 
 function floatPoint() {
@@ -223,6 +274,10 @@ function stopGame() {
     state.running = false;
     if (state.timer) { clearInterval(state.timer); state.timer = null; }
     stopMic();
+}
+
+function escapeHtml(s) {
+    return s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
 function endGame() {
@@ -263,6 +318,19 @@ function endGame() {
     fill('read-list', state.readWords, false);
     fill('skip-list', state.skippedWords, true);
 
+    // O que o microfone ouviu diferente (ajuda o adulto a ver onde treinar)
+    const heardBox = document.getElementById('heard-box');
+    const heardList = document.getElementById('heard-list');
+    heardList.innerHTML = '';
+    heardBox.hidden = state.misheard.length === 0;
+    state.misheard.slice(-12).forEach(m => {
+        const b = document.createElement('button');
+        b.className = 'mini-word';
+        b.innerHTML = `${escapeHtml(m.word)} <small>→ “${escapeHtml(m.heard)}”</small>`;
+        b.onclick = () => KidsAudio.speak(m.word.toLowerCase(), { rate: 0.8 });
+        heardList.appendChild(b);
+    });
+
     showScreen('result-screen');
     setTimeout(() => {
         KidsAudio.play(isRecord ? 'win' : 'star');
@@ -271,57 +339,135 @@ function endGame() {
     }, 700);
 }
 
-// ---------- Microfone (opcional) ----------
-const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+// ==========================================
+// RECONHECIMENTO DE FALA
+// ==========================================
+
+// Distancia entre palavras (quantas letras trocar/inserir/apagar)
+function editDistance(a, b) {
+    const dp = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+    for (let j = 1; j <= b.length; j++) dp[0][j] = j;
+    for (let i = 1; i <= a.length; i++) {
+        for (let j = 1; j <= b.length; j++) {
+            dp[i][j] = Math.min(
+                dp[i - 1][j] + 1,
+                dp[i][j - 1] + 1,
+                dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+            );
+        }
+    }
+    return dp[a.length][b.length];
+}
+
+// A fala reconhecida corresponde a palavra da tela?
+function speechMatches(target, transcript) {
+    const t = semAcento(target);
+    const tokens = semAcento(transcript).replace(/[^A-Z ]/g, ' ').split(/\s+/).filter(Boolean);
+    if (!tokens.length) return false;
+    if (tokens.includes(t)) return true;
+    // Silabas faladas separadas: "bo la" -> "BOLA"
+    const joined = tokens.join('');
+    if (joined === t) return true;
+    for (let i = 0; i < tokens.length; i++) {
+        for (let j = i + 2; j <= tokens.length; j++) {
+            if (tokens.slice(i, j).join('') === t) return true;
+        }
+    }
+    // Modo tolerante: aceita 1 letra de diferenca em palavras de 5+ letras
+    if (document.getElementById('opt-lenient').checked && t.length >= 5) {
+        if (tokens.some(tok => editDistance(tok, t) <= 1)) return true;
+        if (editDistance(joined, t) <= 1) return true;
+    }
+    return false;
+}
 
 function startMic() {
     if (!SpeechRec) return;
+    stopMic();
     const status = document.getElementById('mic-status');
     try {
         const rec = new SpeechRec();
         rec.lang = 'pt-BR';
         rec.continuous = true;
         rec.interimResults = true;
-        rec.maxAlternatives = 3;
+        rec.maxAlternatives = 5;
+
+        rec.onstart = () => {
+            state.consumedIndex = -1;
+            status.innerHTML = '<span class="mic-dot"></span> Estou ouvindo...';
+        };
+
         rec.onresult = (ev) => {
-            if (!state.running || !state.current) return;
-            const target = semAcento(state.current.word);
+            if (!state.running || !state.current || state.locked) return;
+            if (Date.now() < state.ignoreUntil) return;
             for (let i = ev.resultIndex; i < ev.results.length; i++) {
-                for (let a = 0; a < ev.results[i].length; a++) {
-                    const heard = semAcento(ev.results[i][a].transcript).replace(/[^A-Z ]/g, '');
-                    if (heard.split(' ').includes(target)) {
-                        correctWord();
-                        return;
-                    }
+                if (i <= state.consumedIndex) continue;
+                const res = ev.results[i];
+                const alts = Array.from(res).map(a => a.transcript);
+                if (alts.some(a => speechMatches(state.current.word, a))) {
+                    state.consumedIndex = i;   // este pedaco de fala ja valeu
+                    correctWord();
+                    return;
+                }
+                if (res.isFinal) {
+                    state.consumedIndex = i;
+                    if (alts[0] && alts[0].trim()) wrongAttempt(alts[0]);
+                } else if (alts[0] && alts[0].trim()) {
+                    setHeard(`👂 ${escapeHtml(alts[0].trim())}...`, 'listening');
                 }
             }
         };
+
         rec.onerror = (e) => {
-            if (e.error === 'not-allowed') status.textContent = '🎤 Microfone bloqueado — use o botão ✓';
+            if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+                state.recognizer = null;
+                status.textContent = '🎤 Microfone bloqueado. Usando o botão ✓ no lugar.';
+                setCheck('manual');
+            } else if (e.error === 'network') {
+                status.textContent = '🎤 Sem internet para reconhecer a voz. Use o botão ✓.';
+                setCheck('manual');
+            }
+            // 'no-speech' e 'aborted' sao normais: o onend religa
         };
-        rec.onend = () => { if (state.running && state.recognizer === rec) { try { rec.start(); } catch (e) {} } };
-        rec.start();
+
+        // O Chrome desliga o microfone de tempos em tempos: religamos
+        rec.onend = () => {
+            if (state.recognizer === rec && state.check === 'mic' && (state.running || state.timeLeft > 0)) {
+                try { rec.start(); } catch (e) {}
+            }
+        };
+
         state.recognizer = rec;
-        status.textContent = '🎤 Estou ouvindo...';
+        rec.start();
+        status.textContent = '🎤 Permita o uso do microfone...';
     } catch (e) {
         status.textContent = '';
+        setCheck('manual');
     }
 }
 
 function stopMic() {
     const rec = state.recognizer;
     state.recognizer = null;
-    if (rec) { try { rec.stop(); } catch (e) {} }
+    if (rec) { try { rec.abort(); } catch (e) {} }
     const status = document.getElementById('mic-status');
     if (status) status.textContent = '';
 }
 
 // ---------- Inicializacao ----------
 document.addEventListener('DOMContentLoaded', () => {
-    if (!SpeechRec) document.getElementById('mic-option').style.display = 'none';
+    const note = document.getElementById('mic-note');
+    if (!SpeechRec) {
+        document.getElementById('check-mic').disabled = true;
+        note.textContent = '🎤 Este navegador não reconhece voz. Para o microfone conferir sozinho, abra no Google Chrome.';
+        state.check = 'manual';
+    } else {
+        note.textContent = '🎤 O microfone precisa de internet (o Chrome usa o serviço de voz do Google).';
+        try { const c = localStorage.getItem('leitura_check'); if (c) state.check = c; } catch (e) {}
+    }
+    setCheck(state.check);
 
-    // Restaurar opcoes salvas
-    ['opt-syllables', 'opt-lower', 'opt-picture', 'opt-mic'].forEach(id => {
+    ['opt-syllables', 'opt-lower', 'opt-picture', 'opt-lenient'].forEach(id => {
         const el = document.getElementById(id);
         try {
             const v = localStorage.getItem('leitura_' + id);
@@ -330,6 +476,10 @@ document.addEventListener('DOMContentLoaded', () => {
         el.addEventListener('change', () => {
             try { localStorage.setItem('leitura_' + id, el.checked ? '1' : '0'); } catch (e) {}
         });
+    });
+
+    document.querySelectorAll('.check').forEach(btn => {
+        btn.addEventListener('click', () => { setCheck(btn.dataset.check); KidsAudio.play('select'); });
     });
 
     document.querySelectorAll('.reader').forEach(btn => {
@@ -344,7 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('keydown', (e) => {
         if (!state.running) return;
-        if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); correctWord(); }
+        if ((e.code === 'Space' || e.code === 'Enter') && state.check === 'manual') { e.preventDefault(); correctWord(); }
         else if (e.code === 'ArrowRight') { e.preventDefault(); skipWord(); }
     });
 

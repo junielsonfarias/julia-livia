@@ -178,3 +178,20 @@ button.mini-word { cursor: pointer; background: #ffeaa7; }
     .act.ok { font-size: 1.35rem; }
     .header-spacer { display: none; }
 }
+
+/* ---------- Microfone confere sozinho ---------- */
+.mic-note { font-size: .9rem; color: #888; margin-top: 8px; }
+.chip:disabled { opacity: .45; cursor: not-allowed; }
+.heard { margin-top: 10px; min-height: 1.6em; font-size: 1.25rem; font-weight: 800; text-align: center; border-radius: 14px; padding: 4px 14px; }
+.heard.listening { color: #6c5ce7; }
+.heard.good { color: #00a383; background: #e8fff8; }
+.heard.bad { color: #d35400; background: #fff4e6; animation: bump .35s ease; }
+.word-card.bad { border-color: #e17055; animation: cardShake .4s ease; }
+@keyframes cardShake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+.mic-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #d63031; margin-right: 6px; animation: micPulse 1s infinite; vertical-align: middle; }
+@keyframes micPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
+.actions.mic-mode { grid-template-columns: 1fr auto; }
+.act[hidden] { display: none; }
+.heard-list { text-align: left; margin-bottom: 16px; }
+.heard-list h4 { margin-bottom: 6px; color: #555; }
+.mini-word small { color: #888; font-weight: 600; }

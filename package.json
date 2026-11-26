@@ -5,7 +5,9 @@
   "main": "index.html",
   "scripts": {
     "start": "npx serve .",
-    "dev": "npx serve . -l 3000"
+    "dev": "npx serve . -l 3000",
+    "pwa": "node scripts/gerar-sw.js",
+    "predev": "node scripts/gerar-sw.js"
   },
   "keywords": [
     "jogos",

@@ -22,7 +22,14 @@
                 <div class="panel">
                     <div class="big-icon">📖</div>
                     <h2>Vamos ler?</h2>
-                    <p class="lead">Leia a palavra em voz alta. Acertou? Toque no <b>✓</b> e venha a próxima!<br>Você tem <b>60 segundos</b>.</p>
+                    <p class="lead">Leia a palavra em voz alta e venha a próxima!<br>Você tem <b>60 segundos</b>.</p>
+
+                    <h3>Quem confere a leitura?</h3>
+                    <div class="choice-row" id="check-row">
+                        <button class="chip check selected" data-check="mic" id="check-mic">🎤 O microfone confere sozinho</button>
+                        <button class="chip check" data-check="manual">👆 Um adulto toca no ✓</button>
+                    </div>
+                    <p class="mic-note" id="mic-note"></p>
 
                     <h3>Quem vai ler?</h3>
                     <div class="choice-row" id="reader-row">
@@ -60,7 +67,7 @@
                         <label><input type="checkbox" id="opt-syllables" checked> Separar as sílabas com cores (BO‑LA)</label>
                         <label><input type="checkbox" id="opt-lower"> Usar letra minúscula (bola)</label>
                         <label><input type="checkbox" id="opt-picture"> Mostrar a figura como dica</label>
-                        <label id="mic-option"><input type="checkbox" id="opt-mic"> 🎤 Usar o microfone (passa sozinho quando ouvir a palavra)</label>
+                        <label id="lenient-option"><input type="checkbox" id="opt-lenient" checked> 🎤 Microfone mais tolerante (aceita pequenas diferenças na pronúncia)</label>
                     </details>
 
                     <button class="link-btn" onclick="showRanking()">🏆 Ver recordes</button>
@@ -90,14 +97,15 @@
                     <div class="word-picture" id="word-picture"></div>
                     <div class="word" id="word">BOLA</div>
                     <div class="mic-status" id="mic-status"></div>
+                    <div class="heard" id="heard"></div>
                 </div>
 
-                <div class="actions">
+                <div class="actions" id="actions">
                     <button class="act skip" onclick="skipWord()" title="Pular (seta →)">Pular ➜</button>
                     <button class="act listen" onclick="listenWord()" title="Ouvir a palavra">🔊</button>
-                    <button class="act ok" onclick="correctWord()" title="Li certo! (Espaço)">✓ Li certo!</button>
+                    <button class="act ok" id="ok-btn" onclick="correctWord()" title="Li certo! (Espaço)">✓ Li certo!</button>
                 </div>
-                <p class="hint-keys">Teclado: <kbd>Espaço</kbd> = acertou · <kbd>→</kbd> = pular</p>
+                <p class="hint-keys" id="hint-keys">Teclado: <kbd>Espaço</kbd> = acertou · <kbd>→</kbd> = pular</p>
             </section>
 
             <!-- RESULTADO -->
@@ -118,6 +126,10 @@
                             <h4>🔁 Para treinar (toque para ouvir)</h4>
                             <div class="mini-words" id="skip-list"></div>
                         </div>
+                    </div>
+                    <div class="heard-list" id="heard-box" hidden>
+                        <h4>🗣️ O microfone ouviu diferente</h4>
+                        <div class="mini-words" id="heard-list"></div>
                     </div>
 
                     <div class="btn-row">

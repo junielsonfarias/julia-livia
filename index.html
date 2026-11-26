@@ -3,8 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <!-- keep viewport responsive; avoid disabling zoom to preserve accessibility -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Mundo de Julia e Livia</title>
+    <!-- PWA: instalar como app no celular e tablet -->
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Jogos educativos para Julia e Livia: leitura, matemática, memória e muito mais.">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Julia & Livia">
     <link rel="stylesheet" href="main-styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
@@ -54,6 +64,10 @@
             <button class="enter-btn" onclick="enterWorld()">
                 <span>Entrar no Mundo Magico</span>
                 <div class="btn-sparkle"></div>
+            </button>
+
+            <button class="install-btn" id="install-btn" hidden onclick="installApp()">
+                📲 Instalar o app no aparelho
             </button>
         </div>
     </div>
@@ -131,7 +145,7 @@
                 </div>
                 <div class="game-info">
                     <h3>Leitura Relâmpago</h3>
-                    <p>Leia o máximo de palavras em 60 segundos e bata o recorde!</p>
+                    <p>Leia em voz alta: o microfone confere! 60 segundos para bater o recorde.</p>
                     <div class="game-tags">
                         <span class="tag">Alfabetização</span>
                         <span class="tag livia-tag">Livia</span>
@@ -537,6 +551,17 @@
         </div>
     </div>
 
+    <!-- Instrucoes de instalacao (iPhone/iPad e navegadores sem botao automatico) -->
+    <div id="install-help" class="install-help hidden" role="dialog" aria-modal="true" aria-labelledby="install-title">
+        <div class="install-box">
+            <button class="modal-close" onclick="closeInstallHelp()" aria-label="Fechar">✕</button>
+            <img src="/icons/icon-192.png" alt="" width="72" height="72">
+            <h2 id="install-title">Instalar o app</h2>
+            <div id="install-steps"></div>
+            <button class="enter-btn small" onclick="closeInstallHelp()">Entendi!</button>
+        </div>
+    </div>
+
     <script src="main-script.js"></script>
 
     <!-- Modal para carregar jogos inline (iframe) -->
@@ -544,7 +569,7 @@
         <div class="modal-backdrop" onclick="closeGameModal()"></div>
         <div class="modal-content" role="dialog" aria-modal="true">
             <button class="modal-close" onclick="closeGameModal()" aria-label="Fechar jogo">✕</button>
-            <iframe id="game-iframe" src="" frameborder="0" title="Jogo" allow="autoplay; clipboard-write"></iframe>
+            <iframe id="game-iframe" src="" frameborder="0" title="Jogo" allow="autoplay; clipboard-write; microphone"></iframe>
         </div>
     </div>
 </body>

@@ -1,0 +1,26 @@
+{
+  "name": "Mundo de Julia & Livia",
+  "short_name": "Julia & Livia",
+  "description": "Jogos educativos para Julia (4º ano) e Livia (alfabetização): leitura, matemática, memória e muito mais.",
+  "lang": "pt-BR",
+  "id": "/",
+  "start_url": "/?app=1",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#764ba2",
+  "theme_color": "#667eea",
+  "categories": ["education", "games", "kids"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Leitura Relâmpago", "short_name": "Leitura", "url": "/leitura-game/index.html", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Jogo da Memória", "short_name": "Memória", "url": "/memoria-game/index.html", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Treino Olímpico", "short_name": "Olimpíada", "url": "/olimpiada-game/index.html", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Detetive das Questões", "short_name": "Detetive", "url": "/interpretacao-game/index.html", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

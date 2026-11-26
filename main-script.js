@@ -587,4 +587,87 @@ document.addEventListener('DOMContentLoaded', function () {
     filterGames(saved);
 });
 
+// ==========================================
+// APP INSTALAVEL (PWA)
+// ==========================================
+let deferredInstallPrompt = null;
+
+function isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function isIOS() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPad novo se apresenta como Mac
+}
+
+function showInstallButton(show) {
+    const btn = document.getElementById('install-btn');
+    if (btn) btn.hidden = !show;
+}
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(err => console.log('Service worker não registrado:', err));
+    });
+}
+
+// Android / Chrome / Edge: o navegador avisa que o app pode ser instalado
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    showInstallButton(true);
+});
+
+window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    showInstallButton(false);
+    closeInstallHelp();
+});
+
+async function installApp() {
+    if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        if (choice.outcome === 'accepted') showInstallButton(false);
+        return;
+    }
+    openInstallHelp();
+}
+
+function openInstallHelp() {
+    const steps = document.getElementById('install-steps');
+    if (isIOS()) {
+        steps.innerHTML = `<ol>
+            <li>Abra este site no <b>Safari</b>.</li>
+            <li>Toque no botão <b>Compartilhar</b> <span class="ios-share">⬆️</span> (embaixo no iPhone, em cima no iPad).</li>
+            <li>Escolha <b>“Adicionar à Tela de Início”</b>.</li>
+            <li>Toque em <b>Adicionar</b>. Pronto! 🎉</li>
+        </ol>`;
+    } else {
+        steps.innerHTML = `<ol>
+            <li>Abra este site no <b>Google Chrome</b>.</li>
+            <li>Toque no menu <b>⋮</b> (canto de cima).</li>
+            <li>Escolha <b>“Instalar app”</b> ou <b>“Adicionar à tela inicial”</b>.</li>
+        </ol>`;
+    }
+    document.getElementById('install-help').classList.remove('hidden');
+}
+
+function closeInstallHelp() {
+    const el = document.getElementById('install-help');
+    if (el) el.classList.add('hidden');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (isStandalone()) {
+        document.body.classList.add('is-app');
+        showInstallButton(false);
+    } else if (isIOS()) {
+        // iPhone/iPad nao tem botao automatico: mostramos o nosso com as instrucoes
+        showInstallButton(true);
+    }
+});
+
 console.log('Mundo de Julia e Livia carregado com sucesso!');
