@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercadinho - Mundo de Julia & Livia</title>
+    <base href="/dinheiro-game/">
+    <link rel="stylesheet" href="../interpretacao-game/styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="mercadinho">
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1>🛒 Mercadinho</h1>
+            <div class="game-stats">
+                <span>Pontos: <strong id="score">0</strong></span>
+                <span id="progress"></span>
+            </div>
+        </header>
+
+        <main class="game-area">
+            <section id="start-screen" class="screen active">
+                <div class="panel">
+                    <div class="big-icon">🛒</div>
+                    <h2>Mercadinho</h2>
+                    <p class="lead">Use notas e moedas de verdade (do Real) para pagar, calcular o troco e descobrir quanto falta!</p>
+                    <div class="mode-grid">
+                        <button class="mode-btn math" onclick="startGame('pagar')">
+                            <span class="mode-icon">💵</span>
+                            <span class="mode-name">Pague certinho</span>
+                            <span class="mode-desc">Monte o valor exato</span>
+                        </button>
+                        <button class="mode-btn port" onclick="startGame('troco')">
+                            <span class="mode-icon">🪙</span>
+                            <span class="mode-name">Troco</span>
+                            <span class="mode-desc">Quanto vou receber?</span>
+                        </button>
+                        <button class="mode-btn mix" onclick="startGame('misturado')">
+                            <span class="mode-icon">🎯</span>
+                            <span class="mode-name">Misturado</span>
+                            <span class="mode-desc">Pagar, troco e quanto falta</span>
+                        </button>
+                    </div>
+                    <div class="method">
+                        <h3>💡 Lembre:</h3>
+                        <ol>
+                            <li>100 centavos = R$ 1,00.</li>
+                            <li><b>Troco</b> = o que você deu − o preço.</li>
+                            <li>Para usar menos notas e moedas, comece pelas <b>maiores</b>.</li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+            <section id="game-screen" class="screen">
+                <div class="panel left">
+                    <div class="scene" id="scene"></div>
+
+                    <div class="pay-area" id="pay-area" hidden>
+                        <div class="tray-head">
+                            <span>No balcão:</span>
+                            <span class="tray-sum" id="tray-sum">R$ 0,00</span>
+                        </div>
+                        <div class="tray" id="tray"></div>
+                        <div class="wallet" id="wallet"></div>
+                        <div class="pay-buttons">
+                            <button class="big-btn" onclick="clearTray()">↩️ Limpar</button>
+                            <button class="big-btn primary" onclick="payNow()">Pagar ✔</button>
+                        </div>
+                    </div>
+
+                    <div class="options" id="options"></div>
+                    <div class="feedback" id="feedback"></div>
+                    <button class="next-btn" id="next-btn" onclick="nextRound()" hidden>Próxima ➜</button>
+                </div>
+            </section>
+
+            <section id="result-screen" class="screen">
+                <div class="panel">
+                    <div class="big-icon" id="result-icon">🏆</div>
+                    <h2>Fim das compras!</h2>
+                    <div class="result-score"><span id="final-score">0</span><small>pontos</small></div>
+                    <p class="lead">Acertos de primeira: <b id="final-hits">0</b></p>
+                    <div class="btn-row">
+                        <button class="big-btn primary" onclick="startGame(state.mode)">Jogar de novo</button>
+                        <button class="big-btn" onclick="showScreen('start-screen')">Menu</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../shared/kids-audio.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

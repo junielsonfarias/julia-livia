@@ -1494,3 +1494,12 @@ body {
 
 /* Quando aberto como app: respeita o entalhe (notch) e a barra de gestos */
 body.is-app { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+
+.letras-thumb { background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%); }
+.letras-icon { font-size: 72px; animation: bounce 2s infinite; }
+.rimas-thumb { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
+.rimas-icon { font-size: 72px; animation: wiggle 1.2s infinite; }
+.graficos-thumb { background: linear-gradient(135deg, #00b894 0%, #0984e3 100%); }
+.graficos-icon { font-size: 72px; animation: pulse 2s infinite; }
+.dinheiro-thumb { background: linear-gradient(135deg, #55efc4 0%, #00a383 100%); }
+.dinheiro-icon { font-size: 72px; animation: rotate 3s ease-in-out infinite; }

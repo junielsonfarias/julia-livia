@@ -14,6 +14,7 @@
             <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
             <h1>Desenhar e Pintar</h1>
             <div class="header-actions">
+                <button class="action-btn" onclick="undo()" title="Desfazer" aria-label="Desfazer">↩️</button>
                 <button class="action-btn" onclick="clearCanvas()" title="Limpar">🗑️</button>
                 <button class="action-btn" onclick="saveDrawing()" title="Salvar">💾</button>
             </div>
@@ -78,6 +79,7 @@
         </main>
     </div>
 
+    <script src="../shared/kids-audio.js"></script>
     <script src="game.js"></script>
 </body>
 </html>

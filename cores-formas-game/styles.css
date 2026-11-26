@@ -739,3 +739,31 @@ body {
         height: 40px;
     }
 }
+
+/* Botao Ouvir (repete a instrucao em voz alta) */
+.hear-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.hear-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 22px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    color: #fff;
+    background: linear-gradient(135deg, #74b9ff, #0984e3);
+    box-shadow: 0 5px 0 #0767b1;
+    touch-action: manipulation;
+}
+
+.hear-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0 #0767b1;
+}

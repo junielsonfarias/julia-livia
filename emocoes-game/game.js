@@ -3,16 +3,17 @@
 // Campo BNCC: O eu, o outro e o nos (EI03EO01)
 
 // Emocoes e suas caracteristicas
+// As situacoes foram escritas para ter UMA resposta clara.
 const EMOTIONS = [
     {
         emoji: '😊',
         name: 'Feliz',
         description: 'Contente, alegre',
         situations: [
-            'Ganhou um presente de aniversario',
+            'Está brincando no parquinho com os amigos',
             'Vai brincar com os amigos',
             'Comeu seu doce favorito',
-            'Ganhou um abraco da mamae'
+            'Ganhou o jogo de corrida'
         ]
     },
     {
@@ -21,9 +22,9 @@ const EMOTIONS = [
         description: 'Chateado, com vontade de chorar',
         situations: [
             'Perdeu seu brinquedo favorito',
-            'O amigo nao quis brincar',
-            'Caiu e se machucou',
-            'Teve que se despedir do vovo'
+            'O amigo não quis brincar',
+            'O sorvete caiu no chão',
+            'Teve que se despedir do vovô'
         ]
     },
     {
@@ -31,10 +32,10 @@ const EMOTIONS = [
         name: 'Bravo',
         description: 'Com raiva, irritado',
         situations: [
-            'Alguem pegou seu brinquedo sem pedir',
-            'Nao conseguiu fazer o que queria',
-            'O irmao bagunçou seu desenho',
-            'Teve que parar de jogar'
+            'Alguém pegou seu brinquedo sem pedir',
+            'Alguém empurrou você na fila',
+            'O irmão bagunçou seu desenho',
+            'O colega derrubou sua torre de blocos de propósito'
         ]
     },
     {
@@ -43,9 +44,9 @@ const EMOTIONS = [
         description: 'Assustado, preocupado',
         situations: [
             'Ouviu um barulho estranho no escuro',
-            'Viu um cachorro muito grande',
-            'Vai ao medico tomar vacina',
-            'Esta em um lugar novo e nao conhece ninguem'
+            'Viu um cachorro muito grande latindo',
+            'Ouviu um trovão muito forte',
+            'Se perdeu da mamãe no mercado'
         ]
     },
     {
@@ -53,10 +54,10 @@ const EMOTIONS = [
         name: 'Surpreso',
         description: 'Espantado, admirado',
         situations: [
-            'Ganhou uma festa surpresa',
-            'Viu um truque de magica',
-            'Recebeu um presente inesperado',
-            'Descobriu que vai viajar'
+            'Abriu a caixa e pulou um boneco de mola',
+            'Viu um truque de mágica',
+            'Viu um coelho sair da cartola',
+            'Acordou e o quintal estava cheio de bolhas de sabão'
         ]
     },
     {
@@ -75,24 +76,37 @@ const EMOTIONS = [
         name: 'Amado',
         description: 'Querido, com carinho',
         situations: [
-            'Recebeu um beijo da mamae',
+            'Recebeu um beijo da mamãe',
             'O papai disse que te ama',
-            'O amigo dividiu o lanche',
-            'Ganhou um abraco apertado'
+            'A vovó fez carinho no seu cabelo',
+            'Ganhou um abraço apertado'
         ]
     },
     {
-        emoji: '😔',
+        emoji: '😳',
         name: 'Envergonhado',
-        description: 'Timido, sem graca',
+        description: 'Tímido, sem graça',
         situations: [
             'Errou na frente de todo mundo',
-            'Esqueceu a letra da musica',
-            'Tropecou e todos viram',
-            'Tem que falar para muitas pessoas'
+            'Esqueceu a letra da música na apresentação',
+            'Tropeçou e todos viram',
+            'Vestiu a blusa do avesso e todos riram'
         ]
     }
 ];
+
+// Emocoes parecidas que nunca aparecem juntas como opcao no modo situacao
+// (assim so uma opcao pode estar certa)
+const CONFLICTS = {
+    'Feliz': ['Amado', 'Surpreso'],
+    'Amado': ['Feliz'],
+    'Surpreso': ['Feliz', 'Com Medo'],
+    'Triste': ['Bravo', 'Envergonhado', 'Com Medo'],
+    'Bravo': ['Triste'],
+    'Com Medo': ['Surpreso', 'Envergonhado', 'Triste'],
+    'Envergonhado': ['Triste', 'Com Medo'],
+    'Cansado': []
+};
 
 // Estado do jogo
 let gameState = {
@@ -103,8 +117,12 @@ let gameState = {
     questionsAnswered: 0,
     questionsPerLevel: 8,
     usedEmotions: [],
-    usedSituations: []
+    usedSituations: [],
+    mistakes: 0,
+    locked: false
 };
+
+let lastPrompt = '';
 
 // Funcao para voltar
 function goBack() {
@@ -135,6 +153,7 @@ function goToMenu() {
     gameState.questionsAnswered = 0;
     gameState.usedEmotions = [];
     gameState.usedSituations = [];
+    gameState.mistakes = 0;
     showScreen('start-screen');
 }
 
@@ -145,8 +164,10 @@ function startGame(mode) {
     gameState.questionsAnswered = 0;
     gameState.usedEmotions = [];
     gameState.usedSituations = [];
+    gameState.mistakes = 0;
     updateStats();
     updateProgress();
+    playSound('start');
     nextQuestion();
     showScreen('game-screen');
 }
@@ -160,6 +181,7 @@ function updateStats() {
 function nextQuestion() {
     document.getElementById('feedback').textContent = '';
     document.getElementById('feedback').className = 'feedback';
+    gameState.locked = false;
 
     if (gameState.mode === 'emoji') {
         generateEmojiQuestion();
@@ -181,14 +203,15 @@ function generateEmojiQuestion() {
     gameState.usedEmotions.push(gameState.currentEmotion.name);
 
     // Atualizar pergunta
-    document.getElementById('question-text').textContent = 'Como essa pessoa esta se sentindo?';
+    document.getElementById('question-text').textContent = 'Como essa pessoa está se sentindo?';
 
     // Mostrar emoji grande
     const emotionDisplay = document.getElementById('emotion-display');
     emotionDisplay.innerHTML = `<span class="big-emoji">${gameState.currentEmotion.emoji}</span>`;
 
     // Criar opcoes (emocao correta + 3 aleatorias)
-    createEmotionOptions();
+    const options = createEmotionOptions();
+    sayPrompt(`Como essa pessoa está se sentindo? ${listOptions(options)}`);
 }
 
 // Gerar pergunta de situacao
@@ -208,7 +231,7 @@ function generateSituationQuestion() {
     gameState.currentSituation = situations[Math.floor(Math.random() * situations.length)];
 
     // Atualizar pergunta
-    document.getElementById('question-text').textContent = 'Como voce se sentiria?';
+    document.getElementById('question-text').textContent = 'Como você se sentiria?';
 
     // Mostrar situacao
     const emotionDisplay = document.getElementById('emotion-display');
@@ -220,7 +243,14 @@ function generateSituationQuestion() {
     `;
 
     // Criar opcoes
-    createEmotionOptions();
+    const options = createEmotionOptions();
+    sayPrompt(`${gameState.currentSituation}. Como você se sentiria? ${listOptions(options)}`);
+}
+
+// "Feliz, triste, bravo ou cansado?"
+function listOptions(options) {
+    const names = options.map(e => e.name.toLowerCase());
+    return names.slice(0, -1).join(', ') + ' ou ' + names[names.length - 1] + '?';
 }
 
 // Criar opcoes de emocoes
@@ -229,13 +259,17 @@ function createEmotionOptions() {
     optionsArea.innerHTML = '';
 
     // Emocao correta + 3 aleatorias
-    const otherEmotions = EMOTIONS.filter(e => e.name !== gameState.currentEmotion.name);
+    // No modo situacao, tira as emocoes parecidas para so uma resposta servir
+    const current = gameState.currentEmotion;
+    const blocked = gameState.mode === 'situation' ? (CONFLICTS[current.name] || []) : [];
+    const otherEmotions = EMOTIONS.filter(e => e.name !== current.name && !blocked.includes(e.name));
     const shuffledOthers = otherEmotions.sort(() => Math.random() - 0.5).slice(0, 3);
     const options = [gameState.currentEmotion, ...shuffledOthers].sort(() => Math.random() - 0.5);
 
     options.forEach(emotion => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
+        btn.dataset.name = emotion.name;
         btn.innerHTML = `
             <span class="option-emoji">${emotion.emoji}</span>
             <span class="option-name">${emotion.name}</span>
@@ -243,10 +277,13 @@ function createEmotionOptions() {
         btn.onclick = () => checkAnswer(emotion);
         optionsArea.appendChild(btn);
     });
+    return options;
 }
 
 // Verificar resposta
 function checkAnswer(emotion) {
+    if (gameState.locked) return;
+    gameState.locked = true;
     const feedbackEl = document.getElementById('feedback');
     const buttons = document.querySelectorAll('.option-btn');
     const isCorrect = emotion.name === gameState.currentEmotion.name;
@@ -254,7 +291,7 @@ function checkAnswer(emotion) {
     // Desabilitar botoes
     buttons.forEach(btn => {
         btn.style.pointerEvents = 'none';
-        const name = btn.querySelector('.option-name').textContent;
+        const name = btn.dataset.name;
         if (name === emotion.name) {
             btn.classList.add(isCorrect ? 'correct' : 'wrong');
         }
@@ -265,24 +302,30 @@ function checkAnswer(emotion) {
 
     if (isCorrect) {
         playSound('correct');
-        feedbackEl.textContent = getRandomPraise();
+        const praise = getRandomPraise();
+        feedbackEl.textContent = praise;
         feedbackEl.className = 'feedback correct';
+        speak(`${praise} ${gameState.currentEmotion.name}!`);
         gameState.score += 10;
         gameState.questionsAnswered++;
         updateStats();
         updateProgress();
 
         if (gameState.questionsAnswered >= gameState.questionsPerLevel) {
-            setTimeout(showWinScreen, 1500);
+            setTimeout(showWinScreen, 2000);
         } else {
-            setTimeout(nextQuestion, 1500);
+            setTimeout(nextQuestion, 2000);
         }
     } else {
         playSound('wrong');
-        feedbackEl.innerHTML = `Essa pessoa esta <strong>${gameState.currentEmotion.name}</strong>! ${gameState.currentEmotion.description}`;
+        gameState.mistakes++;
+        const em = gameState.currentEmotion;
+        const lead = gameState.mode === 'situation' ? 'Você se sentiria' : 'Essa pessoa está';
+        feedbackEl.innerHTML = `${lead} <strong>${em.name}</strong>! ${em.description}`;
         feedbackEl.className = 'feedback wrong';
+        speak(`${lead} ${em.name.toLowerCase()}! ${em.description}.`);
 
-        setTimeout(nextQuestion, 2500);
+        setTimeout(nextQuestion, 3500);
     }
 }
 
@@ -292,9 +335,9 @@ function getRandomPraise() {
         'Muito bem!',
         'Perfeito!',
         'Isso mesmo!',
-        'Parabens!',
-        'Voce entende as emocoes!',
-        'Incrivel!',
+        'Parabéns!',
+        'Você entende as emoções!',
+        'Incrível!',
         'Acertou!',
         'Maravilha!'
     ];
@@ -312,11 +355,10 @@ function showWinScreen() {
     document.getElementById('final-score').textContent = gameState.score;
 
     // Calcular estrelas
-    const maxScore = gameState.questionsPerLevel * 10;
-    const percentage = gameState.score / maxScore;
+    // Estrelas dependem dos erros: 3 (ate 1 erro), 2 (ate 3), senao 1
     let stars = 1;
-    if (percentage >= 1) stars = 3;
-    else if (percentage >= 0.7) stars = 2;
+    if (gameState.mistakes <= 1) stars = 3;
+    else if (gameState.mistakes <= 3) stars = 2;
 
     // Mostrar estrelas
     const starsDisplay = document.getElementById('stars-display');
@@ -331,6 +373,7 @@ function showWinScreen() {
     });
 
     playSound('win');
+    speak(`Muito bem! Você conhece as emoções! Ganhou ${stars} ${stars === 1 ? 'estrela' : 'estrelas'}!`);
     showScreen('win-screen');
 }
 
@@ -339,56 +382,25 @@ function playAgain() {
     startGame(gameState.mode);
 }
 
-// Sons do sistema
+// Sons do sistema (audio compartilhado: um unico AudioContext)
 function playSound(type) {
-    try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
+    if (window.KidsAudio) KidsAudio.play(type);
+}
 
-        const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
+// Voz em portugues
+function speak(text, opts) {
+    if (window.KidsAudio) KidsAudio.speak(text, opts);
+}
 
-        osc.connect(gain);
-        gain.connect(ctx.destination);
+// Fala a instrucao e guarda para o botao Ouvir
+function sayPrompt(text) {
+    lastPrompt = text;
+    speak(text);
+}
 
-        const now = ctx.currentTime;
-        gain.gain.setValueAtTime(0.1, now);
-
-        switch(type) {
-            case 'correct':
-                osc.frequency.setValueAtTime(523, now);
-                osc.frequency.setValueAtTime(659, now + 0.1);
-                osc.frequency.setValueAtTime(784, now + 0.2);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
-                break;
-            case 'wrong':
-                osc.frequency.setValueAtTime(200, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
-                break;
-            case 'win':
-                osc.frequency.setValueAtTime(523, now);
-                osc.frequency.setValueAtTime(659, now + 0.15);
-                osc.frequency.setValueAtTime(784, now + 0.3);
-                osc.frequency.setValueAtTime(1047, now + 0.45);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
-                osc.start(now);
-                osc.stop(now + 0.6);
-                break;
-            case 'star':
-                osc.frequency.setValueAtTime(880, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                osc.start(now);
-                osc.stop(now + 0.2);
-                break;
-        }
-
-        setTimeout(() => ctx.close(), 1000);
-    } catch(e) {}
+function repeatPrompt() {
+    playSound('click');
+    if (lastPrompt) speak(lastPrompt);
 }
 
 // Inicializacao

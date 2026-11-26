@@ -7,7 +7,7 @@
 // ==========================================
 
 // <PRECACHE>
-const CACHE_VERSION = '290f4f2fbf';
+const CACHE_VERSION = '17f6d37f6b';
 const PRECACHE = [
     "/",
     "/animais-game/game.js",
@@ -28,12 +28,18 @@ const PRECACHE = [
     "/desenhar-game/game.js",
     "/desenhar-game/index.html",
     "/desenhar-game/styles.css",
+    "/dinheiro-game/game.js",
+    "/dinheiro-game/index.html",
+    "/dinheiro-game/styles.css",
     "/emocoes-game/game.js",
     "/emocoes-game/index.html",
     "/emocoes-game/styles.css",
     "/fracoes-game/game.js",
     "/fracoes-game/index.html",
     "/fracoes-game/styles.css",
+    "/graficos-game/game.js",
+    "/graficos-game/index.html",
+    "/graficos-game/styles.css",
     "/icons/apple-touch-icon.png",
     "/icons/favicon-32.png",
     "/icons/icon-192.png",
@@ -48,6 +54,9 @@ const PRECACHE = [
     "/leitura-game/game.js",
     "/leitura-game/index.html",
     "/leitura-game/styles.css",
+    "/letras-game/game.js",
+    "/letras-game/index.html",
+    "/letras-game/styles.css",
     "/main-script.js",
     "/main-styles.css",
     "/manifest.webmanifest",
@@ -67,6 +76,9 @@ const PRECACHE = [
     "/quiz-game/game.js",
     "/quiz-game/index.html",
     "/quiz-game/styles.css",
+    "/rimas-game/game.js",
+    "/rimas-game/index.html",
+    "/rimas-game/styles.css",
     "/sequencia-game/game.js",
     "/sequencia-game/index.html",
     "/sequencia-game/styles.css",

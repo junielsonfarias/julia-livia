@@ -15,7 +15,7 @@
             <h1>Cores e Formas</h1>
             <div class="game-stats">
                 <span class="score">Pontos: <strong id="score">0</strong></span>
-                <span class="level">Nivel: <strong id="current-level">1</strong></span>
+                <span class="level">Nível: <strong id="current-level">1</strong></span>
             </div>
         </header>
 
@@ -55,6 +55,7 @@
             <div id="game-screen" class="screen">
                 <div class="question-area">
                     <div class="question-text" id="question-text">Encontre o...</div>
+                    <div class="hear-row"><button class="hear-btn" onclick="repeatPrompt()">🔊 Ouvir</button></div>
                     <div class="target-display" id="target-display">
                         <!-- Forma/cor alvo sera mostrada aqui -->
                     </div>
@@ -75,9 +76,9 @@
                 <div class="win-content">
                     <div class="win-icon">🏆</div>
                     <h2>Muito Bem!</h2>
-                    <p>Voce completou o nivel!</p>
+                    <p>Você completou o nível!</p>
                     <div class="final-score">
-                        <span class="score-label">Pontuacao</span>
+                        <span class="score-label">Pontuação</span>
                         <span class="score-value" id="final-score">0</span>
                     </div>
                     <div class="stars-earned" id="stars-display">
@@ -86,7 +87,7 @@
                         <span class="star">⭐</span>
                     </div>
                     <div class="win-buttons">
-                        <button class="next-btn" onclick="nextLevel()">Proximo Nivel</button>
+                        <button class="next-btn" onclick="nextLevel()">Próximo Nível</button>
                         <button class="menu-btn" onclick="goToMenu()">Menu</button>
                     </div>
                 </div>
@@ -94,6 +95,7 @@
         </main>
     </div>
 
+    <script src="../shared/kids-audio.js"></script>
     <script src="game.js"></script>
 </body>
 </html>

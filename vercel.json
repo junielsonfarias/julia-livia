@@ -139,6 +139,22 @@
     {
       "source": "/olimpiada",
       "destination": "/olimpiada-game/index.html"
+    },
+    {
+      "source": "/letras",
+      "destination": "/letras-game/index.html"
+    },
+    {
+      "source": "/rimas",
+      "destination": "/rimas-game/index.html"
+    },
+    {
+      "source": "/graficos",
+      "destination": "/graficos-game/index.html"
+    },
+    {
+      "source": "/dinheiro",
+      "destination": "/dinheiro-game/index.html"
     }
   ]
 }

@@ -82,7 +82,11 @@ function playGame(gameId) {
         'leitura': 'leitura-game/index.html',
         'silabas': 'silabas-game/index.html',
         'interpretacao': 'interpretacao-game/index.html',
-        'olimpiada': 'olimpiada-game/index.html'
+        'olimpiada': 'olimpiada-game/index.html',
+        'letras': 'letras-game/index.html',
+        'rimas': 'rimas-game/index.html',
+        'graficos': 'graficos-game/index.html',
+        'dinheiro': 'dinheiro-game/index.html'
     };
 
     const route = gameRoutes[gameId];

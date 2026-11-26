@@ -35,14 +35,14 @@
                         <button class="mode-btn identify-mode" onclick="startGame('identify')">
                             <span class="mode-icon">👆</span>
                             <div class="mode-info">
-                                <span class="mode-name">Onde Esta?</span>
+                                <span class="mode-name">Onde Está?</span>
                                 <span class="mode-desc">Encontre a parte do corpo!</span>
                             </div>
                         </button>
                         <button class="mode-btn name-mode" onclick="startGame('name')">
                             <span class="mode-icon">📝</span>
                             <div class="mode-info">
-                                <span class="mode-name">Qual e o Nome?</span>
+                                <span class="mode-name">Qual é o Nome?</span>
                                 <span class="mode-desc">Descubra o nome da parte!</span>
                             </div>
                         </button>
@@ -54,7 +54,8 @@
             <div id="game-screen" class="screen">
                 <div class="game-content">
                     <div class="question-area">
-                        <div class="question-text" id="question-text">Onde esta a cabeca?</div>
+                        <div class="question-text" id="question-text">Onde está a cabeça?</div>
+                        <div class="hear-row"><button class="hear-btn" onclick="repeatPrompt()">🔊 Ouvir</button></div>
                     </div>
 
                     <div class="body-area" id="body-area">
@@ -73,10 +74,10 @@
             <div id="win-screen" class="screen">
                 <div class="win-content">
                     <div class="win-icon">🏆</div>
-                    <h2>Parabens!</h2>
-                    <p>Voce conhece o corpo humano!</p>
+                    <h2>Parabéns!</h2>
+                    <p>Você conhece o corpo humano!</p>
                     <div class="final-score">
-                        <span class="score-label">Pontuacao</span>
+                        <span class="score-label">Pontuação</span>
                         <span class="score-value" id="final-score">0</span>
                     </div>
                     <div class="stars-earned" id="stars-display">
@@ -93,6 +94,7 @@
         </main>
     </div>
 
+    <script src="../shared/kids-audio.js"></script>
     <script src="game.js"></script>
 </body>
 </html>

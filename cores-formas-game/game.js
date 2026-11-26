@@ -13,13 +13,13 @@ const COLORS = [
 ];
 
 const SHAPES = [
-    { name: 'circulo', class: 'circle', ptName: 'Circulo' },
-    { name: 'quadrado', class: 'square', ptName: 'Quadrado' },
-    { name: 'triangulo', class: 'triangle', ptName: 'Triangulo' },
-    { name: 'retangulo', class: 'rectangle', ptName: 'Retangulo' },
-    { name: 'losango', class: 'diamond', ptName: 'Losango' },
-    { name: 'oval', class: 'oval', ptName: 'Oval' },
-    { name: 'estrela', class: 'star', ptName: 'Estrela' }
+    { name: 'circulo', class: 'circle', ptName: 'Círculo', article: 'o' },
+    { name: 'quadrado', class: 'square', ptName: 'Quadrado', article: 'o' },
+    { name: 'triangulo', class: 'triangle', ptName: 'Triângulo', article: 'o' },
+    { name: 'retangulo', class: 'rectangle', ptName: 'Retângulo', article: 'o' },
+    { name: 'losango', class: 'diamond', ptName: 'Losango', article: 'o' },
+    { name: 'oval', class: 'oval', ptName: 'Oval', article: 'o' },
+    { name: 'estrela', class: 'star', ptName: 'Estrela', article: 'a' }
 ];
 
 // Estado do jogo
@@ -30,8 +30,12 @@ let gameState = {
     questionsAnswered: 0,
     questionsPerLevel: 5,
     currentQuestion: null,
-    correctAnswer: null
+    correctAnswer: null,
+    mistakes: 0,    // erros no nivel (define as estrelas)
+    locked: false   // trava os botoes depois do acerto
 };
+
+let lastPrompt = '';
 
 // Funcao para voltar
 function goBack() {
@@ -60,6 +64,9 @@ function showScreen(screenId) {
 function goToMenu() {
     gameState.level = 1;
     gameState.score = 0;
+    gameState.questionsAnswered = 0;
+    gameState.questionsPerLevel = 5;
+    gameState.mistakes = 0;
     updateStats();
     showScreen('start-screen');
 }
@@ -73,10 +80,14 @@ function updateStats() {
 // Iniciar jogo
 function startGame(mode) {
     gameState.mode = mode;
+    gameState.level = 1;
     gameState.questionsAnswered = 0;
+    gameState.questionsPerLevel = 5;
     gameState.score = 0;
+    gameState.mistakes = 0;
     updateStats();
     updateProgress();
+    playSound('start');
     nextQuestion();
     showScreen('game-screen');
 }
@@ -85,6 +96,7 @@ function startGame(mode) {
 function nextQuestion() {
     document.getElementById('feedback').textContent = '';
     document.getElementById('feedback').className = 'feedback';
+    gameState.locked = false;
 
     // Limpar classes das opcoes
     document.querySelectorAll('.option-btn').forEach(btn => {
@@ -124,6 +136,7 @@ function generateColorQuestion() {
 
     // Atualizar UI
     document.getElementById('question-text').textContent = 'Encontre a cor:';
+    sayPrompt(`Encontre o ${targetColor.name}!`);
 
     const targetDisplay = document.getElementById('target-display');
     targetDisplay.innerHTML = `
@@ -195,6 +208,7 @@ function generateShapeQuestion() {
 
     // Atualizar UI
     document.getElementById('question-text').textContent = 'Encontre a forma:';
+    sayPrompt(`Encontre ${targetShape.article} ${targetShape.ptName.toLowerCase()}!`);
 
     const targetDisplay = document.getElementById('target-display');
     const displayColor = COLORS[Math.floor(Math.random() * COLORS.length)];
@@ -223,6 +237,7 @@ function generateShapeQuestion() {
 
 // Verificar resposta
 function checkAnswer(answer, type) {
+    if (gameState.locked) return;
     const feedbackEl = document.getElementById('feedback');
     let isCorrect = false;
 
@@ -247,9 +262,17 @@ function checkAnswer(answer, type) {
     });
 
     if (isCorrect) {
+        // Trava todos os botoes (evita toque duplo somar pontos)
+        gameState.locked = true;
+        buttons.forEach(btn => { btn.style.pointerEvents = 'none'; });
         playSound('correct');
-        feedbackEl.textContent = getRandomPraise();
+        const praise = getRandomPraise();
+        feedbackEl.textContent = praise;
         feedbackEl.className = 'feedback correct';
+        const target = gameState.correctAnswer;
+        speak(type === 'color'
+            ? `${praise} Esse é o ${target.name}!`
+            : `${praise} Esse é ${target.article} ${target.ptName.toLowerCase()}!`);
         gameState.score += 10;
         gameState.questionsAnswered++;
         updateStats();
@@ -263,8 +286,14 @@ function checkAnswer(answer, type) {
         }
     } else {
         playSound('wrong');
+        gameState.mistakes++;
         feedbackEl.textContent = 'Tente novamente!';
         feedbackEl.className = 'feedback wrong';
+        // Desabilita so o botao errado
+        buttons.forEach(btn => {
+            if (btn.classList.contains('wrong')) btn.style.pointerEvents = 'none';
+        });
+        speak(`Esse não. ${lastPrompt}`);
     }
 }
 
@@ -272,12 +301,12 @@ function checkAnswer(answer, type) {
 function getRandomPraise() {
     const praises = [
         'Muito bem!',
-        'Parabens!',
+        'Parabéns!',
         'Excelente!',
-        'Voce acertou!',
+        'Você acertou!',
         'Isso mesmo!',
-        'Incrivel!',
-        'Otimo trabalho!',
+        'Incrível!',
+        'Ótimo trabalho!',
         'Perfeito!'
     ];
     return praises[Math.floor(Math.random() * praises.length)];
@@ -294,11 +323,10 @@ function showWinScreen() {
     document.getElementById('final-score').textContent = gameState.score;
 
     // Calcular estrelas baseado na pontuacao
-    const maxScore = gameState.questionsPerLevel * 10;
-    const percentage = gameState.score / maxScore;
+    // Estrelas dependem dos erros: 3 (ate 1 erro), 2 (ate 3), senao 1
     let stars = 1;
-    if (percentage >= 1) stars = 3;
-    else if (percentage >= 0.7) stars = 2;
+    if (gameState.mistakes <= 1) stars = 3;
+    else if (gameState.mistakes <= 3) stars = 2;
 
     // Mostrar estrelas
     const starsDisplay = document.getElementById('stars-display');
@@ -313,6 +341,7 @@ function showWinScreen() {
     });
 
     playSound('win');
+    speak(`Muito bem! Você ganhou ${stars} ${stars === 1 ? 'estrela' : 'estrelas'}!`);
     showScreen('win-screen');
 }
 
@@ -320,6 +349,7 @@ function showWinScreen() {
 function nextLevel() {
     gameState.level++;
     gameState.questionsAnswered = 0;
+    gameState.mistakes = 0;
     gameState.questionsPerLevel = Math.min(5 + gameState.level, 10); // Aumenta perguntas por nivel
     updateStats();
     updateProgress();
@@ -327,56 +357,25 @@ function nextLevel() {
     showScreen('game-screen');
 }
 
-// Sons simples com Web Audio API
+// Sons (audio compartilhado: um unico AudioContext)
 function playSound(type) {
-    try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
+    if (window.KidsAudio) KidsAudio.play(type);
+}
 
-        const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
+// Voz em portugues
+function speak(text, opts) {
+    if (window.KidsAudio) KidsAudio.speak(text, opts);
+}
 
-        osc.connect(gain);
-        gain.connect(ctx.destination);
+// Fala a instrucao e guarda para o botao Ouvir
+function sayPrompt(text) {
+    lastPrompt = text;
+    speak(text);
+}
 
-        const now = ctx.currentTime;
-        gain.gain.setValueAtTime(0.1, now);
-
-        switch(type) {
-            case 'correct':
-                osc.frequency.setValueAtTime(523, now);
-                osc.frequency.setValueAtTime(659, now + 0.1);
-                osc.frequency.setValueAtTime(784, now + 0.2);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
-                break;
-            case 'wrong':
-                osc.frequency.setValueAtTime(200, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
-                break;
-            case 'win':
-                osc.frequency.setValueAtTime(523, now);
-                osc.frequency.setValueAtTime(659, now + 0.15);
-                osc.frequency.setValueAtTime(784, now + 0.3);
-                osc.frequency.setValueAtTime(1047, now + 0.45);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
-                osc.start(now);
-                osc.stop(now + 0.6);
-                break;
-            case 'star':
-                osc.frequency.setValueAtTime(880, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                osc.start(now);
-                osc.stop(now + 0.2);
-                break;
-        }
-
-        setTimeout(() => ctx.close(), 1000);
-    } catch(e) {}
+function repeatPrompt() {
+    playSound('click');
+    if (lastPrompt) speak(lastPrompt);
 }
 
 // Inicializacao

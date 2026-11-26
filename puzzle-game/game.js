@@ -4,9 +4,9 @@
 
 // Configuracoes de dificuldade
 const DIFFICULTY = {
-    easy: { grid: 2, total: 4, name: 'Facil' },
-    medium: { grid: 3, total: 9, name: 'Medio' },
-    hard: { grid: 4, total: 16, name: 'Dificil' }
+    easy: { grid: 2, total: 4, name: 'Fácil' },
+    medium: { grid: 3, total: 9, name: 'Médio' },
+    hard: { grid: 4, total: 16, name: 'Difícil' }
 };
 
 // Temas de puzzles
@@ -31,10 +31,10 @@ const PUZZLE_THEMES = {
             image: '🌳',
             pieces4: ['🌳', '🌲', '🌴', '🌵'],
             pieces9: ['🌳', '🌲', '🌴', '🌵', '🌿', '🍀', '🌱', '🪴', '🍃'],
-            pieces16: ['🌳', '🌲', '🌴', '🌵', '🌿', '🍀', '🌱', '🪴', '🍃', '🌸', '🌺', '🌻', '🌷', '🌹', '🌼', '🪻']
+            pieces16: ['🌳', '🌲', '🌴', '🌵', '🌿', '🍀', '🌱', '🪴', '🍃', '🌸', '🌺', '🌻', '🌷', '🌹', '🌼', '🌾']
         },
         {
-            name: 'Espaco',
+            name: 'Espaço',
             image: '🚀',
             pieces4: ['🚀', '🌙', '⭐', '🪐'],
             pieces9: ['🚀', '🌙', '⭐', '🌟', '☀️', '🪐', '🌍', '🌈', '☁️'],
@@ -49,7 +49,7 @@ const PUZZLE_THEMES = {
         }
     ],
     numbers: {
-        name: 'Numeros',
+        name: 'Números',
         image: '🔢',
         pieces4: ['1', '2', '3', '4'],
         pieces9: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
@@ -67,14 +67,17 @@ const PUZZLE_THEMES = {
 // Estado do jogo
 let gameState = {
     currentPuzzle: null,
-    difficulty: 'medium',
-    gridSize: 3,
-    totalPieces: 9,
+    difficulty: 'easy',   // comeca no 2x2 (mais facil para os pequenos)
+    gridSize: 2,
+    totalPieces: 4,
     moves: 0,
     placedPieces: [],
     selectedPiece: null,
-    theme: 'emojis'
+    theme: 'emojis',
+    themeIndex: 0
 };
+
+let lastPrompt = '';
 
 // Funcao para voltar
 function goBack() {
@@ -101,7 +104,19 @@ function showScreen(screenId) {
 
 // Ir para menu inicial
 function goToMenu() {
+    speechStop();
     showScreen('start-screen');
+}
+
+// "Outro Puzzle": comeca um novo quebra-cabeca de verdade
+// (proximo tema de emojis, ou o mesmo tema de numeros/letras embaralhado de novo)
+function anotherPuzzle() {
+    if (gameState.theme === 'emojis') {
+        const next = (gameState.themeIndex + 1) % PUZZLE_THEMES.emojis.length;
+        startPuzzle('emojis', next);
+    } else {
+        startPuzzle(gameState.theme, 0);
+    }
 }
 
 // Inicializacao
@@ -171,7 +186,7 @@ function createThemeOptions() {
     const numOption = document.createElement('button');
     numOption.className = 'puzzle-option number-puzzle';
     numOption.innerHTML = '<span class="number-icon">123</span>';
-    numOption.title = 'Numeros em Sequencia';
+    numOption.title = 'Números em Sequência';
     numOption.onclick = () => startPuzzle('numbers', 0);
     container.appendChild(numOption);
 
@@ -187,6 +202,7 @@ function createThemeOptions() {
 // Iniciar puzzle
 function startPuzzle(theme, index) {
     gameState.theme = theme;
+    gameState.themeIndex = index;
     gameState.moves = 0;
     gameState.placedPieces = new Array(gameState.totalPieces).fill(null);
     gameState.selectedPiece = null;
@@ -232,13 +248,16 @@ function startPuzzle(theme, index) {
     const hintText = document.querySelector('.hint-text');
     if (hintText) {
         if (theme === 'numbers') {
-            hintText.textContent = 'Coloque os numeros em ordem!';
+            hintText.textContent = 'Coloque os números em ordem!';
         } else if (theme === 'letters') {
             hintText.textContent = 'Coloque as letras em ordem!';
         } else {
             hintText.textContent = 'Monte esta imagem!';
         }
     }
+
+    playSound('start');
+    sayPrompt('Toque numa peça e depois no lugar com o desenho igual!');
 }
 
 // Obter pecas baseado na dificuldade
@@ -266,10 +285,9 @@ function setupPuzzleBoard() {
         slot.dataset.index = i;
         slot.onclick = () => placeSelectedPiece(i);
 
-        // Mostrar numero/letra esperado como hint sutil
-        if (gameState.theme === 'numbers' || gameState.theme === 'letters') {
-            slot.dataset.hint = gameState.currentPuzzle.pieces[i];
-        }
+        // Mostrar a peca esperada como "sombra" clarinha no espaco vazio
+        // (assim a crianca sabe o que vai em cada lugar)
+        slot.dataset.hint = gameState.currentPuzzle.pieces[i];
 
         board.appendChild(slot);
     }
@@ -387,6 +405,13 @@ function placePiece(piece, slotIndex, correctIndex) {
         if (pieceEl) pieceEl.remove();
 
         playSound('correct');
+        if (gameState.theme === 'numbers' || gameState.theme === 'letters') {
+            speak(piece);
+        }
+
+        // Limpar selecao (so depois de acertar)
+        document.querySelectorAll('.puzzle-piece').forEach(p => p.classList.remove('selected'));
+        gameState.selectedPiece = null;
 
         // Verificar se completou
         if (gameState.placedPieces.filter(p => p !== null).length === gameState.totalPieces) {
@@ -397,11 +422,9 @@ function placePiece(piece, slotIndex, correctIndex) {
         slot.classList.add('wrong');
         setTimeout(() => slot.classList.remove('wrong'), 500);
         playSound('wrong');
+        speak('Aqui não. Procure a sombra igual!');
+        // A peca continua selecionada para tentar outro lugar
     }
-
-    // Limpar selecao
-    document.querySelectorAll('.puzzle-piece').forEach(p => p.classList.remove('selected'));
-    gameState.selectedPiece = null;
 }
 
 // Tela de vitoria
@@ -436,62 +459,31 @@ function showWinScreen() {
     });
 
     playSound('win');
+    speak(`Parabéns! Você montou o quebra-cabeça! Ganhou ${stars} ${stars === 1 ? 'estrela' : 'estrelas'}!`);
     showScreen('win-screen');
 }
 
-// Sons
+// Sons (audio compartilhado: um unico AudioContext)
 function playSound(type) {
-    try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
+    if (window.KidsAudio) KidsAudio.play(type);
+}
 
-        const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
+// Voz em portugues
+function speak(text, opts) {
+    if (window.KidsAudio) KidsAudio.speak(text, opts);
+}
 
-        osc.connect(gain);
-        gain.connect(ctx.destination);
+function speechStop() {
+    try { if ('speechSynthesis' in window) speechSynthesis.cancel(); } catch (e) {}
+}
 
-        const now = ctx.currentTime;
-        gain.gain.setValueAtTime(0.1, now);
+// Fala a instrucao e guarda para o botao Ouvir
+function sayPrompt(text) {
+    lastPrompt = text;
+    speak(text);
+}
 
-        switch(type) {
-            case 'click':
-                osc.frequency.setValueAtTime(600, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                osc.start(now);
-                osc.stop(now + 0.1);
-                break;
-            case 'correct':
-                osc.frequency.setValueAtTime(523, now);
-                osc.frequency.setValueAtTime(659, now + 0.1);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                osc.start(now);
-                osc.stop(now + 0.2);
-                break;
-            case 'wrong':
-                osc.frequency.setValueAtTime(200, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                osc.start(now);
-                osc.stop(now + 0.2);
-                break;
-            case 'win':
-                osc.frequency.setValueAtTime(523, now);
-                osc.frequency.setValueAtTime(659, now + 0.15);
-                osc.frequency.setValueAtTime(784, now + 0.3);
-                osc.frequency.setValueAtTime(1047, now + 0.45);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
-                osc.start(now);
-                osc.stop(now + 0.6);
-                break;
-            case 'star':
-                osc.frequency.setValueAtTime(880, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                osc.start(now);
-                osc.stop(now + 0.2);
-                break;
-        }
-
-        setTimeout(() => ctx.close(), 1000);
-    } catch(e) {}
+function repeatPrompt() {
+    playSound('click');
+    if (lastPrompt) speak(lastPrompt);
 }

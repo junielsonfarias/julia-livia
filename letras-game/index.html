@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Som da Letra - Mundo de Julia & Livia</title>
+    <base href="/letras-game/">
+    <link rel="stylesheet" href="../leitura-game/styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="letras">
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1>🔤 Som da Letra</h1>
+            <div class="round-info"><b id="round">1</b>/<span id="total">10</span></div>
+        </header>
+
+        <main class="game-area">
+            <section id="start-screen" class="screen active">
+                <div class="panel">
+                    <div class="big-icon">🔤</div>
+                    <h2>Som da Letra</h2>
+                    <p class="lead">Ouça a palavra e descubra a letra! Toque em 🔊 para ouvir de novo.</p>
+                    <div class="mode-grid">
+                        <button class="mode-btn m2" onclick="startGame('inicial')">
+                            <span class="mode-sample"><i>?</i>OLA ⚽</span>
+                            <span class="mode-name">Letra do começo</span>
+                        </button>
+                        <button class="mode-btn m3" onclick="startGame('vogal')">
+                            <span class="mode-sample">G<i>?</i>TO 🐱</span>
+                            <span class="mode-name">Vogal que falta</span>
+                        </button>
+                        <button class="mode-btn m4" onclick="startGame('figura')">
+                            <span class="mode-sample"><i>M</i> → 🐒</span>
+                            <span class="mode-name">Ache a figura</span>
+                        </button>
+                        <button class="mode-btn mv" onclick="startGame('misturado')">
+                            <span class="mode-sample">🎲</span>
+                            <span class="mode-name">Misturado</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="game-screen" class="screen">
+                <div class="word-card letter-card" id="card">
+                    <div class="prompt" id="prompt"></div>
+                    <div class="big-picture" id="picture"></div>
+                    <div class="blank-word" id="blank-word"></div>
+                    <button class="act listen hear-btn" onclick="sayPrompt()">🔊 Ouvir</button>
+                </div>
+                <div class="letter-options" id="options"></div>
+            </section>
+
+            <section id="result-screen" class="screen">
+                <div class="panel">
+                    <div class="big-icon">🎉</div>
+                    <h2>Muito bem!</h2>
+                    <p class="lead">Você acertou <b id="hits">0</b> de <b id="rounds">10</b> de primeira!</p>
+                    <div class="stars" id="stars"></div>
+                    <div class="btn-row">
+                        <button class="big-btn primary" onclick="startGame(state.mode)">Jogar de novo</button>
+                        <button class="big-btn" onclick="showScreen('start-screen')">Mudar modo</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../shared/kids-audio.js"></script>
+    <script src="../shared/palavras.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

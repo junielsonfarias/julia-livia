@@ -12,7 +12,34 @@ let drawState = {
     lastY: 0
 };
 
+// Nomes das cores (falados quando a crianca escolhe)
+const COLOR_NAMES = {
+    '#FF0000': 'Vermelho',
+    '#FF9800': 'Laranja',
+    '#FFEB3B': 'Amarelo',
+    '#4CAF50': 'Verde',
+    '#2196F3': 'Azul',
+    '#9C27B0': 'Roxo',
+    '#E91E63': 'Rosa',
+    '#795548': 'Marrom',
+    '#000000': 'Preto',
+    '#FFFFFF': 'Branco'
+};
+
+const TOOL_NAMES = {
+    brush: 'Pincel',
+    eraser: 'Borracha',
+    fill: 'Balde de tinta',
+    spray: 'Spray'
+};
+
+const MAX_UNDO = 6; // poucas fotos para nao pesar a memoria do tablet
+let undoStack = [];
+
 let canvas, ctx;
+let dpr = 1;          // densidade de pixels usada no canvas
+let cssW = 0, cssH = 0; // tamanho do canvas em pixels CSS
+let resizeTimer = null;
 
 // Inicializacao
 document.addEventListener('DOMContentLoaded', () => {
@@ -26,55 +53,93 @@ function initCanvas() {
 
     // Ajustar tamanho do canvas
     resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(resizeCanvas, 150);
+    });
 
     // Eventos de desenho - Mouse
     canvas.addEventListener('mousedown', startDrawing);
     canvas.addEventListener('mousemove', draw);
     canvas.addEventListener('mouseup', stopDrawing);
-    canvas.addEventListener('mouseout', stopDrawing);
+    canvas.addEventListener('mouseleave', stopDrawing);
 
     // Eventos de desenho - Touch
     canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
     canvas.addEventListener('touchend', stopDrawing);
-
-    // Fundo branco inicial
-    fillBackground('#FFFFFF');
+    canvas.addEventListener('touchcancel', stopDrawing);
 }
 
+// Redimensiona sem perder o desenho: copia para um canvas auxiliar,
+// pinta o fundo branco e redesenha (encolhe para caber se a tela diminuiu)
 function resizeCanvas() {
     const container = canvas.parentElement;
     const rect = container.getBoundingClientRect();
+    const newDpr = Math.min(window.devicePixelRatio || 1, 2);
+    const newW = Math.max(1, Math.floor(rect.width));
+    const newH = Math.max(1, Math.floor(rect.height));
 
-    // Salvar o conteudo atual
-    const imageData = ctx ? ctx.getImageData(0, 0, canvas.width, canvas.height) : null;
+    if (newW === cssW && newH === cssH && newDpr === dpr) return;
 
-    canvas.width = rect.width;
-    canvas.height = rect.height;
-
-    // Restaurar o conteudo
-    if (imageData) {
-        ctx.putImageData(imageData, 0, 0);
-    } else {
-        fillBackground('#FFFFFF');
+    // Copiar o conteudo atual
+    let backup = null;
+    if (cssW > 0 && cssH > 0) {
+        backup = document.createElement('canvas');
+        backup.width = canvas.width;
+        backup.height = canvas.height;
+        backup.getContext('2d').drawImage(canvas, 0, 0);
     }
+    const oldW = cssW, oldH = cssH;
+
+    dpr = newDpr;
+    cssW = newW;
+    cssH = newH;
+    canvas.width = Math.floor(cssW * dpr);
+    canvas.height = Math.floor(cssH * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    fillBackground('#FFFFFF');
+
+    if (backup) {
+        // Se cabe, desenha no mesmo tamanho; se nao, encolhe mantendo a proporcao
+        const scale = Math.min(1, cssW / oldW, cssH / oldH);
+        ctx.drawImage(backup, 0, 0, oldW * scale, oldH * scale);
+    }
+
+    // As fotos do "Desfazer" tem o tamanho antigo
+    undoStack = [];
 }
 
 function fillBackground(color) {
     ctx.fillStyle = color;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, cssW, cssH);
+}
+
+function setActiveTool(tool) {
+    drawState.tool = tool;
+    document.querySelectorAll('.tool-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.tool === tool);
+    });
+    if (tool !== 'sticker') {
+        drawState.sticker = null;
+        document.querySelectorAll('.sticker-btn').forEach(s => s.classList.remove('active'));
+    }
 }
 
 function initControls() {
-    // Cores
+    // Cores: escolher uma cor volta para o pincel (se estava no carimbo ou na borracha)
     document.querySelectorAll('.color-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             drawState.currentColor = btn.dataset.color;
-            drawState.sticker = null;
-            document.querySelectorAll('.sticker-btn').forEach(s => s.classList.remove('active'));
+            if (drawState.tool === 'sticker' || drawState.tool === 'eraser') {
+                setActiveTool('brush');
+            }
+            playSound('click');
+            const name = COLOR_NAMES[btn.dataset.color.toUpperCase()];
+            if (name) speak(name);
         });
     });
 
@@ -84,17 +149,16 @@ function initControls() {
             document.querySelectorAll('.brush-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             drawState.brushSize = parseInt(btn.dataset.size);
+            playSound('click');
         });
     });
 
     // Ferramentas
     document.querySelectorAll('.tool-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            drawState.tool = btn.dataset.tool;
-            drawState.sticker = null;
-            document.querySelectorAll('.sticker-btn').forEach(s => s.classList.remove('active'));
+            setActiveTool(btn.dataset.tool);
+            playSound('select');
+            if (TOOL_NAMES[btn.dataset.tool]) speak(TOOL_NAMES[btn.dataset.tool]);
         });
     });
 
@@ -106,6 +170,7 @@ function initControls() {
             btn.classList.add('active');
             drawState.sticker = btn.dataset.sticker;
             drawState.tool = 'sticker';
+            playSound('select');
         });
     });
 }
@@ -129,13 +194,14 @@ function getTouchPos(e) {
 
 function handleTouchStart(e) {
     e.preventDefault();
+    if (!e.touches.length) return;
     const pos = getTouchPos(e);
     startDrawingAt(pos.x, pos.y);
 }
 
 function handleTouchMove(e) {
     e.preventDefault();
-    if (!drawState.isDrawing) return;
+    if (!drawState.isDrawing || !e.touches.length) return;
     const pos = getTouchPos(e);
     drawAt(pos.x, pos.y);
 }
@@ -146,14 +212,18 @@ function startDrawing(e) {
 }
 
 function startDrawingAt(x, y) {
+    saveUndoSnapshot();
     drawState.isDrawing = true;
     drawState.lastX = x;
     drawState.lastY = y;
 
     if (drawState.tool === 'sticker' && drawState.sticker) {
         drawSticker(x, y);
+        playSound('flip');
     } else if (drawState.tool === 'fill') {
-        floodFill(Math.floor(x), Math.floor(y), drawState.currentColor);
+        floodFill(Math.floor(x * dpr), Math.floor(y * dpr), drawState.currentColor);
+    } else if (drawState.tool === 'spray') {
+        sprayAt(x, y);
     } else {
         // Desenhar um ponto inicial
         ctx.beginPath();
@@ -169,30 +239,29 @@ function draw(e) {
     drawAt(pos.x, pos.y);
 }
 
+function sprayAt(x, y) {
+    ctx.fillStyle = drawState.currentColor;
+    for (let i = 0; i < 20; i++) {
+        const offsetX = (Math.random() - 0.5) * drawState.brushSize * 2;
+        const offsetY = (Math.random() - 0.5) * drawState.brushSize * 2;
+        ctx.fillRect(x + offsetX, y + offsetY, 2, 2);
+    }
+}
+
 function drawAt(x, y) {
     if (drawState.tool === 'sticker' || drawState.tool === 'fill') return;
+
+    if (drawState.tool === 'spray') {
+        sprayAt(x, y);
+        drawState.lastX = x;
+        drawState.lastY = y;
+        return;
+    }
 
     ctx.beginPath();
     ctx.moveTo(drawState.lastX, drawState.lastY);
     ctx.lineTo(x, y);
-
-    if (drawState.tool === 'eraser') {
-        ctx.strokeStyle = '#FFFFFF';
-    } else if (drawState.tool === 'spray') {
-        // Efeito spray
-        for (let i = 0; i < 20; i++) {
-            const offsetX = (Math.random() - 0.5) * drawState.brushSize * 2;
-            const offsetY = (Math.random() - 0.5) * drawState.brushSize * 2;
-            ctx.fillStyle = drawState.currentColor;
-            ctx.fillRect(x + offsetX, y + offsetY, 2, 2);
-        }
-        drawState.lastX = x;
-        drawState.lastY = y;
-        return;
-    } else {
-        ctx.strokeStyle = drawState.currentColor;
-    }
-
+    ctx.strokeStyle = drawState.tool === 'eraser' ? '#FFFFFF' : drawState.currentColor;
     ctx.lineWidth = drawState.brushSize;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -210,15 +279,19 @@ function drawSticker(x, y) {
     ctx.font = `${drawState.brushSize * 3}px Arial`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#000000';
     ctx.fillText(drawState.sticker, x, y);
 }
 
-// Flood fill (balde de tinta) - simplificado
+// Flood fill (balde de tinta) - trabalha em pixels reais do canvas
 function floodFill(startX, startY, fillColor) {
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const w = canvas.width, h = canvas.height;
+    if (startX < 0 || startY < 0 || startX >= w || startY >= h) return;
+
+    const imageData = ctx.getImageData(0, 0, w, h);
     const data = imageData.data;
 
-    const startPos = (startY * canvas.width + startX) * 4;
+    const startPos = (startY * w + startX) * 4;
     const startR = data[startPos];
     const startG = data[startPos + 1];
     const startB = data[startPos + 2];
@@ -231,42 +304,92 @@ function floodFill(startX, startY, fillColor) {
     // Se a cor e a mesma, nao fazer nada
     if (startR === fillR && startG === fillG && startB === fillB) return;
 
-    const stack = [[startX, startY]];
-    const visited = new Set();
+    const visited = new Uint8Array(w * h);
+    const stack = [startY * w + startX];
 
-    while (stack.length > 0 && stack.length < 100000) {
-        const [x, y] = stack.pop();
-        const key = `${x},${y}`;
+    while (stack.length > 0) {
+        const idx = stack.pop();
+        if (visited[idx]) continue;
+        visited[idx] = 1;
 
-        if (visited.has(key)) continue;
-        if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) continue;
-
-        const pos = (y * canvas.width + x) * 4;
-        const r = data[pos];
-        const g = data[pos + 1];
-        const b = data[pos + 2];
-
+        const pos = idx * 4;
         // Verificar se a cor e similar (tolerancia de 30)
-        if (Math.abs(r - startR) > 30 || Math.abs(g - startG) > 30 || Math.abs(b - startB) > 30) continue;
-
-        visited.add(key);
+        if (Math.abs(data[pos] - startR) > 30 ||
+            Math.abs(data[pos + 1] - startG) > 30 ||
+            Math.abs(data[pos + 2] - startB) > 30) continue;
 
         data[pos] = fillR;
         data[pos + 1] = fillG;
         data[pos + 2] = fillB;
         data[pos + 3] = 255;
 
-        stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+        const x = idx % w;
+        if (x + 1 < w) stack.push(idx + 1);
+        if (x > 0) stack.push(idx - 1);
+        if (idx + w < w * h) stack.push(idx + w);
+        if (idx - w >= 0) stack.push(idx - w);
     }
 
     ctx.putImageData(imageData, 0, 0);
 }
 
-function clearCanvas() {
-    if (confirm('Quer apagar todo o desenho?')) {
-        fillBackground('#FFFFFF');
-        playSound('clear');
+// ---------- Desfazer ----------
+function saveUndoSnapshot() {
+    try {
+        const snap = document.createElement('canvas');
+        snap.width = canvas.width;
+        snap.height = canvas.height;
+        snap.getContext('2d').drawImage(canvas, 0, 0);
+        undoStack.push(snap);
+        if (undoStack.length > MAX_UNDO) undoStack.shift();
+    } catch (e) { /* sem memoria: ignora */ }
+}
+
+function undo() {
+    if (undoStack.length === 0) {
+        playSound('wrong');
+        return;
     }
+    const snapshot = undoStack.pop();
+    if (snapshot.width === canvas.width && snapshot.height === canvas.height) {
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.drawImage(snapshot, 0, 0);
+        ctx.restore();
+    }
+    playSound('turn');
+}
+
+// ---------- Limpar (sem janelas do navegador) ----------
+function clearCanvas() {
+    if (document.querySelector('.confirm-overlay')) return;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-overlay';
+    overlay.innerHTML = `
+        <div class="confirm-box">
+            <div class="confirm-icon">🗑️</div>
+            <h2>Apagar tudo?</h2>
+            <div class="confirm-buttons">
+                <button class="confirm-yes" aria-label="Sim, apagar">✔</button>
+                <button class="confirm-no" aria-label="Não apagar">✖</button>
+            </div>
+        </div>
+    `;
+    overlay.querySelector('.confirm-yes').onclick = () => {
+        saveUndoSnapshot();
+        fillBackground('#FFFFFF');
+        playSound('flip');
+        speak('Tudo limpinho!');
+        overlay.remove();
+    };
+    overlay.querySelector('.confirm-no').onclick = () => {
+        playSound('click');
+        overlay.remove();
+    };
+    document.body.appendChild(overlay);
+    playSound('select');
+    speak('Apagar tudo? Verde é sim, vermelho é não.');
 }
 
 function saveDrawing() {
@@ -286,7 +409,8 @@ function saveDrawing() {
         </div>
     `;
     document.body.appendChild(modal);
-    playSound('save');
+    playSound('star');
+    speak('Que desenho lindo!');
 }
 
 function goBack() {
@@ -305,35 +429,12 @@ function goBack() {
     }
 }
 
-// Som simples
+// Sons (audio compartilhado: um unico AudioContext)
 function playSound(type) {
-    try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
+    if (window.KidsAudio) KidsAudio.play(type);
+}
 
-        const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        const now = ctx.currentTime;
-        gain.gain.setValueAtTime(0.1, now);
-
-        if (type === 'clear') {
-            osc.frequency.setValueAtTime(400, now);
-            osc.frequency.setValueAtTime(300, now + 0.1);
-        } else if (type === 'save') {
-            osc.frequency.setValueAtTime(523, now);
-            osc.frequency.setValueAtTime(659, now + 0.1);
-            osc.frequency.setValueAtTime(784, now + 0.2);
-        }
-
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-        osc.start(now);
-        osc.stop(now + 0.3);
-
-        setTimeout(() => ctx.close(), 500);
-    } catch(e) {}
+// Voz em portugues
+function speak(text, opts) {
+    if (window.KidsAudio) KidsAudio.speak(text, opts);
 }

@@ -92,6 +92,11 @@ body {
 }
 
 #drawing-canvas {
+    /* absoluto: o tamanho do canvas nao empurra o container (resize funciona nos dois sentidos) */
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
     width: 100%;
     height: 100%;
     cursor: crosshair;
@@ -424,4 +429,67 @@ body {
 .save-modal .close-btn {
     background: linear-gradient(135deg, #e91e63, #c2185b);
     color: white;
+}
+
+/* Confirmar "Apagar tudo?" (sem janela do navegador) */
+.confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+    padding: 16px;
+}
+
+.confirm-box {
+    background: white;
+    border-radius: 30px;
+    padding: 25px 30px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.confirm-icon {
+    font-size: 3.5rem;
+}
+
+.confirm-box h2 {
+    font-family: 'Fredoka One', cursive;
+    color: #e91e63;
+    font-size: 1.8rem;
+    margin: 8px 0 18px;
+}
+
+.confirm-buttons {
+    display: flex;
+    gap: 25px;
+    justify-content: center;
+}
+
+.confirm-buttons button {
+    width: 96px;
+    height: 96px;
+    border: none;
+    border-radius: 50%;
+    font-size: 3rem;
+    color: white;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: transform 0.1s;
+}
+
+.confirm-buttons button:active {
+    transform: scale(0.92);
+}
+
+.confirm-yes {
+    background: linear-gradient(135deg, #66bb6a, #2e7d32);
+    box-shadow: 0 6px 0 #1b5e20;
+}
+
+.confirm-no {
+    background: linear-gradient(135deg, #ef5350, #c62828);
+    box-shadow: 0 6px 0 #8e1b1b;
 }

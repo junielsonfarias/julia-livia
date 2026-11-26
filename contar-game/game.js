@@ -27,8 +27,13 @@ let gameState = {
     rightCount: 0,
     leftObject: '',
     rightObject: '',
-    correctAnswer: '' // 'left', 'right' ou 'equal'
+    correctAnswer: '', // 'left', 'right' ou 'equal'
+    mistakes: 0,      // erros na rodada (define as estrelas)
+    triesLeft: 2,     // tentativas na pergunta atual
+    locked: false     // evita toque duplo
 };
+
+let lastPrompt = '';
 
 // Funcao para voltar
 function goBack() {
@@ -57,6 +62,7 @@ function showScreen(screenId) {
 function goToMenu() {
     gameState.score = 0;
     gameState.questionsAnswered = 0;
+    gameState.mistakes = 0;
     updateStats();
     showScreen('start-screen');
 }
@@ -83,8 +89,10 @@ function startGame(difficulty, mode = 'count') {
 
     gameState.score = 0;
     gameState.questionsAnswered = 0;
+    gameState.mistakes = 0;
     updateStats();
     updateProgress();
+    playSound('start');
     nextQuestion();
     showScreen('game-screen');
 }
@@ -98,6 +106,8 @@ function startCompareGame(difficulty) {
 function nextQuestion() {
     document.getElementById('feedback').textContent = '';
     document.getElementById('feedback').className = 'feedback';
+    gameState.triesLeft = 2;
+    gameState.locked = false;
 
     if (gameState.mode === 'compare') {
         generateCompareQuestion();
@@ -128,6 +138,7 @@ function generateCountQuestion() {
     // Atualizar pergunta
     const emoji = gameState.currentObject;
     document.getElementById('question-text').textContent = `Quantos ${emoji} tem?`;
+    sayPrompt('Quantos tem? Conte e toque no número!');
 
     // Criar opcoes
     createOptions();
@@ -175,6 +186,7 @@ function generateCompareQuestion() {
 
     // Atualizar pergunta
     document.getElementById('question-text').textContent = 'Qual grupo tem MAIS?';
+    sayPrompt('Qual grupo tem mais? Esquerda, direita, ou são iguais?');
 
     // Criar opcoes de comparacao
     createCompareOptions();
@@ -215,6 +227,7 @@ function createOptions() {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
         btn.textContent = num;
+        btn.dataset.value = num;
         btn.onclick = () => checkAnswer(num);
         optionsArea.appendChild(btn);
     });
@@ -228,7 +241,7 @@ function createCompareOptions() {
 
     const options = [
         { value: 'left', text: `${gameState.leftObject} Esquerda`, emoji: '👈' },
-        { value: 'equal', text: 'Sao Iguais', emoji: '🤝' },
+        { value: 'equal', text: 'São Iguais', emoji: '🤝' },
         { value: 'right', text: `Direita ${gameState.rightObject}`, emoji: '👉' }
     ];
 
@@ -236,6 +249,7 @@ function createCompareOptions() {
         const btn = document.createElement('button');
         btn.className = 'option-btn compare-btn';
         btn.innerHTML = `<span class="compare-emoji">${opt.emoji}</span><span>${opt.text}</span>`;
+        btn.dataset.value = opt.value;
         btn.onclick = () => checkCompareAnswer(opt.value);
         optionsArea.appendChild(btn);
     });
@@ -243,105 +257,87 @@ function createCompareOptions() {
 
 // Verificar resposta de comparacao
 function checkCompareAnswer(answer) {
-    const feedbackEl = document.getElementById('feedback');
-    const buttons = document.querySelectorAll('.option-btn');
+    if (gameState.locked) return;
     const isCorrect = answer === gameState.correctAnswer;
-
-    // Desabilitar botoes e marcar respostas
-    buttons.forEach(btn => {
-        btn.style.pointerEvents = 'none';
-    });
-
-    // Encontrar botoes correto e errado
-    buttons.forEach(btn => {
-        const btnText = btn.textContent.toLowerCase();
-        if (answer === 'left' && btnText.includes('esquerda')) {
-            btn.classList.add(isCorrect ? 'correct' : 'wrong');
-        } else if (answer === 'right' && btnText.includes('direita')) {
-            btn.classList.add(isCorrect ? 'correct' : 'wrong');
-        } else if (answer === 'equal' && btnText.includes('iguais')) {
-            btn.classList.add(isCorrect ? 'correct' : 'wrong');
-        }
-
-        // Marcar o correto
-        if (gameState.correctAnswer === 'left' && btnText.includes('esquerda')) {
-            btn.classList.add('correct');
-        } else if (gameState.correctAnswer === 'right' && btnText.includes('direita')) {
-            btn.classList.add('correct');
-        } else if (gameState.correctAnswer === 'equal' && btnText.includes('iguais')) {
-            btn.classList.add('correct');
-        }
-    });
-
-    if (isCorrect) {
-        playSound('correct');
-        feedbackEl.textContent = getRandomPraise();
-        feedbackEl.className = 'feedback correct';
-        gameState.score += 10;
-        gameState.questionsAnswered++;
-        updateStats();
-        updateProgress();
-
-        if (gameState.questionsAnswered >= gameState.questionsPerLevel) {
-            setTimeout(showWinScreen, 1500);
-        } else {
-            setTimeout(nextQuestion, 1500);
-        }
+    let correctText;
+    if (gameState.correctAnswer === 'left') {
+        correctText = `A esquerda tem mais! (${gameState.leftCount} > ${gameState.rightCount})`;
+    } else if (gameState.correctAnswer === 'right') {
+        correctText = `A direita tem mais! (${gameState.rightCount} > ${gameState.leftCount})`;
     } else {
-        playSound('wrong');
-        let correctText = '';
-        if (gameState.correctAnswer === 'left') {
-            correctText = `A esquerda tem mais! (${gameState.leftCount} > ${gameState.rightCount})`;
-        } else if (gameState.correctAnswer === 'right') {
-            correctText = `A direita tem mais! (${gameState.rightCount} > ${gameState.leftCount})`;
-        } else {
-            correctText = `Sao iguais! (${gameState.leftCount} = ${gameState.rightCount})`;
-        }
-        feedbackEl.textContent = correctText;
-        feedbackEl.className = 'feedback wrong';
-
-        setTimeout(nextQuestion, 2500);
+        correctText = `São iguais! (${gameState.leftCount} = ${gameState.rightCount})`;
     }
+    const spoken = correctText.replace(/\s*\(.*\)/, '');
+    handleAnswer(String(answer), String(gameState.correctAnswer), isCorrect, correctText, spoken);
 }
 
 // Verificar resposta
 function checkAnswer(answer) {
+    if (gameState.locked) return;
+    const n = gameState.currentNumber;
+    const isCorrect = answer === n;
+    const correctText = n === 1 ? 'É 1!' : `São ${n}!`;
+    handleAnswer(String(answer), String(n), isCorrect, correctText, correctText);
+}
+
+// Logica comum: acerto, primeira tentativa errada (pode tentar de novo) e segundo erro
+function handleAnswer(answer, correct, isCorrect, correctText, spokenCorrect) {
     const feedbackEl = document.getElementById('feedback');
     const buttons = document.querySelectorAll('.option-btn');
-    const isCorrect = answer === gameState.currentNumber;
-
-    // Desabilitar botoes
-    buttons.forEach(btn => {
-        btn.style.pointerEvents = 'none';
-        if (parseInt(btn.textContent) === answer) {
-            btn.classList.add(isCorrect ? 'correct' : 'wrong');
-        }
-        if (parseInt(btn.textContent) === gameState.currentNumber) {
-            btn.classList.add('correct');
-        }
-    });
 
     if (isCorrect) {
+        gameState.locked = true;
+        buttons.forEach(btn => {
+            btn.style.pointerEvents = 'none';
+            if (btn.dataset.value === correct) btn.classList.add('correct');
+        });
         playSound('correct');
-        feedbackEl.textContent = getRandomPraise();
+        const praise = getRandomPraise();
+        feedbackEl.textContent = `${praise} ${correctText}`;
         feedbackEl.className = 'feedback correct';
+        speak(`${praise} ${spokenCorrect}`);
         gameState.score += 10;
         gameState.questionsAnswered++;
         updateStats();
         updateProgress();
 
         if (gameState.questionsAnswered >= gameState.questionsPerLevel) {
-            setTimeout(showWinScreen, 1500);
+            setTimeout(showWinScreen, 1800);
         } else {
-            setTimeout(nextQuestion, 1500);
+            setTimeout(nextQuestion, 1800);
         }
-    } else {
-        playSound('wrong');
-        feedbackEl.textContent = `Nao! Sao ${gameState.currentNumber}!`;
-        feedbackEl.className = 'feedback wrong';
-
-        setTimeout(nextQuestion, 2000);
+        return;
     }
+
+    playSound('wrong');
+    gameState.mistakes++;
+    gameState.triesLeft--;
+
+    // Marca o botao errado e desabilita so ele
+    buttons.forEach(btn => {
+        if (btn.dataset.value === answer) {
+            btn.classList.add('wrong');
+            btn.style.pointerEvents = 'none';
+        }
+    });
+
+    if (gameState.triesLeft > 0) {
+        feedbackEl.textContent = 'Quase! Tente de novo!';
+        feedbackEl.className = 'feedback wrong';
+        speak(gameState.mode === 'compare' ? 'Quase! Olhe de novo e tente outra vez!' : 'Quase! Conte de novo e tente outra vez!');
+        return;
+    }
+
+    // Segundo erro: mostra a resposta certa e segue
+    gameState.locked = true;
+    buttons.forEach(btn => {
+        btn.style.pointerEvents = 'none';
+        if (btn.dataset.value === correct) btn.classList.add('correct');
+    });
+    feedbackEl.textContent = gameState.mode === 'compare' ? correctText : `Não! ${correctText}`;
+    feedbackEl.className = 'feedback wrong';
+    speak(spokenCorrect);
+    setTimeout(nextQuestion, 2800);
 }
 
 // Frases de elogio
@@ -350,9 +346,9 @@ function getRandomPraise() {
         'Muito bem!',
         'Perfeito!',
         'Isso mesmo!',
-        'Parabens!',
-        'Voce e demais!',
-        'Incrivel!',
+        'Parabéns!',
+        'Você é demais!',
+        'Incrível!',
         'Acertou!',
         'Maravilha!'
     ];
@@ -370,11 +366,10 @@ function showWinScreen() {
     document.getElementById('final-score').textContent = gameState.score;
 
     // Calcular estrelas
-    const maxScore = gameState.questionsPerLevel * 10;
-    const percentage = gameState.score / maxScore;
+    // Estrelas dependem dos erros: 3 (ate 1 erro), 2 (ate 3), senao 1
     let stars = 1;
-    if (percentage >= 1) stars = 3;
-    else if (percentage >= 0.7) stars = 2;
+    if (gameState.mistakes <= 1) stars = 3;
+    else if (gameState.mistakes <= 3) stars = 2;
 
     gameState.totalStars += stars;
     updateStats();
@@ -392,64 +387,34 @@ function showWinScreen() {
     });
 
     playSound('win');
+    speak(`Muito bem! Você ganhou ${stars} ${stars === 1 ? 'estrela' : 'estrelas'}!`);
     showScreen('win-screen');
 }
 
 // Jogar novamente
 function playAgain() {
-    startGame(gameState.difficulty);
+    startGame(gameState.difficulty, gameState.mode);
 }
 
-// Sons
+// Sons (audio compartilhado: um unico AudioContext)
 function playSound(type) {
-    try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
+    if (window.KidsAudio) KidsAudio.play(type);
+}
 
-        const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
+// Voz em portugues
+function speak(text, opts) {
+    if (window.KidsAudio) KidsAudio.speak(text, opts);
+}
 
-        osc.connect(gain);
-        gain.connect(ctx.destination);
+// Fala a instrucao e guarda para o botao Ouvir
+function sayPrompt(text) {
+    lastPrompt = text;
+    speak(text);
+}
 
-        const now = ctx.currentTime;
-        gain.gain.setValueAtTime(0.1, now);
-
-        switch(type) {
-            case 'correct':
-                osc.frequency.setValueAtTime(523, now);
-                osc.frequency.setValueAtTime(659, now + 0.1);
-                osc.frequency.setValueAtTime(784, now + 0.2);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
-                break;
-            case 'wrong':
-                osc.frequency.setValueAtTime(200, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
-                break;
-            case 'win':
-                osc.frequency.setValueAtTime(523, now);
-                osc.frequency.setValueAtTime(659, now + 0.15);
-                osc.frequency.setValueAtTime(784, now + 0.3);
-                osc.frequency.setValueAtTime(1047, now + 0.45);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
-                osc.start(now);
-                osc.stop(now + 0.6);
-                break;
-            case 'star':
-                osc.frequency.setValueAtTime(880, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                osc.start(now);
-                osc.stop(now + 0.2);
-                break;
-        }
-
-        setTimeout(() => ctx.close(), 1000);
-    } catch(e) {}
+function repeatPrompt() {
+    playSound('click');
+    if (lastPrompt) speak(lastPrompt);
 }
 
 // Inicializacao

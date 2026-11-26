@@ -29,23 +29,23 @@
                         <span>3</span>
                     </div>
                     <h2>Vamos Contar!</h2>
-                    <p>Conte os objetos e escolha o numero certo!</p>
+                    <p>Conte os objetos e escolha o número certo!</p>
 
                     <h3 class="section-title">Modo Contar:</h3>
                     <div class="mode-select">
                         <button class="mode-btn" onclick="startGame('easy')">
                             <span class="mode-icon">🐣</span>
-                            <span class="mode-name">Facil</span>
+                            <span class="mode-name">Fácil</span>
                             <span class="mode-desc">1 a 5</span>
                         </button>
                         <button class="mode-btn" onclick="startGame('medium')">
                             <span class="mode-icon">🐥</span>
-                            <span class="mode-name">Medio</span>
+                            <span class="mode-name">Médio</span>
                             <span class="mode-desc">1 a 10</span>
                         </button>
                         <button class="mode-btn" onclick="startGame('hard')">
                             <span class="mode-icon">🦅</span>
-                            <span class="mode-name">Dificil</span>
+                            <span class="mode-name">Difícil</span>
                             <span class="mode-desc">1 a 20</span>
                         </button>
                     </div>
@@ -55,12 +55,12 @@
                         <button class="mode-btn compare" onclick="startCompareGame('easy')">
                             <span class="mode-icon">🤔</span>
                             <span class="mode-name">Qual tem mais?</span>
-                            <span class="mode-desc">Facil</span>
+                            <span class="mode-desc">Fácil</span>
                         </button>
                         <button class="mode-btn compare" onclick="startCompareGame('medium')">
                             <span class="mode-icon">🧐</span>
                             <span class="mode-name">Qual tem mais?</span>
-                            <span class="mode-desc">Medio</span>
+                            <span class="mode-desc">Médio</span>
                         </button>
                     </div>
                 </div>
@@ -70,6 +70,7 @@
             <div id="game-screen" class="screen">
                 <div class="game-content">
                     <div class="question-text" id="question-text">Quantos tem?</div>
+                    <div class="hear-row"><button class="hear-btn" onclick="repeatPrompt()">🔊 Ouvir</button></div>
 
                     <div class="objects-display" id="objects-display">
                         <!-- Objetos aparecerao aqui -->
@@ -92,9 +93,9 @@
                 <div class="win-content">
                     <div class="win-icon">🎉</div>
                     <h2>Muito Bem!</h2>
-                    <p>Voce sabe contar!</p>
+                    <p>Você sabe contar!</p>
                     <div class="final-score">
-                        <span class="score-label">Pontuacao</span>
+                        <span class="score-label">Pontuação</span>
                         <span class="score-value" id="final-score">0</span>
                     </div>
                     <div class="stars-earned" id="stars-display">
@@ -111,6 +112,7 @@
         </main>
     </div>
 
+    <script src="../shared/kids-audio.js"></script>
     <script src="game.js"></script>
 </body>
 </html>

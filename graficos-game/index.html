@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graficos e Tabelas - Mundo de Julia & Livia</title>
+    <base href="/graficos-game/">
+    <link rel="stylesheet" href="../interpretacao-game/styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="graficos">
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1>📊 Gráficos e Tabelas</h1>
+            <div class="game-stats">
+                <span>Pontos: <strong id="score">0</strong></span>
+                <span id="progress"></span>
+            </div>
+        </header>
+
+        <main class="game-area">
+            <section id="start-screen" class="screen active">
+                <div class="panel">
+                    <div class="big-icon">📊</div>
+                    <h2>Gráficos e Tabelas</h2>
+                    <p class="lead">Leia gráficos de barras, pictogramas e tabelas para responder às perguntas — como na OBMEP e nas provas da escola!</p>
+                    <div class="method">
+                        <h3>🔎 Antes de responder:</h3>
+                        <ol>
+                            <li>Leia o <b>título</b>: do que fala o gráfico?</li>
+                            <li>Veja a <b>escala</b> (números do lado) ou a <b>legenda</b> (quanto vale cada figura).</li>
+                            <li>Leia a pergunta com atenção: <mark>MAIS</mark>, <mark>MENOS</mark>, <mark>A MAIS</mark>, <mark>JUNTOS</mark>, <mark>TOTAL</mark>...</li>
+                        </ol>
+                    </div>
+                    <button class="big-btn primary" onclick="startGame()">Começar 📊</button>
+                </div>
+            </section>
+
+            <section id="game-screen" class="screen">
+                <div class="panel left">
+                    <div class="badge-row">
+                        <span class="badge" id="chart-kind"></span>
+                    </div>
+                    <h3 class="chart-title" id="chart-title"></h3>
+                    <div class="chart" id="chart"></div>
+                    <div class="question-box">
+                        <div class="question" id="question"></div>
+                        <div class="options" id="options"></div>
+                        <div class="feedback" id="feedback"></div>
+                        <button class="next-btn" id="next-btn" onclick="nextQuestion()" hidden>Próxima ➜</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="result-screen" class="screen">
+                <div class="panel">
+                    <div class="big-icon" id="result-icon">🏆</div>
+                    <h2>Resultado</h2>
+                    <div class="result-score"><span id="final-score">0</span><small>pontos</small></div>
+                    <p class="lead">Acertos de primeira: <b id="final-hits">0</b></p>
+                    <p class="lead" id="result-msg"></p>
+                    <div class="btn-row">
+                        <button class="big-btn primary" onclick="startGame()">Jogar de novo</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../shared/kids-audio.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

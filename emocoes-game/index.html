@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo das Emocoes - Mundo de Julia & Livia</title>
+    <title>Jogo das Emoções - Mundo de Julia & Livia</title>
     <base href="/emocoes-game/">
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
     <div class="game-container">
         <header class="game-header">
             <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
-            <h1>Jogo das Emocoes</h1>
+            <h1>Jogo das Emoções</h1>
             <div class="game-stats">
                 <span class="score">Pontos: <strong id="score">0</strong></span>
             </div>
@@ -27,19 +27,19 @@
                         <span class="preview-emoji">😢</span>
                         <span class="preview-emoji">😠</span>
                     </div>
-                    <h2>Jogo das Emocoes!</h2>
+                    <h2>Jogo das Emoções!</h2>
                     <p>Aprenda a identificar como as pessoas se sentem!</p>
 
                     <div class="mode-select">
                         <button class="mode-btn" onclick="startGame('emoji')">
                             <span class="mode-icon">😊</span>
-                            <span class="mode-name">Qual e a emocao?</span>
+                            <span class="mode-name">Qual é a emoção?</span>
                             <span class="mode-desc">Identifique o sentimento</span>
                         </button>
                         <button class="mode-btn" onclick="startGame('situation')">
                             <span class="mode-icon">📖</span>
                             <span class="mode-name">Como se sente?</span>
-                            <span class="mode-desc">Situacoes do dia a dia</span>
+                            <span class="mode-desc">Situações do dia a dia</span>
                         </button>
                     </div>
                 </div>
@@ -48,7 +48,8 @@
             <!-- Tela do Jogo -->
             <div id="game-screen" class="screen">
                 <div class="game-content">
-                    <div class="question-text" id="question-text">Como essa pessoa esta se sentindo?</div>
+                    <div class="question-text" id="question-text">Como essa pessoa está se sentindo?</div>
+                    <div class="hear-row"><button class="hear-btn" onclick="repeatPrompt()">🔊 Ouvir</button></div>
 
                     <div class="emotion-display" id="emotion-display">
                         <!-- Emoji ou situacao aparecera aqui -->
@@ -71,9 +72,9 @@
                 <div class="win-content">
                     <div class="win-icon">🎉</div>
                     <h2>Muito Bem!</h2>
-                    <p>Voce conhece as emocoes!</p>
+                    <p>Você conhece as emoções!</p>
                     <div class="final-score">
-                        <span class="score-label">Pontuacao</span>
+                        <span class="score-label">Pontuação</span>
                         <span class="score-value" id="final-score">0</span>
                     </div>
                     <div class="stars-earned" id="stars-display">
@@ -90,6 +91,7 @@
         </main>
     </div>
 
+    <script src="../shared/kids-audio.js"></script>
     <script src="game.js"></script>
 </body>
 </html>

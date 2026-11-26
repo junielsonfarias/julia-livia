@@ -1,0 +1,39 @@
+body.rimas { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
+.rimas .game-header h1 { color: #e17055; }
+.round-info { font-family: 'Fredoka One', cursive; font-size: 1.3rem; color: #e17055; min-width: 60px; text-align: right; }
+
+.rhyme-card { gap: 14px; }
+.rhyme-pair { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; }
+.rhyme-target { display: flex; flex-direction: column; align-items: center; }
+.target-pic { font-size: 5.5rem; line-height: 1.1; }
+.target-word { font-family: 'Fredoka One', cursive; font-size: 2rem; letter-spacing: .06em; color: #2d3436; }
+.rhyme-plus { font-family: 'Fredoka One', cursive; font-size: 1.3rem; color: #e17055; }
+.rhyme-slot {
+    width: 130px; height: 130px; border-radius: 28px; border: 5px dashed #fab1a0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fredoka One', cursive; font-size: 4rem; color: #fab1a0; background: #fffaf6;
+}
+.rhyme-slot.filled { border-style: solid; border-color: #00b894; background: #e8fff8; animation: pop .3s ease; }
+.hear-btn { font-size: 1.1rem; padding: 10px 22px; }
+
+.rhyme-options { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+.rhyme-option {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    width: 140px; padding: 14px 8px; border: none; border-radius: 24px; cursor: pointer;
+    background: #fff; box-shadow: 0 7px 0 rgba(0,0,0,.12); touch-action: manipulation;
+}
+.rhyme-option:active { transform: translateY(4px); box-shadow: 0 3px 0 rgba(0,0,0,.12); }
+.opt-emoji { font-size: 3.8rem; line-height: 1.1; }
+.opt-word { font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: #636e72; letter-spacing: .04em; }
+.rhyme-option.right { background: #e8fff8; box-shadow: 0 7px 0 #00b894; animation: pulse .5s 2; }
+.rhyme-option.wrong-pick { opacity: .3; animation: shake .4s ease; }
+@keyframes pulse { 50% { transform: scale(1.1); } }
+@keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+.stars { font-size: 3rem; margin: 10px 0; letter-spacing: 6px; }
+
+@media (max-width: 560px) {
+    .rhyme-option { width: 104px; }
+    .opt-emoji { font-size: 3rem; }
+    .rhyme-slot { width: 100px; height: 100px; font-size: 3rem; }
+    .target-pic { font-size: 4.2rem; }
+}
