@@ -23,13 +23,15 @@
                     <div class="big-icon">⭕❌</div>
                     <h2>Jogo da Velha do Saber</h2>
                     <p class="lead">Escolha uma casa e <b>responda a pergunta</b>. Acertou? A casa é sua! Errou? Passa a vez.<br>Faça uma linha de 3 para vencer!</p>
+                    <button class="intro-hear" type="button" onclick="speakIntro()">🔊 Ouvir como joga</button>
                     <div class="levels">
                         <div data-level-for="julia"></div>
                         <div data-level-for="livia"></div>
                     </div>
                     <p class="level-help">Cada uma responde perguntas do seu nível.</p>
                     <p class="score-line" id="score-line"></p>
-                    <button class="big-btn primary" onclick="startGame()">Começar ⚔️</button>
+                    <label class="best3"><input type="checkbox" id="opt-best3"> 🏅 Melhor de 3 (quem vencer 2 partidas leva)</label>
+                    <div class="btn-row"><button class="big-btn primary" onclick="startMatch()">Começar ⚔️</button></div>
                 </div>
             </section>
 
@@ -39,6 +41,7 @@
                     <div class="turn-banner" id="turn-banner">Vez da Julia</div>
                     <div class="player" id="p-livia" style="--pc:#ff6b9d"><span class="p-emoji">🧚</span><span class="p-name">Livia</span></div>
                 </div>
+                <p class="series-line" id="series-line" hidden></p>
                 <p class="hint" id="hint">Toque numa casa vazia</p>
                 <div class="ttt" id="ttt"></div>
 
@@ -51,9 +54,10 @@
                 <div class="panel">
                     <div class="winner-emoji" id="winner-emoji">🏆</div>
                     <h2 id="winner-title">Venceu!</h2>
+                    <p class="series-result" id="series-result" hidden></p>
                     <p class="score-line" id="score-line-end"></p>
                     <div class="btn-row">
-                        <button class="big-btn primary" onclick="startGame()">Revanche! ⚔️</button>
+                        <button class="big-btn primary" id="again-btn" onclick="playAgain()">Revanche! ⚔️</button>
                         <button class="big-btn" onclick="goHome()">Menu</button>
                     </div>
                 </div>

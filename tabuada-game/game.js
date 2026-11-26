@@ -15,7 +15,10 @@
         sound: true,
         timerId: null,
         remainingSec: 0,
-        streak: 0
+        streak: 0,
+        gen: 0,          // muda a cada novo jogo: invalida timeouts pendentes do jogo anterior
+        finished: true,
+        sessionTotal: 0
     };
     // sessão (tempo total de jogo) em segundos e id
     const SESSION_SECONDS_DEFAULT = 10 * 60; // 10 minutos
@@ -138,7 +141,7 @@
         const useSettings = document.getElementById('use-settings-checkbox') ? document.getElementById('use-settings-checkbox').checked : true;
         if (useSettings) {
             const s = loadSettings();
-            state.base = s.base || 'random';
+            state.base = $('base-select') ? $('base-select').value : (s.base || 'random');
             state.total = parseInt(s.defaultCount,10) || 10;
             state.mode = s.defaultMode || 'mcq';
             state.difficulty = s.defaultLevel || 'medium';
@@ -166,6 +169,10 @@
         state.correct = 0;
         state.questions = [];
         state.streak = 0;
+        state.gen++;
+        state.finished = false;
+        state.memTest = null;
+        clearTimer();
 
         // decide operações com base na dificuldade ou nas configurações
         const allOps = ['+','-','×','÷'];
@@ -201,7 +208,7 @@
         if (state.avoidRepeat !== false) {
             if (state.prevSignature && state.prevSignature === sig) {
                 // embaralhar as alternativas
-                state.questions = state.questions.sort(()=>Math.random()-0.5);
+                state.questions = shuffleArr(state.questions);
             }
             state.prevSignature = sig;
         }
@@ -216,10 +223,11 @@
         const rb = $('restart-btn'); if (rb) { rb.classList.remove('hidden'); rb.disabled = false; }
     // iniciar timer de sessão (valor do settings ou padrão 10 minutos)
     const sessSec = state.sessionMinutes ? (parseInt(state.sessionMinutes,10)*60) : SESSION_SECONDS_DEFAULT;
+    state.sessionTotal = sessSec;
     startSessionTimer(sessSec);
         renderAchievements();
         renderQuestion();
-        if (state.sound) postMessageToParent('enter');
+        playSfx('enter');
     }
 
     function renderQuestion(){
@@ -230,6 +238,8 @@
 
         const q = state.questions[qidx];
         state.question = q;
+        const myGen = state.gen;
+        $('next-btn').classList.add('hidden');
         // decor alternado para "decoração"
         const card = document.getElementById('question-card');
         if (card) {
@@ -241,6 +251,7 @@
 
         // prepare renderer so we can animate fade-out / fade-in
         const doRender = ()=>{
+            if (myGen !== state.gen || state.finished || state.memTest) return;
             $('progress').textContent = `Pergunta ${qidx+1} / ${total}`;
             $('score').textContent = `Pontos: ${state.correct}`;
             // montar texto conforme operação
@@ -332,6 +343,8 @@
     }
 
     function chooseAnswer(value, btn){
+        if (!state.question || state.question.answered || state.finished) return;
+        state.question.answered = true;
         clearTimer();
         const correct = state.question.answer;
         // disable all interactive elements
@@ -346,7 +359,7 @@
             state.correct++;
             state.streak++;
             markElement(btn, 'correct');
-            if (state.sound){ const p = postMessageToParent('correct'); if (!p) playMelody('correct'); }
+            playSfx('correct');
             provideFeedback(true);
         } else {
             state.streak = 0;
@@ -355,7 +368,7 @@
             document.querySelectorAll('.choice-btn').forEach(b=>{
                 if (parseInt(b.textContent,10)===correct) b.classList.add('correct');
             });
-            if (state.sound){ const pw = postMessageToParent('wrong'); if (!pw) playMelody('wrong'); }
+            playSfx('wrong');
             provideFeedback(false);
         }
 
@@ -384,17 +397,20 @@
         // - toca feedback (visual/som)
         // - aguarda a animação de feedback, aplica fade-out no cartão
         // - após fade, avança para próxima pergunta e renderiza com fade-in
+        const advGen = state.gen;
         (function scheduleAdvance(correct){
             const feedbackMs = correct ? 600 : 1000; // tempo para feedback (pop/shake/confetti)
             const fadeMs = 260; // deve combinar com .fade-out CSS timing
             // agendar início do fade depois do feedback
             setTimeout(()=>{
+                if (advGen !== state.gen || state.finished) return;
                 const card = document.getElementById('question-card');
                 if (card){
                     card.classList.add('fade-out');
                 }
                 // depois do fade, avançar e renderizar (com tolerância a erros)
                 setTimeout(()=>{
+                    if (advGen !== state.gen || state.finished) return;   // jogo reiniciado/encerrado
                     try{
                         if (sessionRemaining <= 0) return finishGame();
                         state.current++;
@@ -456,6 +472,10 @@
     }
 
     function nextQuestion(){
+        const nb = $('next-btn');
+        if (nb.classList.contains('hidden') || state.finished || state.memTest) return;
+        nb.classList.add('hidden');
+        playSfx('click');
         if (sessionRemaining <= 0) return finishGame();
         state.current++;
         if (state.current >= state.total) return finishGame();
@@ -582,18 +602,20 @@
     }
 
     function finishGame(){
+        if (state.finished) return;   // evita encerrar duas vezes (ex.: fim da sessao + avanco pendente)
+        state.finished = true;
         clearTimer();
         clearSessionTimer();
         // visual + som feedback de final de sessão
         try{
             createConfetti(18);
             const percent = Math.round((state.correct / state.total) * 100);
-            // play special melody for perfect or a correct cue otherwise
-            if (percent === 100 && state.sound){ const p = postMessageToParent('perfect'); if (!p) playMelody('perfect'); }
-            else if (state.sound){ const p = postMessageToParent('correct'); if (!p) playMelody('correct'); }
+            playSfx(percent === 100 ? 'perfect' : 'win');
             try{ if (navigator.vibrate) navigator.vibrate(160); }catch(e){}
         }catch(e){}
         $('play-area').classList.add('hidden');
+        $('next-btn').classList.add('hidden');
+        $('hint-area').classList.add('hidden');
         $('result-area').classList.remove('hidden');
         const percent = Math.round((state.correct / state.total) * 100);
         $('result-summary').innerHTML = `Você acertou <strong>${state.correct}</strong> de <strong>${state.total}</strong> perguntas. (${percent}%)`;
@@ -606,11 +628,6 @@
         saveSessionProgress();
         // mostrar conquistas obtidas nessa rodada
         renderAchievements(true);
-        // special melody for perfect score
-        try{
-            const percentNow = Math.round((state.correct / state.total) * 100);
-            if (percentNow === 100 && state.sound){ const p = postMessageToParent('perfect'); if (!p) playMelody('perfect'); }
-        }catch(e){}
         $('start-btn').classList.remove('hidden');
         // restaurar UI completa
         const cont = document.querySelector('.container');
@@ -632,7 +649,7 @@
             if (state.remainingMs <= 0){
                 clearTimer();
                 // marcar como erro por tempo
-                chooseAnswer(null, {classList: {add: ()=>{}}, textContent: 'Tempo'} );
+                chooseAnswer(null, null);
             }
         }, 100);
     }
@@ -743,6 +760,17 @@
         renderAchievements();
     }
 
+    // Sons: prefere o audio compartilhado (KidsAudio, um unico AudioContext);
+    // se nao estiver carregado, usa o playSound da pagina principal (iframe).
+    const SFX_MAP = { enter: 'start', perfect: 'win' };
+    function playSfx(type){
+        if (!state.sound) return;
+        try{
+            if (window.KidsAudio) { window.KidsAudio.play(SFX_MAP[type] || type); return; }
+        }catch(e){}
+        postMessageToParent(type);
+    }
+
     // small helper to call parent for sound (if in iframe)
     function postMessageToParent(type){
         // try parent (host) first, otherwise play locally
@@ -828,7 +856,7 @@
             defaultMode: $('settings-default-mode').value,
             defaultCount: parseInt($('settings-default-count').value,10) || 10,
             sessionMin: parseInt($('settings-session-min').value,10) || 10,
-            perQuestion: parseInt($('settings-per-question').value,10) || 20,
+            perQuestion: (function(){ const v = parseInt($('settings-per-question').value,10); return isNaN(v) ? 20 : Math.max(0, v); })(),
             sound: $('settings-sound').value || 'on',
             avoidRepeat: $('settings-avoid-repeat').value || '1'
         };
@@ -846,52 +874,9 @@
         }
     }
 
-    // local simple sounds (WebAudio)
+    // Fallback local (sem KidsAudio e fora do iframe): usa o mesmo KidsAudio se aparecer depois
     function playLocalSound(type){
-        try {
-            if (!window.AudioContext && !window.webkitAudioContext) return;
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            const ctx = new AudioCtx();
-            const o = ctx.createOscillator();
-            const g = ctx.createGain();
-            o.connect(g); g.connect(ctx.destination);
-            const now = ctx.currentTime;
-            if (type === 'correct') { o.frequency.setValueAtTime(880, now); g.gain.setValueAtTime(0.001, now); g.gain.exponentialRampToValueAtTime(0.16, now+0.001); g.gain.exponentialRampToValueAtTime(0.0001, now+0.3); }
-            else if (type === 'wrong') { o.frequency.setValueAtTime(220, now); g.gain.setValueAtTime(0.001, now); g.gain.exponentialRampToValueAtTime(0.12, now+0.001); g.gain.exponentialRampToValueAtTime(0.0001, now+0.4); }
-            else if (type === 'enter' || type === 'click') { o.frequency.setValueAtTime(660, now); g.gain.setValueAtTime(0.001, now); g.gain.exponentialRampToValueAtTime(0.12, now+0.001); g.gain.exponentialRampToValueAtTime(0.0001, now+0.18); }
-            o.start(now); o.stop(now + 0.5);
-            setTimeout(()=>{ try{ o.disconnect(); g.disconnect(); ctx.close(); }catch(e){} }, 700);
-        } catch(e){}
-    }
-
-    // melodic sequences (small multi-note cues)
-    function playMelody(kind){
-        try{
-            if (!state.sound) return;
-            if (window.parent && window.parent.playSound && typeof window.parent.playSound === 'function'){
-                // let parent try first - prefer centralized audio
-                try{ window.parent.playSound(kind); return; }catch(e){}
-            }
-            if (!window.AudioContext && !window.webkitAudioContext) return;
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            const ctx = new AudioCtx();
-            const now = ctx.currentTime;
-            const master = ctx.createGain(); master.connect(ctx.destination); master.gain.setValueAtTime(0.001, now);
-            const osc = ctx.createOscillator(); osc.type = 'sine'; osc.connect(master);
-            const seq = { correct: [660,880,1040], perfect: [740,880,1040,1320], wrong: [220,180] }[kind] || [440];
-            let t = now;
-            master.gain.exponentialRampToValueAtTime(0.12, t+0.01);
-            osc.start(now);
-            seq.forEach((freq, i)=>{
-                const dur = (i===seq.length-1) ? 0.28 : 0.12;
-                osc.frequency.setValueAtTime(freq, t);
-                t += dur;
-            });
-            // fade out
-            master.gain.exponentialRampToValueAtTime(0.0001, t+0.02);
-            osc.stop(t+0.03);
-            setTimeout(()=>{ try{ osc.disconnect(); master.disconnect(); ctx.close(); }catch(e){} }, Math.round((t-now+0.1)*1000));
-        }catch(e){}
+        try{ if (window.KidsAudio) window.KidsAudio.play(SFX_MAP[type] || type); }catch(e){}
     }
 
     // Save session progress per player
@@ -913,7 +898,7 @@
                 avgResponseMs: avgMs,
                 opsUsed: state.opsUsed || [],
                 difficulty: state.difficulty,
-                sessionSeconds: SESSION_SECONDS_DEFAULT - sessionRemaining
+                sessionSeconds: (state.sessionTotal || SESSION_SECONDS_DEFAULT) - Math.max(0, sessionRemaining)
             };
             sessions.push(session);
             localStorage.setItem(key, JSON.stringify(sessions));
@@ -925,16 +910,16 @@
     function showProgressPanel(){
         const player = ($('player-select')||{}).value || 'julia';
         const key = `tabuada_progress_${player}`;
-        const raw = localStorage.getItem(key);
-        const list = raw ? JSON.parse(raw) : [];
+        let list = [];
+        try{ const raw = localStorage.getItem(key); list = raw ? JSON.parse(raw) : []; }catch(e){ list = []; }
         const el = $('progress-list');
         if (!el) return;
-        if (list.length === 0) el.innerHTML = '<p>Nenhuma sessao registrada ainda.</p>';
+        if (list.length === 0) el.innerHTML = '<p>Nenhuma sessão registrada ainda.</p>';
         else {
             el.innerHTML = list.slice().reverse().map(s=>{
                 const d = new Date(s.date).toLocaleString();
                 const avg = s.avgResponseMs ? (s.avgResponseMs/1000).toFixed(2)+'s' : '-';
-                return `<div class="progress-item"><strong>${d}</strong> — ${s.correct}/${s.total} (${s.percent}%) — tempo médio: ${avg} — ops: ${s.opsUsed.join(', ')} — diff: ${s.difficulty}</div>`;
+                return `<div class="progress-item"><strong>${d}</strong> — ${s.correct}/${s.total} (${s.percent}%) — tempo médio: ${avg} — ops: ${(s.opsUsed || []).join(', ')} — diff: ${s.difficulty}</div>`;
             }).join('');
         }
         // show panel
@@ -951,7 +936,8 @@
     function startMemTest(){
         const player = ($('player-select')||{}).value || 'julia';
         const raw = localStorage.getItem(`tabuada_last_${player}`);
-        let pool = raw ? JSON.parse(raw) : null;
+        let pool = null;
+        try{ pool = raw ? JSON.parse(raw) : null; }catch(e){ pool = null; }
         if (!pool || pool.length === 0) {
             // fallback to current state questions
             pool = state.questions.map(q=>({a:q.a,b:q.b,op:q.op,answer:(q.res !== undefined ? q.res : q.answer)}));
@@ -959,7 +945,7 @@
         if (!pool || pool.length === 0) return alert('Nenhuma sessão anterior para testar. Jogue uma sessão primeiro.');
 
         // pick up to 8 questions randomly
-        pool = pool.sort(()=>Math.random()-0.5).slice(0, Math.min(8, pool.length));
+        pool = shuffleArr(pool).slice(0, Math.min(8, pool.length));
 
         // prepare memtest state
         state.memTest = {
@@ -970,8 +956,14 @@
         };
 
         // show play area and hide result area
+        clearSessionTimer();
+        state.gen++;
         $('result-area').classList.add('hidden');
         $('play-area').classList.remove('hidden');
+        $('next-btn').classList.add('hidden');
+        $('hint-area').classList.add('hidden');
+        const rbm = $('restart-btn'); if (rbm) rbm.classList.add('hidden');
+        const gt = $('game-timer'); if (gt) gt.textContent = '';
         const cont = document.querySelector('.container'); if (cont) cont.classList.add('minimal');
         renderMemQuestion();
     }
@@ -992,11 +984,14 @@
         const input = document.createElement('input'); input.type='number'; input.className='choice-input'; input.style.padding='10px'; input.style.borderRadius='8px';
         const submit = document.createElement('button'); submit.className='primary'; submit.textContent='Enviar';
         submit.onclick = ()=>{
+            if (submit.disabled || !state.memTest) return;
+            submit.disabled = true;
             const val = parseInt(input.value,10);
             const respMs = Date.now() - state.question.startTime;
             const correct = (val === state.question.answer);
             state.memTest.times.push(respMs);
             if (correct) state.memTest.correct++;
+            playSfx(correct ? 'correct' : 'wrong');
             state.memTest.index++;
             renderMemQuestion();
         };
@@ -1010,8 +1005,18 @@
         const avgMs = mem.times.length ? Math.round(mem.times.reduce((s,t)=>s+t,0)/mem.times.length) : 0;
         $('play-area').classList.add('hidden');
         $('result-area').classList.remove('hidden');
+        $('hint-btn').disabled = false;
         $('result-summary').innerHTML = `Teste de memorização: você acertou <strong>${mem.correct}</strong> de <strong>${mem.queue.length}</strong>. Tempo médio: <strong>${(avgMs/1000).toFixed(2)}s</strong>`;
         state.memTest = null;
+    }
+
+    function shuffleArr(arr){
+        const a = arr.slice();
+        for (let i = a.length-1; i > 0; i--){
+            const j = Math.floor(Math.random()*(i+1));
+            [a[i],a[j]] = [a[j],a[i]];
+        }
+        return a;
     }
 
     function retry(){

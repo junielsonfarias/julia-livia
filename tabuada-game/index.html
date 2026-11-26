@@ -80,7 +80,11 @@
                 <select id="timer-select" aria-label="Tempo por pergunta" title="Tempo por pergunta">
                     <option value="0">Não</option>
                     <option value="10">10s</option>
-                    <option value="20" selected>20s</option>
+                    <option value="15">15s</option>
+                    <option value="20">20s</option>
+                    <option value="30">30s</option>
+                    <option value="40" selected>40s</option>
+                    <option value="60">60s</option>
                 </select>
             </label>
 
@@ -168,8 +172,8 @@
             <label>Tempo total da sessão (min):</label>
             <input type="number" id="settings-session-min" value="10" min="1" max="60" aria-label="Tempo total da sessão em minutos" title="Tempo total da sessão (min)">
 
-            <label>Tempo por pergunta (s):</label>
-            <input type="number" id="settings-per-question" value="20" min="0" max="300" aria-label="Tempo por pergunta em segundos" title="Tempo por pergunta (s)">
+            <label>Tempo por pergunta (s, 0 = sem tempo):</label>
+            <input type="number" id="settings-per-question" value="40" min="0" max="300" aria-label="Tempo por pergunta em segundos" title="Tempo por pergunta (s)">
 
             <label>Som por padrão:</label>
             <select id="settings-sound" aria-label="Som padrão" title="Som por padrão">
@@ -196,6 +200,7 @@
         </section>
     </main>
 
+    <script src="../shared/kids-audio.js"></script>
     <script src="game.js"></script>
 </body>
 </html>

@@ -30,5 +30,17 @@ body { background: linear-gradient(135deg, #a8e063 0%, #56ab2f 100%); }
 
 @media (max-width: 760px) {
     .layout { grid-template-columns: 1fr; }
-    .board { max-width: 420px; margin: 0 auto; width: 100%; }
+    /* celular: tabuleiro menor para a pergunta caber na tela sem rolar muito */
+    .board { max-width: min(420px, 46vh); margin: 0 auto; width: 100%; gap: 4px; padding: 6px; }
+    .pawn { font-size: 1.4rem; }
+    .cell-label { font-size: .95rem; }
 }
+#roll-btn { font-size: 1.4rem; padding: 16px 32px; min-height: 60px; }
+#roll-btn:disabled { opacity: .6; }
+.intro-hear {
+    display: inline-flex; align-items: center; gap: 6px; margin: 4px auto 10px;
+    background: linear-gradient(135deg, #74b9ff, #0984e3); color: #fff; border: none;
+    border-radius: 30px; padding: 12px 24px; min-height: 52px; font-family: 'Fredoka One', cursive;
+    font-size: 1.15rem; cursor: pointer; box-shadow: 0 5px 0 rgba(0, 0, 0, .15); touch-action: manipulation;
+}
+.question-card .hear { font-size: 1.1rem; padding: 10px 18px; min-height: 44px; }

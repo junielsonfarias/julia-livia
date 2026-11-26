@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sequencia Logica - Mundo de Julia & Livia</title>
+    <title>Sequência Lógica - Mundo de Julia & Livia</title>
     <base href="/sequencia-game/">
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -12,10 +12,10 @@
     <div class="game-container">
         <header class="game-header">
             <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
-            <h1>Sequencia Logica</h1>
+            <h1>Sequência Lógica</h1>
             <div class="game-stats">
                 <span class="score">Pontos: <strong id="score">0</strong></span>
-                <span class="level">Nivel: <strong id="current-level">1</strong></span>
+                <span class="level">Nível: <strong id="current-level">1</strong></span>
             </div>
         </header>
 
@@ -24,19 +24,19 @@
             <div id="start-screen" class="screen active">
                 <div class="start-content">
                     <div class="game-icon">🧩</div>
-                    <h2>Sequencia Logica!</h2>
+                    <h2>Sequência Lógica!</h2>
                     <p>Descubra a regra escondida, como nas olimpíadas de matemática!</p>
 
                     <div class="mode-select">
                         <button class="mode-btn" onclick="startGame('numbers')">
                             <span class="mode-icon">🔢</span>
-                            <span class="mode-name">Numeros</span>
-                            <span class="mode-desc">Sequencias numericas</span>
+                            <span class="mode-name">Números</span>
+                            <span class="mode-desc">Sequências numéricas</span>
                         </button>
                         <button class="mode-btn" onclick="startGame('patterns')">
                             <span class="mode-icon">🎨</span>
-                            <span class="mode-name">Padroes</span>
-                            <span class="mode-desc">Padroes de formas</span>
+                            <span class="mode-name">Padrões</span>
+                            <span class="mode-desc">Padrões de formas</span>
                         </button>
                         <button class="mode-btn" onclick="startGame('mixed')">
                             <span class="mode-icon">🌟</span>
@@ -50,7 +50,7 @@
             <!-- Tela do Jogo -->
             <div id="game-screen" class="screen">
                 <div class="question-area">
-                    <div class="question-text" id="question-text">Complete a sequencia:</div>
+                    <div class="question-text" id="question-text">Complete a sequência:</div>
                     <div class="sequence-display" id="sequence-display">
                         <!-- Sequencia sera mostrada aqui -->
                     </div>
@@ -72,10 +72,10 @@
             <div id="win-screen" class="screen">
                 <div class="win-content">
                     <div class="win-icon">🏆</div>
-                    <h2>Fantastico!</h2>
-                    <p>Voce completou o nivel!</p>
+                    <h2>Fantástico!</h2>
+                    <p id="level-message">Você completou o nível!</p>
                     <div class="final-score">
-                        <span class="score-label">Pontuacao</span>
+                        <span class="score-label">Pontuação</span>
                         <span class="score-value" id="final-score">0</span>
                     </div>
                     <div class="stars-earned" id="stars-display">
@@ -84,7 +84,7 @@
                         <span class="star">⭐</span>
                     </div>
                     <div class="win-buttons">
-                        <button class="next-btn" onclick="nextLevel()">Proximo Nivel</button>
+                        <button class="next-btn" onclick="nextLevel()">Próximo nível ➜</button>
                         <button class="menu-btn" onclick="goToMenu()">Menu</button>
                     </div>
                 </div>
@@ -92,6 +92,7 @@
         </main>
     </div>
 
+    <script src="../shared/kids-audio.js"></script>
     <script src="game.js"></script>
 </body>
 </html>

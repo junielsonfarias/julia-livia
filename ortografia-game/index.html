@@ -40,7 +40,7 @@
                         <button class="mode-btn" onclick="startGame('c_ç')">
                             <span class="mode-icon">Ç</span>
                             <span class="mode-name">C ou Ç</span>
-                            <span class="mode-desc">crian_a, _asa</span>
+                            <span class="mode-desc">crian_a, _idade</span>
                         </button>
                         <button class="mode-btn" onclick="startGame('g_j')">
                             <span class="mode-icon">G</span>
@@ -50,7 +50,17 @@
                         <button class="mode-btn" onclick="startGame('x_ch')">
                             <span class="mode-icon">X</span>
                             <span class="mode-name">X ou CH</span>
-                            <span class="mode-desc">_uva, _ave</span>
+                            <span class="mode-desc">_uva, pei_e</span>
+                        </button>
+                        <button class="mode-btn" onclick="startGame('r_rr')">
+                            <span class="mode-icon">R</span>
+                            <span class="mode-name">R ou RR</span>
+                            <span class="mode-desc">ca_o (caro × carro)</span>
+                        </button>
+                        <button class="mode-btn" onclick="startGame('m_n')">
+                            <span class="mode-icon">M</span>
+                            <span class="mode-name">M ou N</span>
+                            <span class="mode-desc">ca_po, ca_to</span>
                         </button>
                         <button class="mode-btn mixed" onclick="startGame('mixed')">
                             <span class="mode-icon">🌟</span>
@@ -77,6 +87,8 @@
                     </div>
 
                     <div class="feedback" id="feedback"></div>
+                    <div class="explain" id="explain"></div>
+                    <button class="next-btn" id="next-btn" onclick="goNext()" hidden>Próxima ➜</button>
 
                     <div class="progress-bar">
                         <div class="progress-fill" id="progress-fill"></div>
@@ -89,7 +101,7 @@
                 <div class="result-content">
                     <div class="result-icon" id="result-icon">🏆</div>
                     <h2 id="result-title">Muito Bem!</h2>
-                    <p id="result-message">Voce escreve muito bem!</p>
+                    <p id="result-message">Você escreve muito bem!</p>
 
                     <div class="score-display">
                         <div class="score-circle">
@@ -115,6 +127,8 @@
                         <span class="star">⭐</span>
                     </div>
 
+                    <div class="review" id="review"></div>
+
                     <div class="result-buttons">
                         <button class="play-again-btn" onclick="playAgain()">Jogar Novamente</button>
                         <button class="menu-btn" onclick="goToMenu()">Menu</button>
@@ -124,6 +138,7 @@
         </main>
     </div>
 
+    <script src="../shared/kids-audio.js"></script>
     <script src="game.js"></script>
 </body>
 </html>

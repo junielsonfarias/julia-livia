@@ -28,17 +28,33 @@ const firstLetter = w => semAcento(w.word)[0];
 function wordPool() {
     return getPalavras('variadas').filter(w => !/^[HXQKWY]/.test(semAcento(w.word)));
 }
+// Para "letra do comeco"/"ache a figura": evita inicio com som diferente do nome da letra
+// (CE/CI soam como S, GE/GI como J, CH como X) - confunde quem esta aprendendo.
+const SOM_ENGANOSO = /^(CE|CI|GE|GI|CH)/;
+function soundPool() {
+    return wordPool().filter(w => !SOM_ENGANOSO.test(semAcento(w.word)));
+}
+
+function speakIntro() {
+    KidsAudio.speak('Som da letra! Escolha um jogo. Verde: com que letra começa a palavra. ' +
+        'Azul: qual vogal está faltando. Roxo: ache a figura que começa com a letra. Rosa: tudo misturado.', { rate: 0.9 });
+}
 
 function startGame(mode) {
     state.mode = mode;
     state.round = 0;
     state.hits = 0;
-    const pool = shuffle(wordPool());
-    state.items = pool.slice(0, ROUNDS).map(w => ({
-        word: w,
-        kind: mode === 'misturado' ? ['inicial', 'vogal', 'figura'][Math.floor(Math.random() * 3)] : mode
-    }));
-    document.getElementById('total').textContent = ROUNDS;
+    const used = new Set();
+    state.items = [];
+    for (let i = 0; i < ROUNDS; i++) {
+        const kind = mode === 'misturado' ? ['inicial', 'vogal', 'figura'][Math.floor(Math.random() * 3)] : mode;
+        const pool = kind === 'vogal' ? wordPool() : soundPool();
+        const w = shuffle(pool).find(x => !used.has(x.word));
+        if (!w) break;
+        used.add(w.word);
+        state.items.push({ word: w, kind });
+    }
+    document.getElementById('total').textContent = state.items.length;
     KidsAudio.play('start');
     showScreen('game-screen');
     showRound();
@@ -86,7 +102,7 @@ function showRound() {
         blank.innerHTML = '';
         // 2 figuras de outras letras, sem repetir desenho (ex.: PANELA e PANELINHA usam 🍳)
         const others = [];
-        for (const o of shuffle(wordPool())) {
+        for (const o of shuffle(soundPool())) {
             if (firstLetter(o) === letter || o.emoji === w.emoji || others.some(x => x.emoji === o.emoji)) continue;
             others.push(o);
             if (others.length === 2) break;
@@ -103,7 +119,8 @@ function showRound() {
     }
     const card = document.getElementById('card');
     card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
-    setTimeout(sayPrompt, 350);
+    // interrupt:false = espera o elogio da rodada anterior terminar antes de perguntar
+    setTimeout(() => { if (state.current === item) sayPrompt(false); }, 350);
 }
 
 function addLetterButton(letter) {
@@ -114,13 +131,14 @@ function addLetterButton(letter) {
     document.getElementById('options').appendChild(b);
 }
 
-function sayPrompt() {
+function sayPrompt(interrupt) {
     const item = state.current;
     if (!item) return;
     const word = item.word.word.toLowerCase();
-    if (item.kind === 'inicial') KidsAudio.speak(`Com que letra começa ${word}?`, { rate: 0.85 });
-    else if (item.kind === 'vogal') KidsAudio.speak(`Qual vogal falta em ${word}?`, { rate: 0.85 });
-    else KidsAudio.speak(`Qual figura começa com a letra ${item.letter}?`, { rate: 0.85 });
+    const o = { rate: 0.85, interrupt: interrupt !== false };
+    if (item.kind === 'inicial') KidsAudio.speak(`Com que letra começa ${word}?`, o);
+    else if (item.kind === 'vogal') KidsAudio.speak(`Qual vogal falta em ${word}?`, o);
+    else KidsAudio.speak(`Qual figura começa com a letra ${item.letter}?`, o);
 }
 
 function choose(btn, ok, pictureWord) {
@@ -139,7 +157,7 @@ function choose(btn, ok, pictureWord) {
             const letter = item.kind === 'vogal' ? item.answer : firstLetter(w);
             KidsAudio.speak(`Isso! ${letter}... ${w.word.toLowerCase()}!`, { rate: 0.85 });
         }, 400);
-        setTimeout(nextRound, 2200);
+        setTimeout(nextRound, 2600);
     } else {
         btn.classList.add('wrong-pick');
         btn.disabled = true;
@@ -162,5 +180,6 @@ function finish() {
     document.getElementById('stars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
     showScreen('result-screen');
     KidsAudio.play('win');
-    KidsAudio.speak(stars === 3 ? 'Parabéns! Você é craque nas letras!' : 'Muito bem! Vamos jogar de novo?');
+    KidsAudio.speak(`Você acertou ${state.hits} de primeira! ` +
+        (stars === 3 ? 'Parabéns! Você é craque nas letras!' : 'Muito bem! Vamos jogar de novo?'));
 }

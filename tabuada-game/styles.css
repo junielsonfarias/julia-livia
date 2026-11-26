@@ -237,3 +237,13 @@ select{padding:8px;border-radius:10px;border:1px solid #ddd}
 .question-text.long-text { font-size: 1.35rem; line-height: 1.5; }
 .question-text .equation { display: inline-block; margin-top: 8px; font-size: 1.6em; }
 .question-text .missing { display: inline-block; min-width: 1.4em; padding: 0 .2em; border-radius: 10px; background: #ffeaa7; border: 3px dashed #fdcb6e; text-align: center; }
+
+/* Celular pequeno (360px) */
+.status{flex-wrap:wrap;gap:6px}
+@media (max-width:480px){
+    .settings-grid{grid-template-columns:1fr}
+    .controls label{flex:1 1 140px}
+    .controls select{width:100%}
+    .choice-input{width:100%;max-width:200px}
+    .input-wrap{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+}

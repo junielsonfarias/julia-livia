@@ -29,7 +29,10 @@ const state = {
     recognizer: null,
     ignoreUntil: 0,        // ignora o microfone enquanto o jogo fala (botao 🔊)
     consumedIndex: -1,     // resultado de fala ja usado (evita contar duas vezes)
-    lastWrongAt: 0
+    lastWrongAt: 0,
+    prevWord: null,        // palavra anterior (fala atrasada dela nao conta como erro)
+    cdTimer: null,         // contagem 3-2-1 (cancelavel ao sair)
+    cdDelay: null
 };
 
 const MODE_NAMES = { 2: '2 sílabas', 3: '3 sílabas', 4: '4 sílabas', variadas: 'Variadas' };
@@ -96,11 +99,12 @@ function showRanking() {
 }
 
 // ---------- Modo de conferencia ----------
-function setCheck(mode) {
+// persist=false: troca so nesta partida (ex.: erro de rede), sem mudar a preferencia salva
+function setCheck(mode, persist) {
     if (mode === 'mic' && !SpeechRec) mode = 'manual';
     state.check = mode;
     document.querySelectorAll('.check').forEach(b => b.classList.toggle('selected', b.dataset.check === mode));
-    try { localStorage.setItem('leitura_check', mode); } catch (e) {}
+    if (persist !== false) { try { localStorage.setItem('leitura_check', mode); } catch (e) {} }
     applyCheckUI();
 }
 
@@ -115,12 +119,16 @@ function applyCheckUI() {
 
 // ---------- Jogo ----------
 function startGame(mode) {
+    stopGame();               // cancela contagem/partida anterior (toque duplo no botao)
     state.mode = mode;
     state.deck = shuffle(getPalavras(mode));
     state.score = 0;
     state.readWords = [];
     state.skippedWords = [];
     state.misheard = [];
+    state.current = null;
+    state.prevWord = null;
+    state.locked = false;
     state.timeLeft = GAME_SECONDS;
     document.getElementById('score').textContent = '0';
     document.getElementById('best').textContent = bestFor(mode, state.reader);
@@ -144,19 +152,25 @@ function countdown(done) {
     let n = 3;
     el.textContent = n;
     KidsAudio.play('tick');
-    const iv = setInterval(() => {
+    state.cdTimer = setInterval(() => {
         n--;
         if (n > 0) {
             el.textContent = n;
             el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
             KidsAudio.play('tick');
         } else {
-            clearInterval(iv);
+            clearInterval(state.cdTimer);
+            state.cdTimer = null;
             el.textContent = 'JÁ!';
             KidsAudio.play('start');
-            setTimeout(done, 500);
+            state.cdDelay = setTimeout(() => { state.cdDelay = null; done(); }, 500);
         }
     }, 800);
+}
+
+function cancelCountdown() {
+    if (state.cdTimer) { clearInterval(state.cdTimer); state.cdTimer = null; }
+    if (state.cdDelay) { clearTimeout(state.cdDelay); state.cdDelay = null; }
 }
 
 function tick() {
@@ -182,6 +196,7 @@ function applyWordStyle() {
 
 function nextWord() {
     if (state.deck.length === 0) state.deck = shuffle(getPalavras(state.mode));
+    state.prevWord = state.current ? state.current.word : null;
     state.current = state.deck.pop();
     setHeard('', '');
     renderWord(state.current);
@@ -199,7 +214,10 @@ function renderWord(w) {
     } else {
         wordEl.textContent = w.word;
     }
-    wordEl.style.fontSize = w.word.length > 8 ? 'clamp(2.2rem, 11vw, 5rem)' : '';
+    // Tamanho pelo que aparece na tela (com os tracinhos das silabas)
+    const shown = w.word.length + (showSyl ? w.syllables.length - 1 : 0);
+    wordEl.style.fontSize = shown > 10 ? 'clamp(1.9rem, 9.5vw, 4.4rem)'
+        : shown > 7 ? 'clamp(2.2rem, 11vw, 5rem)' : '';
     document.getElementById('word-picture').textContent = showPic ? w.emoji : '';
 
     const card = document.getElementById('word-card');
@@ -272,6 +290,7 @@ function floatPoint() {
 
 function stopGame() {
     state.running = false;
+    cancelCountdown();
     if (state.timer) { clearInterval(state.timer); state.timer = null; }
     stopMic();
 }
@@ -411,6 +430,8 @@ function startMic() {
                 }
                 if (res.isFinal) {
                     state.consumedIndex = i;
+                    // Final atrasado da palavra anterior (ex.: repetiu "bola"): ignora sem dar erro
+                    if (state.prevWord && alts.some(a => speechMatches(state.prevWord, a))) continue;
                     if (alts[0] && alts[0].trim()) wrongAttempt(alts[0]);
                 } else if (alts[0] && alts[0].trim()) {
                     setHeard(`👂 ${escapeHtml(alts[0].trim())}...`, 'listening');
@@ -422,10 +443,14 @@ function startMic() {
             if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
                 state.recognizer = null;
                 status.textContent = '🎤 Microfone bloqueado. Usando o botão ✓ no lugar.';
-                setCheck('manual');
+                setCheck('manual', false);
             } else if (e.error === 'network') {
                 status.textContent = '🎤 Sem internet para reconhecer a voz. Use o botão ✓.';
-                setCheck('manual');
+                setCheck('manual', false);
+            } else if (e.error === 'audio-capture') {
+                // Sem microfone: sem isto o onend religaria sem parar
+                status.textContent = '🎤 Não achei o microfone. Use o botão ✓.';
+                setCheck('manual', false);
             }
             // 'no-speech' e 'aborted' sao normais: o onend religa
         };
@@ -442,7 +467,7 @@ function startMic() {
         status.textContent = '🎤 Permita o uso do microfone...';
     } catch (e) {
         status.textContent = '';
-        setCheck('manual');
+        setCheck('manual', false);
     }
 }
 
@@ -452,6 +477,14 @@ function stopMic() {
     if (rec) { try { rec.abort(); } catch (e) {} }
     const status = document.getElementById('mic-status');
     if (status) status.textContent = '';
+}
+
+// Explicacao falada da tela inicial (para quem ainda nao le)
+function speakIntro() {
+    KidsAudio.speak('Vamos ler! Aparece uma palavra e você lê em voz alta. ' +
+        (state.check === 'mic' ? 'O microfone escuta e confere sozinho. ' : 'Um adulto toca no botão verde quando você acertar. ') +
+        'Se não souber, toque em pular, ou no alto-falante para ouvir. Você tem um minuto. ' +
+        'Toque no botão verde para palavras pequenas, de duas sílabas.', { rate: 0.9 });
 }
 
 // ---------- Inicializacao ----------

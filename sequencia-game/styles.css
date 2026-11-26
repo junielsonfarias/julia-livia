@@ -642,3 +642,24 @@ body {
 .explain:empty { display: none; }
 .next-btn { display: block; margin: 12px auto 0; width: 100%; max-width: 700px; border: none; border-radius: 16px; padding: 14px; font-family: 'Fredoka One', cursive; font-size: 1.2rem; color: #fff; background: linear-gradient(135deg, #00b894, #00a383); cursor: pointer; }
 .next-btn[hidden] { display: none; }
+
+/* Botao "Proximo nivel" na tela de vitoria nao ocupa a linha toda */
+.win-buttons .next-btn { display: inline-block; width: auto; margin: 0; }
+.option-btn:disabled { cursor: default; color: inherit; }
+.option-btn:disabled:hover { transform: none; }
+@media (max-width: 400px) {
+    .sequence-display { gap: 6px; }
+    .sequence-item { width: 44px; height: 44px; font-size: 1.15rem; border-radius: 10px; }
+    .explain { font-size: 0.98rem; }
+    .game-header h1 { font-size: 1.15rem; }
+}
+
+/* Figuras cabem dentro das caixinhas no celular (antes: 50px numa caixa de 48px) */
+@media (max-width: 480px) {
+    .sequence-item .pattern-item { width: 32px; height: 32px; }
+    .sequence-item .pattern-item.triangle { width: 0; height: 0; border-left-width: 16px; border-right-width: 16px; border-bottom-width: 28px; }
+}
+@media (max-width: 400px) {
+    .sequence-item .pattern-item { width: 28px; height: 28px; }
+    .sequence-item .pattern-item.triangle { width: 0; height: 0; border-left-width: 14px; border-right-width: 14px; border-bottom-width: 24px; }
+}

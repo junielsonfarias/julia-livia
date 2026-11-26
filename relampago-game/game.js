@@ -8,7 +8,7 @@
 const SECONDS = 60;
 const FREEZE_MS = 1500;
 const IDS = ['julia', 'livia'];
-const state = { scores: { julia: 0, livia: 0 }, timeLeft: SECONDS, timer: null, countdown: null, startDelay: null, running: false, pos: 'lado' };
+const state = { scores: { julia: 0, livia: 0 }, timeLeft: SECONDS, timer: null, countdown: null, startDelay: null, running: false, pos: 'lado', gameId: 0, exitArmed: null };
 
 function goBack() {
     stopGame();
@@ -28,8 +28,32 @@ function goHome() {
     showScreen('start-screen');
 }
 
+// Contagem: no frente a frente aparece duas vezes (uma virada para a Livia)
+function setCountdown(text) {
+    const cd = document.getElementById('countdown');
+    const frente = state.pos === 'frente';
+    cd.classList.toggle('frente', frente);
+    cd.innerHTML = frente ? `<span class="cd-flip">${text}</span><span>${text}</span>` : `<span>${text}</span>`;
+}
+
+// Sair pede dois toques (o botao fica perto das maos das duas; evita sair sem querer)
+function askExit() {
+    const btn = document.getElementById('exit-btn');
+    if (state.exitArmed) {
+        clearTimeout(state.exitArmed);
+        state.exitArmed = null;
+        btn.classList.remove('armed');
+        stopGame();
+        goHome();
+        return;
+    }
+    btn.classList.add('armed');
+    state.exitArmed = setTimeout(() => { state.exitArmed = null; btn.classList.remove('armed'); }, 2500);
+}
+
 function startGame() {
     stopGame();
+    state.gameId++;
     state.scores = { julia: 0, livia: 0 };
     state.timeLeft = SECONDS;
     document.getElementById('arena').className = 'arena ' + state.pos;
@@ -44,14 +68,14 @@ function startGame() {
     const cd = document.getElementById('countdown');
     cd.hidden = false;
     let n = 3;
-    cd.textContent = n;
+    setCountdown(n);
     KidsAudio.play('tick');
     state.countdown = setInterval(() => {
         n--;
-        if (n > 0) { cd.textContent = n; KidsAudio.play('tick'); return; }
+        if (n > 0) { setCountdown(n); KidsAudio.play('tick'); return; }
         clearInterval(state.countdown);
         state.countdown = null;
-        cd.textContent = 'JÁ!';
+        setCountdown('JÁ!');
         KidsAudio.play('start');
         state.startDelay = setTimeout(() => {
             cd.hidden = true;
@@ -80,25 +104,33 @@ function nextQuestion(pid) {
 
 function onAnswer(pid, ok) {
     if (!state.running) return;
+    const id = state.gameId;
+    const alive = () => state.running && id === state.gameId;
     if (ok) {
         state.scores[pid]++;
         const el = document.getElementById('score-' + pid);
         el.textContent = state.scores[pid];
         el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
         KidsAudio.play('correct');
-        setTimeout(() => nextQuestion(pid), 350);
+        setTimeout(() => { if (alive()) nextQuestion(pid); }, 350);
     } else {
         KidsAudio.play('wrong');
         const fr = document.getElementById('freeze-' + pid);
+        // Timers de uma partida que ja acabou (ou foi trocada) nao mexem na tela nova
         setTimeout(() => {
+            if (!alive()) return;
             fr.hidden = false;
-            setTimeout(() => { fr.hidden = true; nextQuestion(pid); }, FREEZE_MS);
+            setTimeout(() => { if (id !== state.gameId) return; fr.hidden = true; if (alive()) nextQuestion(pid); }, FREEZE_MS);
         }, 500);
     }
 }
 
 function stopGame() {
     state.running = false;
+    if (state.exitArmed) { clearTimeout(state.exitArmed); state.exitArmed = null; }
+    const ex = document.getElementById('exit-btn');
+    if (ex) ex.classList.remove('armed');
+    IDS.forEach(id => { const f = document.getElementById('freeze-' + id); if (f) f.hidden = true; });
     if (state.timer) { clearInterval(state.timer); state.timer = null; }
     if (state.countdown) { clearInterval(state.countdown); state.countdown = null; }
     if (state.startDelay) { clearTimeout(state.startDelay); state.startDelay = null; }
@@ -127,6 +159,12 @@ function endGame() {
         KidsAudio.play('win');
         KidsAudio.speak(winner === 'empate' ? 'Empate! As duas foram incríveis!' : `${Duelo.PLAYERS[winner].name} venceu!`);
     }, 800);
+}
+
+function speakIntro() {
+    KidsAudio.speak('Duelo relâmpago! As duas jogam ao mesmo tempo, cada uma na sua metade da tela. ' +
+        'Livia: conte as figuras, ache a figura igual, ou toque no grupo que tem mais. ' +
+        'Errou? Espera a ampulheta. Quem acertar mais em um minuto vence!', { rate: 0.9 });
 }
 
 document.addEventListener('DOMContentLoaded', () => {

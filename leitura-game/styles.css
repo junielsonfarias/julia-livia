@@ -121,6 +121,8 @@ body {
 }
 .word.lower { text-transform: lowercase; }
 .word .dash { color: #ccc; margin: 0 .05em; }
+/* Quebra de linha so entre silabas (nunca no meio de uma) */
+.word .syl, .word .dash { display: inline-block; }
 .mic-status { margin-top: 8px; font-weight: 700; color: #6c5ce7; min-height: 1.2em; }
 .float-point {
     position: absolute; top: 20px; right: 30px; font-family: 'Fredoka One', cursive;
@@ -195,3 +197,22 @@ button.mini-word { cursor: pointer; background: #ffeaa7; }
 .heard-list { text-align: left; margin-bottom: 16px; }
 .heard-list h4 { margin-bottom: 6px; color: #555; }
 .mini-word small { color: #888; font-weight: 600; }
+
+/* Botao "ouvir explicacao" das telas iniciais (usado tambem por silabas/letras/rimas) */
+.intro-hear {
+    display: inline-flex; align-items: center; gap: 6px; margin: 10px auto 4px;
+    background: linear-gradient(135deg, #74b9ff, #0984e3); color: #fff; border: none;
+    border-radius: 30px; padding: 12px 24px; min-height: 52px; font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem; cursor: pointer; box-shadow: 0 5px 0 rgba(0, 0, 0, .15); touch-action: manipulation;
+}
+.intro-hear:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0, 0, 0, .15); }
+
+@media (max-width: 400px) {
+    .game-area { padding: 10px; }
+    .panel { padding: 22px 14px; }
+    .word-card { padding: 18px 10px; min-height: 230px; }
+    .act { font-size: 1.1rem; padding: 18px 4px; }
+    .act.ok { font-size: 1.2rem; }
+    .act.listen { padding: 18px 14px; }
+    .back-btn { padding: 9px 12px; }
+}

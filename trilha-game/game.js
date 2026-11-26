@@ -77,13 +77,14 @@ function newTurn() {
     const level = Duelo.getLevel(state.turn);
     const q = DueloPerguntas.generate(level);
     const box = document.getElementById('question');
-    DueloPerguntas.render(box, q, (ok) => onAnswer(ok, q), { hearButton: level !== 'dificil' });
+    DueloPerguntas.render(box, q, (ok) => onAnswer(ok, q, level), { hearButton: level !== 'dificil' });
     KidsAudio.play('turn');
     // Para niveis de quem ainda le pouco, a pergunta e falada
     setTimeout(() => KidsAudio.speak(`Vez da ${P[state.turn].name}! ${level !== 'dificil' ? q.speak : ''}`, { rate: 0.9 }), 300);
 }
 
-function onAnswer(ok, q) {
+function onAnswer(ok, q, level) {
+    if (state.over) return;
     const box = document.getElementById('question');
     if (ok) {
         KidsAudio.play('correct');
@@ -95,7 +96,8 @@ function onAnswer(ok, q) {
     } else {
         KidsAudio.play('wrong');
         DueloPerguntas.feedback(box, `❌ Não foi dessa vez. ${q.explain || ''}`, 'bad');
-        KidsAudio.speak('Não foi dessa vez!', { rate: 0.95 });
+        // No nivel facil a explicacao tambem e falada (Livia ainda nao le)
+        KidsAudio.speak('Não foi dessa vez! ' + (level === 'facil' && q.explain ? q.explain : ''), { rate: 0.95 });
         setTimeout(() => passTurn(), 2600);
     }
 }
@@ -170,6 +172,12 @@ function finish(winner) {
         KidsAudio.play('win');
         KidsAudio.speak(`${w.name} venceu! Parabéns!`);
     }, 700);
+}
+
+function speakIntro() {
+    KidsAudio.speak('Trilha do saber! Cada uma na sua vez. Responda a pergunta. Acertou? Joga o dado e anda na trilha. ' +
+        'A estrela anda mais duas casas. O redemoinho volta três. O presente joga de novo. ' +
+        'Quem chegar primeiro na bandeira de chegada vence!', { rate: 0.9 });
 }
 
 document.addEventListener('DOMContentLoaded', () => {

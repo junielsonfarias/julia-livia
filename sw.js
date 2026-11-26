@@ -7,7 +7,7 @@
 // ==========================================
 
 // <PRECACHE>
-const CACHE_VERSION = '49abdc8213';
+const CACHE_VERSION = 'b826749e97';
 const PRECACHE = [
     "/",
     "/animais-game/game.js",

@@ -25,6 +25,11 @@ body.silabas { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
 }
 .tile:active { transform: translateY(4px); box-shadow: 0 2px 0 #4b3fb5; }
 .tile.used { visibility: hidden; }
+.tile.hint { animation: glow .9s ease-in-out infinite; background: linear-gradient(135deg, #00b894, #55efc4); box-shadow: 0 6px 0 #00876c; }
+@keyframes glow { 50% { transform: scale(1.12); } }
+.hear-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.act.listen.slow { background: linear-gradient(135deg, #55efc4, #00b894); }
+.slots.done .slot { border-color: #00b894; animation: pulse .5s 2; }
 .tile.shake { animation: shake .4s ease; background: linear-gradient(135deg, #d63031, #ff7675); box-shadow: 0 6px 0 #a52121; }
 @keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
 

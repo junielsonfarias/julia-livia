@@ -1,23 +1,23 @@
-// Jogo das Fracoes - Julia (4º ano)
+// Jogo das Frações - Julia (4º ano)
 // Mundo de Julia & Livia
 // Habilidade BNCC: EF04MA09
 
 // Fracoes comuns para o jogo
 const FRACTIONS = [
     { num: 1, den: 2, name: 'um meio', decimal: 0.5 },
-    { num: 1, den: 3, name: 'um terco', decimal: 0.333 },
-    { num: 2, den: 3, name: 'dois tercos', decimal: 0.666 },
+    { num: 1, den: 3, name: 'um terço', decimal: 0.333 },
+    { num: 2, den: 3, name: 'dois terços', decimal: 0.666 },
     { num: 1, den: 4, name: 'um quarto', decimal: 0.25 },
     { num: 2, den: 4, name: 'dois quartos', decimal: 0.5 },
-    { num: 3, den: 4, name: 'tres quartos', decimal: 0.75 },
+    { num: 3, den: 4, name: 'três quartos', decimal: 0.75 },
     { num: 1, den: 5, name: 'um quinto', decimal: 0.2 },
     { num: 2, den: 5, name: 'dois quintos', decimal: 0.4 },
-    { num: 3, den: 5, name: 'tres quintos', decimal: 0.6 },
+    { num: 3, den: 5, name: 'três quintos', decimal: 0.6 },
     { num: 4, den: 5, name: 'quatro quintos', decimal: 0.8 },
     { num: 1, den: 6, name: 'um sexto', decimal: 0.166 },
     { num: 5, den: 6, name: 'cinco sextos', decimal: 0.833 },
     { num: 1, den: 8, name: 'um oitavo', decimal: 0.125 },
-    { num: 3, den: 8, name: 'tres oitavos', decimal: 0.375 },
+    { num: 3, den: 8, name: 'três oitavos', decimal: 0.375 },
     { num: 5, den: 8, name: 'cinco oitavos', decimal: 0.625 },
     { num: 7, den: 8, name: 'sete oitavos', decimal: 0.875 }
 ];
@@ -40,7 +40,9 @@ let gameState = {
     wrongAnswers: 0,
     totalQuestions: 10,
     currentFraction: null,
-    correctAnswer: null
+    correctAnswer: null,
+    answered: false,
+    lastKey: ''
 };
 
 // Funcao para voltar
@@ -66,8 +68,15 @@ function showScreen(screenId) {
     document.getElementById(screenId).classList.add('active');
 }
 
+let starTimers = [];
+function clearStarTimers() {
+    starTimers.forEach(clearTimeout);
+    starTimers = [];
+}
+
 // Ir para menu inicial
 function goToMenu() {
+    clearStarTimers();
     gameState.score = 0;
     gameState.currentQuestion = 0;
     showScreen('start-screen');
@@ -80,9 +89,13 @@ function startGame(mode) {
     gameState.score = 0;
     gameState.correctAnswers = 0;
     gameState.wrongAnswers = 0;
+    gameState.answered = false;
+    gameState.lastKey = '';
+    clearStarTimers();
+    playSound('start');
     updateStats();
-    nextQuestion();
     showScreen('game-screen');
+    nextQuestion();
 }
 
 // Atualizar estatisticas
@@ -105,17 +118,29 @@ function nextQuestion() {
     document.getElementById('explain').innerHTML = '';
     document.getElementById('next-btn').hidden = true;
     document.getElementById('options-area').className = 'options-area';
+    gameState.answered = false;
     updateProgress();
+    updateStats();
 
-    if (gameState.mode === 'identify') {
-        generateIdentifyQuestion();
-    } else if (gameState.mode === 'compare') {
-        generateCompareQuestion();
-    } else if (gameState.mode === 'problems') {
-        generateProblemQuestion();
-    } else {
-        generateEquivalentQuestion();
+    // Gera a pergunta evitando repetir exatamente a anterior
+    for (let tries = 0; tries < 6; tries++) {
+        if (gameState.mode === 'identify') {
+            generateIdentifyQuestion();
+        } else if (gameState.mode === 'compare') {
+            generateCompareQuestion();
+        } else if (gameState.mode === 'problems') {
+            generateProblemQuestion();
+        } else {
+            generateEquivalentQuestion();
+        }
+        const key = document.getElementById('question-text').textContent + '|' + document.getElementById('fraction-display').innerHTML;
+        if (key !== gameState.lastKey) { gameState.lastKey = key; break; }
     }
+}
+
+// Mesmo valor? (ex.: 1/2 e 2/4)
+function sameValue(a, b) {
+    return a.num * b.den === b.num * a.den;
 }
 
 // Gerar pergunta de identificacao
@@ -125,7 +150,7 @@ function generateIdentifyQuestion() {
     gameState.currentFraction = simpleFractions[Math.floor(Math.random() * simpleFractions.length)];
     gameState.correctAnswer = gameState.currentFraction;
 
-    document.getElementById('question-text').textContent = 'Qual fracao representa a parte colorida?';
+    document.getElementById('question-text').textContent = 'Qual fração representa a parte colorida?';
 
     // Criar visualizacao
     const display = document.getElementById('fraction-display');
@@ -165,7 +190,7 @@ function createPizzaVisualization(numerator, denominator) {
                 ${slicesHtml}
                 <circle cx="50" cy="50" r="45" fill="none" stroke="#333" stroke-width="2"/>
             </svg>
-            <p class="pizza-hint">${numerator} de ${denominator} partes coloridas</p>
+            <p class="pizza-hint">Conte: quantas partes ao todo? Quantas coloridas?</p>
         </div>
     `;
 }
@@ -176,12 +201,12 @@ function createIdentifyOptions() {
     optionsArea.innerHTML = '';
 
     // Opcao correta + 3 aleatorias
+    // Exclui frações de mesmo valor (ex.: pizza 2/4 e opção 1/2 seriam as duas certas)
     const otherFractions = FRACTIONS.filter(f =>
-        !(f.num === gameState.currentFraction.num && f.den === gameState.currentFraction.den) &&
-        f.den <= 6
+        !sameValue(f, gameState.currentFraction) && f.den <= 6
     );
     const shuffledOthers = shuffleList(otherFractions).slice(0, 3);
-    const options = [gameState.currentFraction, ...shuffledOthers].sort(() => Math.random() - 0.5);
+    const options = shuffleList([gameState.currentFraction, ...shuffledOthers]);
 
     options.forEach(fraction => {
         const btn = document.createElement('button');
@@ -290,7 +315,7 @@ function generateEquivalentQuestion() {
     gameState.currentFraction = baseFraction;
     gameState.correctAnswer = equivalentFraction;
 
-    document.getElementById('question-text').textContent = `Qual fracao e equivalente a ${baseFraction.num}/${baseFraction.den}?`;
+    document.getElementById('question-text').textContent = `Qual fração é equivalente a ${baseFraction.num}/${baseFraction.den}?`;
 
     // Criar visualizacao
     const display = document.getElementById('fraction-display');
@@ -319,11 +344,10 @@ function createEquivalentOptions(correctFraction) {
 
     // Gerar opcoes incorretas (fracoes nao equivalentes)
     const wrongOptions = shuffleList(FRACTIONS.filter(f =>
-        Math.abs(f.decimal - gameState.currentFraction.num / gameState.currentFraction.den) > 0.01 &&
-        f.den <= 8
+        !sameValue(f, gameState.currentFraction) && f.den <= 8
     )).slice(0, 3);
 
-    const options = [correctFraction, ...wrongOptions].sort(() => Math.random() - 0.5);
+    const options = shuffleList([correctFraction, ...wrongOptions]);
 
     options.forEach(fraction => {
         const btn = document.createElement('button');
@@ -342,7 +366,8 @@ function createEquivalentOptions(correctFraction) {
 
 // Verificar resposta
 function checkAnswer(answer, type) {
-    if (!document.getElementById('next-btn').hidden) return;
+    if (gameState.answered) return;   // evita toque duplo
+    gameState.answered = true;
     const feedbackEl = document.getElementById('feedback');
     const buttons = document.querySelectorAll('.option-btn');
     let isCorrect = false;
@@ -356,7 +381,7 @@ function checkAnswer(answer, type) {
     }
 
     // Desabilitar botoes
-    buttons.forEach(btn => btn.style.pointerEvents = 'none');
+    buttons.forEach(btn => { btn.disabled = true; btn.style.pointerEvents = 'none'; });
 
     // Marcar resposta
     buttons.forEach(btn => {
@@ -403,13 +428,18 @@ function checkAnswer(answer, type) {
     // Explicacao + botao "Proxima" (tempo para entender o porque)
     document.getElementById('explain').innerHTML = '💡 <b>Por quê?</b> ' + explainAnswer(type);
     gameState.currentQuestion++;
+    document.getElementById('score').textContent = gameState.score;
+    updateProgress();
     const nextBtn = document.getElementById('next-btn');
     nextBtn.textContent = gameState.currentQuestion >= gameState.totalQuestions ? 'Ver resultado 🏆' : 'Próxima ➜';
     nextBtn.hidden = false;
 }
 
 function goNext() {
-    updateStats();
+    const nextBtn = document.getElementById('next-btn');
+    if (nextBtn.hidden) return;
+    nextBtn.hidden = true;
+    playSound('click');
     if (gameState.currentQuestion >= gameState.totalQuestions) showResults();
     else nextQuestion();
 }
@@ -536,19 +566,19 @@ function showResults() {
     if (percentage >= 80) {
         icon = '🏆';
         title = 'Excelente!';
-        message = 'Voce domina as fracoes!';
+        message = 'Você domina as frações!';
     } else if (percentage >= 60) {
         icon = '🎉';
-        title = 'Muito Bem!';
+        title = 'Muito bem!';
         message = 'Continue praticando!';
     } else if (percentage >= 40) {
         icon = '👍';
-        title = 'Bom Trabalho!';
+        title = 'Bom trabalho!';
         message = 'Tente novamente para melhorar!';
     } else {
         icon = '💪';
-        title = 'Nao Desista!';
-        message = 'A pratica leva a perfeicao!';
+        title = 'Não desista!';
+        message = 'A prática leva à perfeição!';
     }
 
     document.getElementById('result-icon').textContent = icon;
@@ -563,14 +593,15 @@ function showResults() {
     if (percentage >= 80) stars = 3;
     else if (percentage >= 50) stars = 2;
 
+    clearStarTimers();
     const starsDisplay = document.getElementById('stars-display');
     starsDisplay.querySelectorAll('.star').forEach((star, i) => {
         star.classList.remove('earned');
         if (i < stars) {
-            setTimeout(() => {
+            starTimers.push(setTimeout(() => {
                 star.classList.add('earned');
                 playSound('star');
-            }, i * 300);
+            }, i * 300));
         }
     });
 
@@ -585,60 +616,13 @@ function playAgain() {
 
 // Frases de elogio
 function getRandomPraise() {
-    const praises = ['Correto!', 'Muito bem!', 'Excelente!', 'Perfeito!', 'Incrivel!', 'Genial!'];
+    const praises = ['Correto!', 'Muito bem!', 'Excelente!', 'Perfeito!', 'Incrível!', 'Genial!'];
     return praises[Math.floor(Math.random() * praises.length)];
 }
 
-// Sons
+// Sons: usa o audio compartilhado (um unico AudioContext)
 function playSound(type) {
-    try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
-
-        const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        const now = ctx.currentTime;
-        gain.gain.setValueAtTime(0.1, now);
-
-        switch(type) {
-            case 'correct':
-                osc.frequency.setValueAtTime(523, now);
-                osc.frequency.setValueAtTime(659, now + 0.1);
-                osc.frequency.setValueAtTime(784, now + 0.2);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
-                break;
-            case 'wrong':
-                osc.frequency.setValueAtTime(200, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
-                break;
-            case 'win':
-                osc.frequency.setValueAtTime(523, now);
-                osc.frequency.setValueAtTime(659, now + 0.15);
-                osc.frequency.setValueAtTime(784, now + 0.3);
-                osc.frequency.setValueAtTime(1047, now + 0.45);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
-                osc.start(now);
-                osc.stop(now + 0.6);
-                break;
-            case 'star':
-                osc.frequency.setValueAtTime(880, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                osc.start(now);
-                osc.stop(now + 0.2);
-                break;
-        }
-
-        setTimeout(() => ctx.close(), 1000);
-    } catch(e) {}
+    try { if (window.KidsAudio) KidsAudio.play(type); } catch (e) {}
 }
 
 // Inicializacao

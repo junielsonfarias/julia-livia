@@ -23,6 +23,7 @@
                     <div class="big-icon">🧩</div>
                     <h2>Monte a Palavra!</h2>
                     <p class="lead">Olhe a figura, ouça a palavra e toque nas <b>sílabas</b> na ordem certa.</p>
+                    <button class="intro-hear" type="button" onclick="speakIntro()">🔊 Ouvir como joga</button>
                     <h3>Escolha o tamanho:</h3>
                     <div class="mode-grid">
                         <button class="mode-btn m2" onclick="startGame(2)"><span class="mode-sample"><i>GA</i><i>TO</i></span><span class="mode-name">2 sílabas</span></button>
@@ -36,7 +37,10 @@
             <section id="game-screen" class="screen">
                 <div class="word-card build-card">
                     <div class="build-picture" id="picture">🐱</div>
-                    <button class="act listen hear-btn" onclick="sayWord()">🔊 Ouvir</button>
+                    <div class="hear-row">
+                        <button class="act listen hear-btn" type="button" onclick="sayWord()">🔊 Ouvir</button>
+                        <button class="act listen hear-btn slow" type="button" onclick="saySyllables()" aria-label="Ouvir em pedacinhos">🐢 Devagar</button>
+                    </div>
                     <div class="slots" id="slots"></div>
                 </div>
                 <div class="tiles" id="tiles"></div>

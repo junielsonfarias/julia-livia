@@ -100,14 +100,20 @@ function showRound() {
     });
     const card = document.getElementById('card');
     card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
-    setTimeout(sayPrompt, 350);
+    // interrupt:false = espera o "Rimou!" da rodada anterior terminar
+    setTimeout(() => { if (state.current === r) sayPrompt(false); }, 350);
 }
 
-function sayPrompt() {
+function sayPrompt(interrupt) {
     const r = state.current;
     if (!r) return;
     const names = r.options.map(o => o.word.toLowerCase()).join('... ');
-    KidsAudio.speak(`O que rima com ${r.target.word.toLowerCase()}? ... ${names}`, { rate: 0.85 });
+    KidsAudio.speak(`O que rima com ${r.target.word.toLowerCase()}? ... ${names}`, { rate: 0.85, interrupt: interrupt !== false });
+}
+
+function speakIntro() {
+    KidsAudio.speak('Caça-rimas! Palavras que rimam terminam com o mesmo som, como gato e pato. ' +
+        'Escute a palavra e toque na figura que rima com ela. Toque no botão Começar para jogar.', { rate: 0.9 });
 }
 
 function choose(btn, o) {
@@ -123,7 +129,7 @@ function choose(btn, o) {
         slot.classList.add('filled');
         KidsAudio.play('correct');
         setTimeout(() => KidsAudio.speak(`${r.target.word.toLowerCase()}... ${o.word.toLowerCase()}! Rimou!`, { rate: 0.85 }), 400);
-        setTimeout(nextRound, 2400);
+        setTimeout(nextRound, 2700);
     } else {
         btn.classList.add('wrong-pick');
         btn.disabled = true;
@@ -146,5 +152,6 @@ function finish() {
     document.getElementById('stars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
     showScreen('result-screen');
     KidsAudio.play('win');
-    KidsAudio.speak(stars === 3 ? 'Parabéns! Você é a rainha das rimas!' : 'Muito bem! Vamos rimar mais?');
+    KidsAudio.speak(`Você achou ${state.hits} rimas de primeira! ` +
+        (stars === 3 ? 'Parabéns! Você é a rainha das rimas!' : 'Muito bem! Vamos rimar mais?'));
 }

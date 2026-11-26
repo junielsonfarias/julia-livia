@@ -23,6 +23,7 @@
                     <div class="big-icon">⚡</div>
                     <h2>Duelo Relâmpago</h2>
                     <p class="lead">As duas jogam <b>ao mesmo tempo</b>, cada uma na sua metade da tela.<br>Quem acertar mais em <b>60 segundos</b> vence! Errou? Espera um pouquinho ⏳.</p>
+                    <button class="intro-hear" type="button" onclick="speakIntro()">🔊 Ouvir como joga</button>
                     <div class="levels">
                         <div data-level-for="julia"></div>
                         <div data-level-for="livia"></div>
@@ -45,7 +46,10 @@
                         <div class="question-card" id="q-livia"></div>
                         <div class="freeze" id="freeze-livia" hidden>⏳</div>
                     </div>
-                    <div class="clock" id="clock">60</div>
+                    <div class="mid">
+                        <div class="clock" id="clock">60</div>
+                        <button class="exit-btn" id="exit-btn" type="button" onclick="askExit()" aria-label="Sair do duelo (toque duas vezes)"><span class="x">✕</span><span class="sure">Sair?</span></button>
+                    </div>
                     <div class="half" id="half-julia" style="--pc:#9b59b6">
                         <div class="half-head"><span>👸 Julia</span><b class="half-score" id="score-julia">0</b></div>
                         <div class="question-card" id="q-julia"></div>
@@ -53,7 +57,6 @@
                     </div>
                 </div>
                 <div class="countdown" id="countdown" hidden>3</div>
-                <button class="exit-btn" onclick="stopGame(); goHome();" aria-label="Sair do duelo">✕</button>
             </section>
 
             <section id="result-screen" class="screen">

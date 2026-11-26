@@ -54,128 +54,104 @@ const QUESTIONS = {
           explain: "Dobro = multiplicar por 2: 125 × 2 = 250." }
     ],
     ciencias: [
-        {
-            question: "Qual e o maior planeta do Sistema Solar?",
-            options: ["Terra", "Marte", "Jupiter", "Saturno"],
-            correct: 2
-        },
-        {
-            question: "O que as plantas produzem na fotossintese?",
-            options: ["Gas carbonico", "Oxigenio", "Nitrogenio", "Hidrogenio"],
-            correct: 1
-        },
-        {
-            question: "Quantos ossos tem o corpo humano adulto?",
-            options: ["106", "156", "206", "256"],
-            correct: 2
-        },
-        {
-            question: "Qual orgao bombeia sangue no corpo?",
-            options: ["Pulmao", "Figado", "Coracao", "Rim"],
-            correct: 2
-        },
-        {
-            question: "O que e a camada de ozonio?",
-            options: ["Uma nuvem", "Protecao contra raios UV", "Um tipo de gas", "Uma estrela"],
-            correct: 1
-        },
-        {
-            question: "Qual animal e um mamifero?",
-            options: ["Tubarao", "Baleia", "Pinguim", "Crocodilo"],
-            correct: 1
-        },
-        {
-            question: "Qual e o estado fisico do gelo?",
-            options: ["Liquido", "Gasoso", "Solido", "Plasma"],
-            correct: 2
-        },
-        {
-            question: "Qual planeta e conhecido como Planeta Vermelho?",
-            options: ["Venus", "Marte", "Jupiter", "Mercurio"],
-            correct: 1
-        },
-        {
-            question: "O que significa H2O?",
-            options: ["Oxigenio", "Hidrogenio", "Agua", "Sal"],
-            correct: 2
-        },
-        {
-            question: "Quantas patas tem uma aranha?",
-            options: ["6", "8", "10", "12"],
-            correct: 1
-        },
-        {
-            question: "Qual e a estrela mais proxima da Terra?",
-            options: ["Sirius", "Betelgeuse", "Sol", "Vega"],
-            correct: 2
-        },
-        {
-            question: "O que causa o arco-iris?",
-            options: ["Vento", "Chuva e sol", "Neve", "Trovao"],
-            correct: 1
-        }
+        { question: "Qual é o maior planeta do Sistema Solar?",
+          options: ["Terra", "Marte", "Júpiter", "Saturno"], correct: 2,
+          explain: "Júpiter é um gigante de gás: caberiam mais de 1.000 Terras dentro dele." },
+        { question: "Além do alimento (açúcar), que gás as plantas liberam na fotossíntese?",
+          options: ["Gás carbônico", "Oxigênio", "Nitrogênio", "Hidrogênio"], correct: 1,
+          explain: "Com luz, água e gás carbônico, a planta produz seu alimento e libera oxigênio." },
+        { question: "Quantos ossos tem, aproximadamente, o corpo humano adulto?",
+          options: ["106", "156", "206", "256"], correct: 2,
+          explain: "Um adulto tem cerca de 206 ossos. O bebê nasce com mais, e alguns se juntam com o tempo." },
+        { question: "Qual órgão bombeia o sangue para todo o corpo?",
+          options: ["Pulmão", "Fígado", "Coração", "Rim"], correct: 2,
+          explain: "O coração é um músculo que bate sem parar e empurra o sangue pelos vasos." },
+        { question: "Para que serve a camada de ozônio?",
+          options: ["Para fazer chover", "Para proteger a Terra dos raios ultravioleta (UV) do Sol", "Para produzir oxigênio", "Para iluminar a noite"], correct: 1,
+          explain: "A camada de ozônio fica no alto da atmosfera e filtra boa parte dos raios UV, que fazem mal à pele." },
+        { question: "Qual destes animais é um mamífero?",
+          options: ["Tubarão", "Baleia", "Pinguim", "Crocodilo"], correct: 1,
+          explain: "A baleia vive na água, mas respira com pulmões e amamenta os filhotes: é mamífero. Tubarão é peixe, pinguim é ave e crocodilo é réptil." },
+        { question: "Em qual estado físico está a água no gelo?",
+          options: ["Líquido", "Gasoso", "Sólido", "Nenhum"], correct: 2,
+          explain: "Gelo é água no estado sólido: tem forma própria. Ao derreter, vira líquido." },
+        { question: "Qual planeta é conhecido como Planeta Vermelho?",
+          options: ["Vênus", "Marte", "Júpiter", "Mercúrio"], correct: 1,
+          explain: "O solo de Marte tem muito óxido de ferro (parecido com ferrugem), por isso parece vermelho." },
+        { question: "A fórmula H₂O representa qual substância?",
+          options: ["Oxigênio", "Hidrogênio", "Água", "Sal"], correct: 2,
+          explain: "H₂O = 2 átomos de hidrogênio (H) + 1 de oxigênio (O): é a água." },
+        { question: "Quantas patas tem uma aranha?",
+          options: ["6", "8", "10", "12"], correct: 1,
+          explain: "Aranhas têm 8 patas, por isso não são insetos (insetos têm 6)." },
+        { question: "Qual é a estrela mais próxima da Terra?",
+          options: ["Sirius", "Betelgeuse", "Sol", "Vega"], correct: 2,
+          explain: "O Sol é uma estrela! É a mais próxima de nós, por isso parece tão grande e brilhante." },
+        { question: "O que forma o arco-íris?",
+          options: ["O vento soprando as nuvens", "A luz do Sol atravessando gotinhas de água", "A neve derretendo", "O trovão"], correct: 1,
+          explain: "Quando a luz do Sol passa pelas gotinhas de chuva, ela se separa em várias cores." },
+        { question: "Qual destes animais NÃO é um inseto?",
+          options: ["Formiga", "Borboleta", "Aranha", "Abelha"], correct: 2,
+          explain: "Insetos têm 6 patas e corpo em 3 partes. A aranha tem 8 patas: é um aracnídeo. Atenção ao NÃO!" },
+        { question: "Quanto tempo a Terra leva para dar uma volta completa em torno de si mesma (rotação)?",
+          options: ["Cerca de 1 dia (24 horas)", "1 semana", "1 mês", "1 ano"], correct: 0,
+          explain: "A rotação dura cerca de 24 horas e forma o dia e a noite. A volta ao redor do Sol (translação) dura cerca de 1 ano." },
+        { question: "Quando a água da roupa no varal vira vapor, isso se chama:",
+          options: ["Solidificação", "Evaporação", "Condensação", "Fusão"], correct: 1,
+          explain: "Evaporação é a passagem do estado líquido para o gasoso. Por isso a roupa seca ao sol." },
+        { question: "Qual destes objetos é atraído por um ímã?",
+          options: ["Prego de ferro", "Borracha", "Papel", "Madeira"], correct: 0,
+          explain: "Ímãs atraem objetos que têm ferro, como pregos e clipes de aço." }
     ],
     geografia: [
-        {
-            question: "Qual e o maior pais do mundo em territorio?",
-            options: ["China", "Estados Unidos", "Russia", "Brasil"],
-            correct: 2
-        },
-        {
-            question: "Quantos continentes existem?",
-            options: ["5", "6", "7", "8"],
-            correct: 2
-        },
-        {
-            question: "Qual e o rio mais longo do mundo?",
-            options: ["Amazonas", "Nilo", "Mississipi", "Yangtze"],
-            correct: 1
-        },
-        {
-            question: "Qual e a capital do Brasil?",
-            options: ["Sao Paulo", "Rio de Janeiro", "Brasilia", "Salvador"],
-            correct: 2
-        },
-        {
-            question: "Em qual continente fica o Egito?",
-            options: ["Asia", "Europa", "Africa", "Oceania"],
-            correct: 2
-        },
-        {
-            question: "Qual oceano banha o litoral brasileiro?",
-            options: ["Pacifico", "Indico", "Artico", "Atlantico"],
-            correct: 3
-        },
-        {
-            question: "Qual e o maior deserto do mundo?",
-            options: ["Gobi", "Kalahari", "Saara", "Atacama"],
-            correct: 2
-        },
-        {
-            question: "Qual pais tem formato de bota?",
-            options: ["Franca", "Espanha", "Italia", "Portugal"],
-            correct: 2
-        },
-        {
-            question: "Onde fica a Torre Eiffel?",
-            options: ["Londres", "Roma", "Paris", "Madrid"],
-            correct: 2
-        },
-        {
-            question: "Qual e o maior estado brasileiro?",
-            options: ["Minas Gerais", "Amazonas", "Para", "Mato Grosso"],
-            correct: 1
-        },
-        {
-            question: "Qual pais e conhecido como Terra do Sol Nascente?",
-            options: ["China", "Coreia", "Japao", "Tailandia"],
-            correct: 2
-        },
-        {
-            question: "Quantos estados tem o Brasil?",
-            options: ["24", "25", "26", "27"],
-            correct: 3
-        }
+        { question: "Qual é o maior país do mundo em território?",
+          options: ["China", "Estados Unidos", "Rússia", "Brasil"], correct: 2,
+          explain: "A Rússia é o maior país em área. O Brasil é o 5º maior." },
+        { question: "Qual continente fica no Polo Sul e é quase todo coberto de gelo?",
+          options: ["África", "Antártida", "Oceania", "Europa"], correct: 1,
+          explain: "A Antártida é o continente gelado do Polo Sul. Lá não há cidades, só bases de cientistas." },
+        { question: "Qual rio tem o MAIOR volume de água do mundo?",
+          options: ["Amazonas", "Nilo", "Mississípi", "São Francisco"], correct: 0,
+          explain: "O Rio Amazonas leva mais água para o mar do que qualquer outro rio do planeta." },
+        { question: "Qual é a capital do Brasil?",
+          options: ["São Paulo", "Rio de Janeiro", "Brasília", "Salvador"], correct: 2,
+          explain: "Brasília é a capital desde 1960. Antes dela, a capital era o Rio de Janeiro." },
+        { question: "Em qual continente fica o Egito?",
+          options: ["Ásia", "Europa", "África", "Oceania"], correct: 2,
+          explain: "O Egito fica no norte da África, onde passa o Rio Nilo." },
+        { question: "Qual oceano banha o litoral brasileiro?",
+          options: ["Pacífico", "Índico", "Ártico", "Atlântico"], correct: 3,
+          explain: "Todo o litoral do Brasil é banhado pelo Oceano Atlântico." },
+        { question: "Qual é o maior deserto QUENTE do mundo?",
+          options: ["Gobi", "Kalahari", "Saara", "Atacama"], correct: 2,
+          explain: "O Saara, no norte da África, é o maior deserto quente. Os desertos gelados, como a Antártida, são ainda maiores!" },
+        { question: "Qual país tem o formato parecido com uma bota?",
+          options: ["França", "Espanha", "Itália", "Portugal"], correct: 2,
+          explain: "No mapa, a Itália parece uma bota chutando uma bola (a ilha da Sicília)." },
+        { question: "Em qual cidade fica a Torre Eiffel?",
+          options: ["Londres", "Roma", "Paris", "Madri"], correct: 2,
+          explain: "A Torre Eiffel fica em Paris, capital da França." },
+        { question: "Qual é o maior estado brasileiro em território?",
+          options: ["Minas Gerais", "Amazonas", "Pará", "Mato Grosso"], correct: 1,
+          explain: "O Amazonas é o maior estado. O Pará vem em 2º e o Mato Grosso em 3º." },
+        { question: "Qual país é conhecido como “Terra do Sol Nascente”?",
+          options: ["China", "Coreia do Sul", "Japão", "Tailândia"], correct: 2,
+          explain: "O Japão fica no extremo leste da Ásia. O nome do país em japonês quer dizer “origem do Sol”." },
+        { question: "Quantos estados tem o Brasil, SEM contar o Distrito Federal?",
+          options: ["24", "25", "26", "27"], correct: 2,
+          explain: "São 26 estados + o Distrito Federal (onde fica Brasília) = 27 unidades federativas." },
+        { question: "Em qual região do Brasil fica a maior parte da Floresta Amazônica?",
+          options: ["Norte", "Sul", "Sudeste", "Nordeste"], correct: 0,
+          explain: "A Floresta Amazônica cobre grande parte da Região Norte (Amazonas, Pará, Acre…)." },
+        { question: "Em um mapa, a rosa dos ventos serve para mostrar:",
+          options: ["A temperatura", "As direções (Norte, Sul, Leste, Oeste)", "A quantidade de chuva", "A altura das montanhas"], correct: 1,
+          explain: "A rosa dos ventos indica os pontos cardeais: Norte, Sul, Leste e Oeste." },
+        { question: "De qual lado (ponto cardeal) o Sol nasce?",
+          options: ["Norte", "Sul", "Leste", "Oeste"], correct: 2,
+          explain: "O Sol nasce do lado Leste e se põe do lado Oeste." },
+        { question: "Quantas regiões tem o Brasil?",
+          options: ["3", "4", "5", "6"], correct: 2,
+          explain: "Norte, Nordeste, Centro-Oeste, Sudeste e Sul: 5 regiões." }
     ],
     portugues: [
         { question: "Na frase “Os meninos correram até a praça”, qual palavra é o verbo?",
@@ -228,66 +204,54 @@ const QUESTIONS = {
           explain: "“Mas” indica oposição (= porém). “Mais” indica quantidade: mais lápis, mais suco." }
     ],
     historia: [
-        {
-            question: "Quem descobriu o Brasil?",
-            options: ["Cristovao Colombo", "Pedro Alvares Cabral", "Vasco da Gama", "Americo Vespucio"],
-            correct: 1
-        },
-        {
-            question: "Em que ano o Brasil foi descoberto?",
-            options: ["1492", "1500", "1530", "1600"],
-            correct: 1
-        },
-        {
-            question: "Quem proclamou a Independencia do Brasil?",
-            options: ["Tiradentes", "Dom Pedro I", "Dom Pedro II", "Getulio Vargas"],
-            correct: 1
-        },
-        {
-            question: "Em que ano o Brasil se tornou independente?",
-            options: ["1500", "1792", "1822", "1889"],
-            correct: 2
-        },
-        {
-            question: "Qual foi o grito de independencia do Brasil?",
-            options: ["Liberdade ou Morte!", "Independencia ou Morte!", "Viva o Brasil!", "Patria Amada!"],
-            correct: 1
-        },
-        {
-            question: "Em que ano foi proclamada a Republica no Brasil?",
-            options: ["1822", "1850", "1889", "1900"],
-            correct: 2
-        },
-        {
-            question: "Quem proclamou a Republica no Brasil?",
-            options: ["Dom Pedro II", "Marechal Deodoro", "Getulio Vargas", "Tiradentes"],
-            correct: 1
-        },
-        {
-            question: "Quem foi Tiradentes?",
-            options: ["Um imperador", "Um lider da Inconfidencia Mineira", "Um presidente", "Um bandeirante"],
-            correct: 1
-        },
-        {
-            question: "Em que dia comemoramos a Independencia do Brasil?",
-            options: ["15 de Novembro", "7 de Setembro", "21 de Abril", "1 de Maio"],
-            correct: 1
-        },
-        {
-            question: "Qual era o nome do Brasil quando foi descoberto?",
-            options: ["Brasil", "Terra de Santa Cruz", "Republica", "Imperio"],
-            correct: 1
-        },
-        {
-            question: "Quem foi o primeiro presidente do Brasil?",
-            options: ["Getulio Vargas", "Marechal Deodoro", "Dom Pedro I", "Juscelino"],
-            correct: 1
-        },
-        {
-            question: "De qual pais o Brasil foi colonia?",
-            options: ["Espanha", "Franca", "Portugal", "Inglaterra"],
-            correct: 2
-        }
+        { question: "Quem comandava a frota portuguesa que chegou ao Brasil em 1500?",
+          options: ["Cristóvão Colombo", "Pedro Álvares Cabral", "Vasco da Gama", "Américo Vespúcio"], correct: 1,
+          explain: "Pedro Álvares Cabral chegou com a frota portuguesa em abril de 1500. Os povos indígenas já viviam aqui havia milhares de anos." },
+        { question: "Em que ano os portugueses chegaram ao Brasil?",
+          options: ["1492", "1500", "1530", "1600"], correct: 1,
+          explain: "Foi em 1500. Em 1492 foi a chegada de Colombo à América." },
+        { question: "Quem já vivia nas terras do Brasil quando os portugueses chegaram?",
+          options: ["Ninguém", "Os povos indígenas", "Os espanhóis", "Os holandeses"], correct: 1,
+          explain: "Muitos povos indígenas, com línguas e costumes diferentes, já viviam aqui. Por isso falamos em “chegada” dos portugueses." },
+        { question: "Quem proclamou a Independência do Brasil?",
+          options: ["Tiradentes", "Dom Pedro I", "Dom Pedro II", "Getúlio Vargas"], correct: 1,
+          explain: "Dom Pedro I proclamou a Independência em 7 de setembro de 1822, às margens do riacho Ipiranga." },
+        { question: "Em que ano o Brasil se tornou independente de Portugal?",
+          options: ["1500", "1792", "1822", "1889"], correct: 2,
+          explain: "A Independência foi em 1822. Em 1889 foi a Proclamação da República." },
+        { question: "Qual frase ficou famosa no momento da Independência do Brasil?",
+          options: ["Liberdade ou Morte!", "Independência ou Morte!", "Viva o Brasil!", "Pátria Amada!"], correct: 1,
+          explain: "“Independência ou Morte!” ficou conhecido como o Grito do Ipiranga." },
+        { question: "Em que ano foi proclamada a República no Brasil?",
+          options: ["1822", "1850", "1889", "1900"], correct: 2,
+          explain: "A República foi proclamada em 15 de novembro de 1889. Antes disso, o Brasil era um império." },
+        { question: "Quem proclamou a República no Brasil?",
+          options: ["Dom Pedro II", "Marechal Deodoro da Fonseca", "Getúlio Vargas", "Tiradentes"], correct: 1,
+          explain: "O Marechal Deodoro da Fonseca proclamou a República e se tornou o primeiro presidente." },
+        { question: "Quem foi Tiradentes?",
+          options: ["Um imperador", "Um líder da Inconfidência Mineira", "Um presidente", "Um bandeirante"], correct: 1,
+          explain: "Tiradentes participou da Inconfidência Mineira, movimento contra o domínio de Portugal. Lembramos dele em 21 de abril." },
+        { question: "Em que dia comemoramos a Independência do Brasil?",
+          options: ["15 de novembro", "7 de setembro", "21 de abril", "1º de maio"], correct: 1,
+          explain: "7 de setembro = Independência. 15 de novembro = República. 21 de abril = Tiradentes." },
+        { question: "Qual destes foi um dos primeiros nomes dados ao Brasil pelos portugueses?",
+          options: ["Terra de Santa Cruz", "Nova Lisboa", "República Federativa", "Império do Sul"], correct: 0,
+          explain: "Os portugueses chamaram a terra de Ilha de Vera Cruz e depois de Terra de Santa Cruz. O nome Brasil veio do pau-brasil." },
+        { question: "Quem foi o primeiro presidente do Brasil?",
+          options: ["Getúlio Vargas", "Marechal Deodoro da Fonseca", "Dom Pedro I", "Juscelino Kubitschek"], correct: 1,
+          explain: "Deodoro da Fonseca, que proclamou a República em 1889, foi o primeiro presidente. Dom Pedro I foi imperador, não presidente." },
+        { question: "De qual país o Brasil foi colônia?",
+          options: ["Espanha", "França", "Portugal", "Inglaterra"], correct: 2,
+          explain: "O Brasil foi colônia de Portugal por mais de 300 anos. Por isso falamos português." },
+        { question: "De qual árvore veio o nome “Brasil”?",
+          options: ["Pau-brasil", "Ipê", "Seringueira", "Jatobá"], correct: 0,
+          explain: "O pau-brasil tem madeira avermelhada, cor de brasa. Ele foi muito explorado pelos portugueses." },
+        { question: "Qual lei, assinada em 1888 pela Princesa Isabel, acabou com a escravidão no Brasil?",
+          options: ["Lei do Ventre Livre", "Lei Áurea", "Lei dos Sexagenários", "Lei de Terras"], correct: 1,
+          explain: "A Lei Áurea (13 de maio de 1888) aboliu a escravidão. O Brasil foi o último país das Américas a fazer isso." },
+        { question: "Em que ano Brasília foi inaugurada como nova capital?",
+          options: ["1822", "1889", "1960", "2000"], correct: 2,
+          explain: "Brasília foi inaugurada em 1960, no governo de Juscelino Kubitschek." }
     ]
 };
 
@@ -301,14 +265,15 @@ let gameState = {
     questions: [],
     totalQuestions: 10,
     timer: null,
-    timeLeft: 40
+    timeLeft: 40,
+    mistakes: []
 };
 
 // Tempo maior para dar tempo de LER o enunciado com calma (4º ano)
 const QUESTION_TIME = 40;
 
 // Palavras que mudam o sentido da pergunta: destacadas para treinar a atencao
-const KEYWORDS = ['NÃO', 'INCORRETA', 'CORRETAMENTE', 'EXCETO', 'PASSADO', 'PRÓPRIO', 'OXÍTONA', 'AGUDO',
+const KEYWORDS = ['NÃO', 'QUENTE', 'MAIOR', 'SEM', 'INCORRETA', 'CORRETAMENTE', 'EXCETO', 'PASSADO', 'PRÓPRIO', 'OXÍTONA', 'AGUDO',
     'a mais', 'cada', 'troco', 'dobro', 'metade', 'ganhou', 'iguais', 'mesma quantidade', 'Quem', 'sinônimo', 'antônimo'];
 
 function escapeHtml(s) {
@@ -365,6 +330,8 @@ function startGame(category) {
     gameState.score = 0;
     gameState.correctAnswers = 0;
     gameState.wrongAnswers = 0;
+    gameState.mistakes = [];
+    gameState.totalQuestions = 10;
 
     // Selecionar perguntas
     if (category === 'misturado') {
@@ -381,7 +348,10 @@ function startGame(category) {
         gameState.questions = gameState.questions.map(q => ({...q, category: category}));
     }
 
+    // Embaralha as alternativas de cada pergunta, guardando qual e a certa
+    gameState.questions = gameState.questions.map(shuffleOptions);
     gameState.totalQuestions = Math.min(10, gameState.questions.length);
+    playSound('start');
     updateStats();
     showQuestion();
     showScreen('game-screen');
@@ -397,6 +367,12 @@ function shuffleArray(array) {
     return a;
 }
 
+// Embaralha as alternativas e recalcula o indice da correta
+function shuffleOptions(q) {
+    const order = shuffleArray(q.options.map((_, i) => i));
+    return { ...q, options: order.map(i => q.options[i]), correct: order.indexOf(q.correct) };
+}
+
 // Atualizar estatisticas
 function updateStats() {
     document.getElementById('score').textContent = gameState.score;
@@ -408,11 +384,11 @@ function updateStats() {
 function showQuestion() {
     const question = gameState.questions[gameState.currentQuestion];
     const categoryNames = {
-        matematica: 'Matematica',
-        ciencias: 'Ciencias',
+        matematica: 'Matemática',
+        ciencias: 'Ciências',
         geografia: 'Geografia',
-        portugues: 'Portugues',
-        historia: 'Historia'
+        portugues: 'Português',
+        historia: 'História'
     };
 
     document.getElementById('category-badge').textContent = categoryNames[question.category] || 'Quiz';
@@ -432,7 +408,7 @@ function showQuestion() {
         btn.className = 'option-btn';
         btn.innerHTML = `
             <span class="option-letter">${letters[index]}</span>
-            <span class="option-text">${option}</span>
+            <span class="option-text">${escapeHtml(option)}</span>
         `;
         btn.onclick = () => selectAnswer(index);
         optionsArea.appendChild(btn);
@@ -493,7 +469,8 @@ function timeUp() {
     buttons[question.correct].classList.add('correct');
     buttons.forEach(btn => btn.classList.add('disabled'));
 
-    feedbackEl.textContent = 'Tempo esgotado!';
+    feedbackEl.textContent = 'Tempo esgotado! Veja a resposta certa em verde.';
+    recordMistake(question, null);
     feedbackEl.className = 'feedback wrong';
 
     gameState.wrongAnswers++;
@@ -537,6 +514,7 @@ function selectAnswer(index) {
         // Resposta errada
         playSound('wrong');
         buttons[index].classList.add('wrong');
+        recordMistake(question, index);
         feedbackEl.textContent = 'Não foi dessa vez! Veja a resposta certa em verde.';
         feedbackEl.className = 'feedback wrong';
         gameState.wrongAnswers++;
@@ -546,8 +524,21 @@ function selectAnswer(index) {
     showExplanation(question);
 }
 
+// Guarda a pergunta errada para a revisao no final
+function recordMistake(question, chosenIndex) {
+    gameState.mistakes.push({
+        question: question.question,
+        chosen: chosenIndex === null ? '(o tempo acabou)' : question.options[chosenIndex],
+        right: question.options[question.correct],
+        explain: question.explain || ''
+    });
+}
+
 // Proxima pergunta
 function nextQuestion() {
+    if (document.getElementById('next-btn').hidden) return;
+    document.getElementById('next-btn').hidden = true;
+    playSound('click');
     gameState.currentQuestion++;
 
     if (gameState.currentQuestion >= gameState.totalQuestions) {
@@ -567,20 +558,20 @@ function showResults() {
     let icon, title, message;
     if (percentage >= 80) {
         icon = '🏆';
-        title = 'Incrivel!';
-        message = 'Voce e um genio!';
+        title = 'Incrível!';
+        message = 'Você mandou muito bem!';
     } else if (percentage >= 60) {
         icon = '🎉';
         title = 'Muito Bem!';
-        message = 'Otimo desempenho!';
+        message = 'Ótimo desempenho!';
     } else if (percentage >= 40) {
         icon = '👍';
         title = 'Bom Trabalho!';
         message = 'Continue praticando!';
     } else {
         icon = '💪';
-        title = 'Nao Desista!';
-        message = 'A pratica leva a perfeicao!';
+        title = 'Não desista!';
+        message = 'A prática leva à perfeição!';
     }
 
     document.getElementById('result-icon').textContent = icon;
@@ -607,8 +598,26 @@ function showResults() {
         }
     });
 
+    renderReview();
     playSound('win');
     showScreen('result-screen');
+}
+
+// Lista das perguntas erradas, com a resposta certa e a explicacao
+function renderReview() {
+    const box = document.getElementById('review');
+    if (!box) return;
+    if (!gameState.mistakes.length) {
+        box.innerHTML = '<p class="review-title">🎯 Nenhum erro! Parabéns!</p>';
+        return;
+    }
+    box.innerHTML = '<p class="review-title">📝 Revisar erros</p>' + gameState.mistakes.map(m => `
+        <div class="review-item">
+            <p class="review-q">${highlightKeywords(m.question)}</p>
+            <p>Você respondeu: <s>${escapeHtml(m.chosen)}</s></p>
+            <p class="review-ok">Resposta certa: <b>${escapeHtml(m.right)}</b></p>
+            ${m.explain ? `<p class="review-exp">💡 ${escapeHtml(m.explain)}</p>` : ''}
+        </div>`).join('');
 }
 
 // Jogar novamente
@@ -623,64 +632,17 @@ function getRandomPraise() {
         'Muito bem!',
         'Excelente!',
         'Perfeito!',
-        'Incrivel!',
+        'Incrível!',
         'Genial!',
         'Isso mesmo!',
-        'Fantastico!'
+        'Fantástico!'
     ];
     return praises[Math.floor(Math.random() * praises.length)];
 }
 
-// Sons com Web Audio API
+// Sons: usa o audio compartilhado (um unico AudioContext)
 function playSound(type) {
-    try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
-
-        const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        const now = ctx.currentTime;
-        gain.gain.setValueAtTime(0.1, now);
-
-        switch(type) {
-            case 'correct':
-                osc.frequency.setValueAtTime(523, now);
-                osc.frequency.setValueAtTime(659, now + 0.1);
-                osc.frequency.setValueAtTime(784, now + 0.2);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
-                break;
-            case 'wrong':
-                osc.frequency.setValueAtTime(200, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
-                break;
-            case 'win':
-                osc.frequency.setValueAtTime(523, now);
-                osc.frequency.setValueAtTime(659, now + 0.15);
-                osc.frequency.setValueAtTime(784, now + 0.3);
-                osc.frequency.setValueAtTime(1047, now + 0.45);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
-                osc.start(now);
-                osc.stop(now + 0.6);
-                break;
-            case 'star':
-                osc.frequency.setValueAtTime(880, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                osc.start(now);
-                osc.stop(now + 0.2);
-                break;
-        }
-
-        setTimeout(() => ctx.close(), 1000);
-    } catch(e) {}
+    try { if (window.KidsAudio) KidsAudio.play(type); } catch (e) {}
 }
 
 // Inicializacao

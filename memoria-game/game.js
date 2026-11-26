@@ -77,7 +77,8 @@ let gameState = {
     players: ['julia', 'livia'],
     currentPlayer: 0,
     scores: { julia: 0, livia: 0 },
-    extraTurn: false
+    extraTurn: false,
+    gameId: 0               // muda a cada partida: timers de partidas antigas sao ignorados
 };
 
 const PLAYER_INFO = {
@@ -121,6 +122,7 @@ function showScreen(screenId) {
 }
 
 function goToMenu() {
+    gameState.gameId++;
     gameState.isLocked = true;
     renderDuelHistory();
     showScreen('start-screen');
@@ -168,6 +170,7 @@ function renderDuelHistory() {
 
 // ---------- Jogo ----------
 function startGame(level) {
+    const id = ++gameState.gameId;   // toque duplo no nivel nao cria duas previas
     gameState.level = level;
     gameState.matchedPairs = 0;
     gameState.moves = 0;
@@ -199,9 +202,17 @@ function startGame(level) {
     showScreen('game-screen');
 
     // Mostrar todas as cartas brevemente
+    if (isDuel) {
+        const first = PLAYER_INFO[gameState.players[gameState.currentPlayer]].name;
+        speak(`Olhem bem as cartas! ${first} começa.`);
+    } else {
+        speak('Olhe bem as cartas!');
+    }
     setTimeout(() => {
+        if (id !== gameState.gameId) return;
         document.querySelectorAll('.memory-card').forEach(card => card.classList.add('flipped'));
         setTimeout(() => {
+            if (id !== gameState.gameId) return;
             document.querySelectorAll('.memory-card').forEach(card => card.classList.remove('flipped'));
             gameState.isLocked = false;
             if (isDuel) announceTurn();
@@ -268,6 +279,7 @@ function checkMatch() {
     const match = card1.dataset.item === card2.dataset.item;
     const isDuel = gameState.mode === 'duel';
     const player = gameState.players[gameState.currentPlayer];
+    const id = gameState.gameId;
 
     gameState.isLocked = true;
 
@@ -284,8 +296,10 @@ function checkMatch() {
             gameState.scores[player]++;
             updateDuelBoard(true);
             const praise = rand(PRAISES);
+            const last = gameState.matchedPairs === gameState.totalPairs;
             showToast(`${PLAYER_INFO[player].emoji} ${praise}`, 'good');
-            speak(`${praise} Ponto para ${PLAYER_INFO[player].name}!`);
+            speak(`${praise} Ponto para ${PLAYER_INFO[player].name}!` +
+                (gameState.extraTurn && !last ? ' Joga de novo!' : ''));
         } else {
             const praise = rand(PRAISES);
             showToast(praise, 'good');
@@ -293,11 +307,12 @@ function checkMatch() {
         }
 
         if (gameState.matchedPairs === gameState.totalPairs) {
-            setTimeout(showWinScreen, 1000);
+            setTimeout(() => { if (id === gameState.gameId) showWinScreen(); }, 1000);
             return;
         }
 
         setTimeout(() => {
+            if (id !== gameState.gameId) return;
             if (isDuel && !gameState.extraTurn) nextPlayer();
             gameState.isLocked = false;
         }, 1000);
@@ -308,6 +323,7 @@ function checkMatch() {
         showToast(rand(TRY_AGAIN), 'bad');
 
         setTimeout(() => {
+            if (id !== gameState.gameId) return;
             card1.classList.remove('flipped', 'miss');
             card2.classList.remove('flipped', 'miss');
             gameState.flippedCards = [];
@@ -381,14 +397,14 @@ function showWinScreen() {
             iconEl.textContent = '🤝';
             titleEl.textContent = 'Empate!';
             msgEl.textContent = 'As duas foram incríveis!';
-            speak('Empate! As duas foram incríveis!');
+            speak('Empate! As duas foram incríveis!', { interrupt: false });
         } else {
             const winner = julia > livia ? 'julia' : 'livia';
             h[winner]++;
             iconEl.textContent = '🏆';
             titleEl.textContent = `${PLAYER_INFO[winner].name} venceu!`;
             msgEl.textContent = `Parabéns, ${PLAYER_INFO[winner].name}! Que memória!`;
-            speak(`${PLAYER_INFO[winner].name} venceu! Parabéns!`);
+            speak(`${PLAYER_INFO[winner].name} venceu! ${julia} a ${livia}. Parabéns!`, { interrupt: false });
         }
         saveDuelHistory(h);
         renderDuelHistory();
@@ -396,7 +412,7 @@ function showWinScreen() {
         iconEl.textContent = '🎉';
         titleEl.textContent = 'Parabéns!';
         msgEl.textContent = 'Você encontrou todos os pares!';
-        speak('Parabéns! Você encontrou todos os pares!');
+        speak('Parabéns! Você encontrou todos os pares!', { interrupt: false });
 
         const perfectMoves = gameState.totalPairs;
         let stars = 1;
@@ -426,6 +442,13 @@ function playSound(type) {
 
 function speak(text, opts) {
     if (window.KidsAudio) KidsAudio.speak(text, opts);
+}
+
+// Explicacao falada da tela inicial (Livia ainda nao le)
+function speakIntro() {
+    speak('Jogo da memória! Vire duas cartas. Se forem iguais, você ganha o par. ' +
+        'Primeiro escolha: sozinha, ou duelo da Julia com a Livia. Depois escolha o tema. ' +
+        'Para começar, toque no pintinho: o nível fácil.', { rate: 0.9 });
 }
 
 // Criar botoes de tema dinamicamente

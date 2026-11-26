@@ -120,7 +120,8 @@ function closeGameModal() {
     let modal = document.getElementById('game-modal');
     if (!modal) return;
     const iframe = document.getElementById('game-iframe');
-    // stop and unload iframe to stop audio/timers inside
+    // Para a voz do jogo e descarrega o iframe (para audio e timers)
+    try { if ('speechSynthesis' in window) speechSynthesis.cancel(); } catch (e) {}
     iframe.src = '';
     modal.classList.add('hidden');
     modal.setAttribute('aria-hidden', 'true');

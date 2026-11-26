@@ -771,3 +771,24 @@ body {
     .player-emoji { font-size: 1.5rem; }
     .player-name { font-size: 1rem; }
 }
+
+/* Botao de explicacao falada */
+.intro-hear {
+    display: inline-flex; align-items: center; gap: 6px; margin: 0 auto 16px;
+    background: linear-gradient(135deg, #74b9ff, #0984e3); color: #fff; border: none;
+    border-radius: 30px; padding: 12px 24px; min-height: 52px; font-family: 'Fredoka One', cursive;
+    font-size: 1.15rem; cursor: pointer; box-shadow: 0 5px 0 rgba(0, 0, 0, .15); touch-action: manipulation;
+}
+.intro-hear:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0, 0, 0, .15); }
+.memory-card { touch-action: manipulation; }
+.cards-grid { margin-left: auto; margin-right: auto; }
+
+/* Celular estreito (360px): 20 cartas em 4 colunas sem estourar a largura */
+@media (max-width: 400px) {
+    .game-area { padding-left: 6px; padding-right: 6px; }
+    .cards-grid { gap: 6px; padding: 6px; width: 100%; }
+    .cards-grid.hard .card-front, .cards-grid.hard .card-back { font-size: 1.6rem; }
+    .game-stats { gap: 10px; font-size: .9rem; }
+    .duel-board { gap: 6px; }
+    .player-panel { padding: 6px 8px; gap: 6px; }
+}

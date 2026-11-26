@@ -29,6 +29,7 @@ body.rimas { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
 .rhyme-option.wrong-pick { opacity: .3; animation: shake .4s ease; }
 @keyframes pulse { 50% { transform: scale(1.1); } }
 @keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+.start-big { font-size: 1.6rem; padding: 18px 40px; margin-top: 6px; }
 .stars { font-size: 3rem; margin: 10px 0; letter-spacing: 6px; }
 
 @media (max-width: 560px) {

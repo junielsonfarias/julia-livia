@@ -714,3 +714,15 @@ mark.kw { background: #ffeaa7; color: #2d3436; padding: 0 3px; border-radius: 4p
 .next-btn { margin-top: 12px; width: 100%; border: none; border-radius: 16px; padding: 14px; font-family: 'Fredoka One', cursive; font-size: 1.2rem; color: #fff; background: linear-gradient(135deg, #00b894, #00a383); cursor: pointer; }
 .next-btn[hidden] { display: none; }
 .problem-btn { font-size: 1.25rem; font-weight: 800; }
+
+.fraction-display:empty { min-height: 0; margin: 0; }
+.option-btn:disabled { cursor: default; color: inherit; }
+.option-btn:disabled:hover { transform: none; }
+@media (max-width: 400px) {
+    .game-header h1 { font-size: 1.1rem; }
+    .question-text { font-size: 1.15rem; }
+    .options-area { gap: 8px; }
+    .option-btn { padding: 12px 8px; min-height: 70px; }
+    .problem-btn { font-size: 1.1rem; overflow-wrap: anywhere; }
+    .explain { font-size: 0.98rem; }
+}

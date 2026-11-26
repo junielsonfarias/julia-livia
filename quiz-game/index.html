@@ -33,11 +33,11 @@
                         <h3>Escolha uma categoria:</h3>
                         <button class="category-btn" onclick="startGame('matematica')">
                             <span class="cat-icon">🔢</span>
-                            <span class="cat-name">Matematica</span>
+                            <span class="cat-name">Matemática</span>
                         </button>
                         <button class="category-btn" onclick="startGame('ciencias')">
                             <span class="cat-icon">🔬</span>
-                            <span class="cat-name">Ciencias</span>
+                            <span class="cat-name">Ciências</span>
                         </button>
                         <button class="category-btn" onclick="startGame('geografia')">
                             <span class="cat-icon">🌍</span>
@@ -45,11 +45,11 @@
                         </button>
                         <button class="category-btn" onclick="startGame('portugues')">
                             <span class="cat-icon">📚</span>
-                            <span class="cat-name">Portugues</span>
+                            <span class="cat-name">Português</span>
                         </button>
                         <button class="category-btn" onclick="startGame('historia')">
                             <span class="cat-icon">📜</span>
-                            <span class="cat-name">Historia</span>
+                            <span class="cat-name">História</span>
                         </button>
                         <button class="category-btn mixed" onclick="startGame('misturado')">
                             <span class="cat-icon">🌟</span>
@@ -62,7 +62,7 @@
             <!-- Tela do Jogo -->
             <div id="game-screen" class="screen">
                 <div class="quiz-card">
-                    <div class="category-badge" id="category-badge">Matematica</div>
+                    <div class="category-badge" id="category-badge">Matemática</div>
                     <div class="question-text" id="question-text">
                         Carregando pergunta...
                     </div>
@@ -83,7 +83,7 @@
                 <div class="result-content">
                     <div class="result-icon" id="result-icon">🏆</div>
                     <h2 id="result-title">Resultado</h2>
-                    <p id="result-message">Voce terminou o quiz!</p>
+                    <p id="result-message">Você terminou o quiz!</p>
 
                     <div class="score-display">
                         <div class="score-circle">
@@ -109,6 +109,8 @@
                         <span class="star">⭐</span>
                     </div>
 
+                    <div class="review" id="review"></div>
+
                     <div class="result-buttons">
                         <button class="play-again-btn" onclick="playAgain()">Jogar Novamente</button>
                         <button class="menu-btn" onclick="goToMenu()">Categorias</button>
@@ -118,6 +120,7 @@
         </main>
     </div>
 
+    <script src="../shared/kids-audio.js"></script>
     <script src="game.js"></script>
 </body>
 </html>

@@ -123,9 +123,15 @@
             u.rate = opts.rate || 0.95;
             u.pitch = opts.pitch || 1.1;
             u.volume = getVolume();
+            if (typeof opts.onend === 'function') u.onend = opts.onend;
             speechSynthesis.speak(u);
         } catch (e) { /* sem voz */ }
     }
 
-    window.KidsAudio = { play, speak, getVolume };
+    // Para a voz quando o jogo e fechado (o iframe sai da tela) ou a aba some
+    function stopSpeaking() { try { if ('speechSynthesis' in window) speechSynthesis.cancel(); } catch (e) {} }
+    window.addEventListener('pagehide', stopSpeaking);
+    window.addEventListener('beforeunload', stopSpeaking);
+
+    window.KidsAudio = { play, speak, getVolume, stop: stopSpeaking };
 })();

@@ -23,6 +23,7 @@
                     <div class="big-icon">🔤</div>
                     <h2>Som da Letra</h2>
                     <p class="lead">Ouça a palavra e descubra a letra! Toque em 🔊 para ouvir de novo.</p>
+                    <button class="intro-hear" type="button" onclick="speakIntro()">🔊 Ouvir como joga</button>
                     <div class="mode-grid">
                         <button class="mode-btn m2" onclick="startGame('inicial')">
                             <span class="mode-sample"><i>?</i>OLA ⚽</span>
@@ -49,7 +50,7 @@
                     <div class="prompt" id="prompt"></div>
                     <div class="big-picture" id="picture"></div>
                     <div class="blank-word" id="blank-word"></div>
-                    <button class="act listen hear-btn" onclick="sayPrompt()">🔊 Ouvir</button>
+                    <button class="act listen hear-btn" type="button" onclick="sayPrompt()">🔊 Ouvir</button>
                 </div>
                 <div class="letter-options" id="options"></div>
             </section>

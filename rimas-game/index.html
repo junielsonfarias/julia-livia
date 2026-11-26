@@ -24,7 +24,8 @@
                     <h2>Caça-Rimas</h2>
                     <p class="lead">Palavras que <b>rimam</b> terminam com o mesmo som:<br>GA<b>TO</b> 🐱 e PA<b>TO</b> 🦆!</p>
                     <p class="lead">Ouça a palavra e ache a figura que rima com ela.</p>
-                    <button class="big-btn primary" onclick="startGame()">Começar 🎵</button>
+                    <button class="intro-hear" type="button" onclick="speakIntro()">🔊 Ouvir como joga</button>
+                    <div class="btn-row"><button class="big-btn primary start-big" onclick="startGame()">Começar ▶️</button></div>
                 </div>
             </section>
 
@@ -38,7 +39,7 @@
                         <span class="rhyme-plus">rima com</span>
                         <div class="rhyme-slot" id="rhyme-slot">?</div>
                     </div>
-                    <button class="act listen hear-btn" onclick="sayPrompt()">🔊 Ouvir</button>
+                    <button class="act listen hear-btn" type="button" onclick="sayPrompt()">🔊 Ouvir</button>
                 </div>
                 <div class="rhyme-options" id="options"></div>
             </section>
