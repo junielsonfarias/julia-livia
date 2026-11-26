@@ -7,39 +7,39 @@
 // ==========================================
 
 // <PRECACHE>
-const CACHE_VERSION = '6e6e2947de';
+const CACHE_VERSION = '4402ebafb9';
 const PRECACHE = [
     "/",
-    "/animais-game/game.js",
+    "/animais-game/game.js?v=7c0533b9",
     "/animais-game/index.html",
-    "/animais-game/styles.css",
-    "/big-hero-game/game.js",
+    "/animais-game/styles.css?v=1c771496",
+    "/big-hero-game/game.js?v=4c88095f",
     "/big-hero-game/index.html",
-    "/big-hero-game/styles.css",
-    "/contar-game/game.js",
+    "/big-hero-game/styles.css?v=0cb0a210",
+    "/contar-game/game.js?v=9003e231",
     "/contar-game/index.html",
-    "/contar-game/styles.css",
-    "/cores-formas-game/game.js",
+    "/contar-game/styles.css?v=243e7c64",
+    "/cores-formas-game/game.js?v=974a5cfa",
     "/cores-formas-game/index.html",
-    "/cores-formas-game/styles.css",
-    "/corpo-game/game.js",
+    "/cores-formas-game/styles.css?v=ce06fdea",
+    "/corpo-game/game.js?v=cec4eadb",
     "/corpo-game/index.html",
-    "/corpo-game/styles.css",
-    "/desenhar-game/game.js",
+    "/corpo-game/styles.css?v=ad9ba138",
+    "/desenhar-game/game.js?v=4653e20f",
     "/desenhar-game/index.html",
-    "/desenhar-game/styles.css",
-    "/dinheiro-game/game.js",
+    "/desenhar-game/styles.css?v=d2f9bb3a",
+    "/dinheiro-game/game.js?v=ff88ffb8",
     "/dinheiro-game/index.html",
-    "/dinheiro-game/styles.css",
-    "/emocoes-game/game.js",
+    "/dinheiro-game/styles.css?v=c9f8c657",
+    "/emocoes-game/game.js?v=7637ae0f",
     "/emocoes-game/index.html",
-    "/emocoes-game/styles.css",
-    "/fracoes-game/game.js",
+    "/emocoes-game/styles.css?v=68a7fe7f",
+    "/fracoes-game/game.js?v=974ce0a4",
     "/fracoes-game/index.html",
-    "/fracoes-game/styles.css",
-    "/graficos-game/game.js",
+    "/fracoes-game/styles.css?v=20577c32",
+    "/graficos-game/game.js?v=4edd68a0",
     "/graficos-game/index.html",
-    "/graficos-game/styles.css",
+    "/graficos-game/styles.css?v=3a8ffb1f",
     "/icons/apple-touch-icon.png",
     "/icons/favicon-32.png",
     "/icons/icon-192.png",
@@ -47,61 +47,61 @@ const PRECACHE = [
     "/icons/icon-maskable-192.png",
     "/icons/icon-maskable-512.png",
     "/index.html",
-    "/interpretacao-game/data.js",
-    "/interpretacao-game/game.js",
+    "/interpretacao-game/data.js?v=a2880166",
+    "/interpretacao-game/game.js?v=5a8206e7",
     "/interpretacao-game/index.html",
-    "/interpretacao-game/styles.css",
-    "/leitura-game/game.js",
+    "/interpretacao-game/styles.css?v=c45b93a7",
+    "/leitura-game/game.js?v=a07eec64",
     "/leitura-game/index.html",
-    "/leitura-game/styles.css",
-    "/letras-game/game.js",
+    "/leitura-game/styles.css?v=7813a59d",
+    "/letras-game/game.js?v=10a46a61",
     "/letras-game/index.html",
-    "/letras-game/styles.css",
-    "/main-script.js",
-    "/main-styles.css",
+    "/letras-game/styles.css?v=8040e68e",
+    "/main-script.js?v=6de2d6ca",
+    "/main-styles.css?v=50c1b99c",
     "/manifest.webmanifest",
-    "/memoria-game/game.js",
+    "/memoria-game/game.js?v=3be4c442",
     "/memoria-game/index.html",
-    "/memoria-game/styles.css",
-    "/olimpiada-game/data.js",
-    "/olimpiada-game/game.js",
+    "/memoria-game/styles.css?v=6cd419a5",
+    "/olimpiada-game/data.js?v=3e79a3b7",
+    "/olimpiada-game/game.js?v=353dede7",
     "/olimpiada-game/index.html",
-    "/olimpiada-game/styles.css",
-    "/ortografia-game/game.js",
+    "/olimpiada-game/styles.css?v=0b29ff88",
+    "/ortografia-game/game.js?v=d09d690e",
     "/ortografia-game/index.html",
-    "/ortografia-game/styles.css",
-    "/puzzle-game/game.js",
+    "/ortografia-game/styles.css?v=91093882",
+    "/puzzle-game/game.js?v=fd1604ca",
     "/puzzle-game/index.html",
-    "/puzzle-game/styles.css",
-    "/quiz-game/game.js",
+    "/puzzle-game/styles.css?v=db9eba8d",
+    "/quiz-game/game.js?v=7674e1f4",
     "/quiz-game/index.html",
-    "/quiz-game/styles.css",
-    "/relampago-game/game.js",
+    "/quiz-game/styles.css?v=52ba9615",
+    "/relampago-game/game.js?v=734b7721",
     "/relampago-game/index.html",
-    "/relampago-game/styles.css",
-    "/rimas-game/game.js",
+    "/relampago-game/styles.css?v=f4ba5358",
+    "/rimas-game/game.js?v=22ce9a18",
     "/rimas-game/index.html",
-    "/rimas-game/styles.css",
-    "/sequencia-game/game.js",
+    "/rimas-game/styles.css?v=15cdd831",
+    "/sequencia-game/game.js?v=a954e379",
     "/sequencia-game/index.html",
-    "/sequencia-game/styles.css",
-    "/shared/duelo-perguntas.js",
-    "/shared/duelo.css",
-    "/shared/duelo.js",
-    "/shared/kids-audio.js",
-    "/shared/palavras.js",
-    "/silabas-game/game.js",
+    "/sequencia-game/styles.css?v=906ef679",
+    "/shared/duelo-perguntas.js?v=7072286c",
+    "/shared/duelo.css?v=525e5f83",
+    "/shared/duelo.js?v=26af0712",
+    "/shared/kids-audio.js?v=884d58e9",
+    "/shared/palavras.js?v=3791d1db",
+    "/silabas-game/game.js?v=0e2fe37e",
     "/silabas-game/index.html",
-    "/silabas-game/styles.css",
-    "/tabuada-game/game.js",
+    "/silabas-game/styles.css?v=c883ad73",
+    "/tabuada-game/game.js?v=006baf85",
     "/tabuada-game/index.html",
-    "/tabuada-game/styles.css",
-    "/trilha-game/game.js",
+    "/tabuada-game/styles.css?v=95936510",
+    "/trilha-game/game.js?v=04c631bf",
     "/trilha-game/index.html",
-    "/trilha-game/styles.css",
-    "/velha-game/game.js",
+    "/trilha-game/styles.css?v=f65a1d60",
+    "/velha-game/game.js?v=c3ef65d3",
     "/velha-game/index.html",
-    "/velha-game/styles.css"
+    "/velha-game/styles.css?v=4281755c"
 ];
 // </PRECACHE>
 
@@ -199,17 +199,18 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Demais arquivos: copia salva na hora + atualiza em segundo plano
+    // Demais arquivos (com ?v=versao no endereco): copia salva EXATA na hora;
+    // se nao tiver, busca na internet; sem internet, usa qualquer copia salva.
     event.respondWith((async () => {
-        const cached = await matchCached(req);
-        const network = fetch(req).then(async (res) => {
-            if (res.ok) {
-                const cache = await caches.open(CACHE);
-                await cache.put(req, res.clone());
-            }
+        const cache = await caches.open(CACHE);
+        const exact = await cache.match(req);
+        if (exact) return exact;
+        try {
+            const res = await fetch(req);
+            if (res.ok) await cache.put(req, res.clone());
             return res;
-        }).catch(() => null);
-        if (cached) { event.waitUntil(network); return cached; }
-        return (await network) || new Response('', { status: 504 });
+        } catch (e) {
+            return (await matchCached(req)) || new Response('', { status: 504 });
+        }
     })());
 });

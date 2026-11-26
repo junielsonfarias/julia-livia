@@ -70,8 +70,18 @@ function startGame() {
     newTurn();
 }
 
+// No celular a pergunta fica acima do tabuleiro: rola a tela para o que importa agora
+function focusOn(id) {
+    if (window.innerWidth > 760) return;
+    // Pergunta: volta ao topo (assim "Vez da ..." tambem aparece)
+    if (id === 'question') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 function newTurn() {
     if (state.over) return;
+    focusOn('question');
     updateTurnUI();
     document.getElementById('dice-area').hidden = true;
     const level = Duelo.getLevel(state.turn);
@@ -104,6 +114,7 @@ function onAnswer(ok, q, level) {
 
 async function rollDice() {
     if (state.busy || state.over) return;
+    focusOn('board');
     state.busy = true;
     const btn = document.getElementById('roll-btn');
     btn.disabled = true;

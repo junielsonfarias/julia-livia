@@ -64,3 +64,22 @@ body.playing .game-area { padding: 8px; align-items: stretch; }
     border-radius: 30px; padding: 12px 24px; min-height: 52px; font-family: 'Fredoka One', cursive;
     font-size: 1.15rem; cursor: pointer; box-shadow: 0 5px 0 rgba(0, 0, 0, .15); touch-action: manipulation;
 }
+
+/* Celular em pe (ou tela baixa): cada metade tem pouca altura,
+   entao a pergunta fica mais compacta para caber sem rolar. */
+@media (max-height: 820px) and (orientation: portrait), (max-height: 520px) {
+    .half { padding: 6px; gap: 5px; overflow: hidden; }
+    .half-head { padding: 3px 12px; font-size: 1.05rem; }
+    .half-score { font-size: 1.5rem; }
+    .half .question-card { padding: 8px; border-width: 3px; justify-content: space-evenly; }
+    .half .q-title { font-size: 1.05rem; margin-bottom: 2px; }
+    .half .q-big { font-size: 2.6rem; }
+    .half .q-calc { font-size: 1.7rem; }
+    .half .q-group { font-size: 1.3rem; gap: 2px; }
+    .half .q-options { margin-top: 6px; gap: 6px; }
+    .half .q-opt { min-height: 48px; padding: 6px; font-size: 1.4rem; }
+    .half .q-opt.big { font-size: 1.9rem; }
+    .half .q-opt .q-group { font-size: 1.15rem; }
+    .half .q-feedback { display: none; }
+    .clock { width: 58px; height: 58px; font-size: 1.7rem; }
+}

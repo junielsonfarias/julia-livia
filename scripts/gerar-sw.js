@@ -1,7 +1,11 @@
-// Gera a lista de arquivos do app offline dentro do sw.js.
-// Rode sempre que adicionar ou mudar jogos:  npm run pwa
-// A versao do cache e um "resumo" (hash) do conteudo: se algum arquivo mudar,
-// os aparelhos baixam a versao nova automaticamente.
+// Prepara o site para publicar. Rode sempre que mudar algum jogo:  npm run pwa
+//
+// 1) VERSAO NOS ARQUIVOS: cada <link href="x.css"> e <script src="x.js"> das paginas
+//    ganha "?v=<resumo do conteudo>". Quando o arquivo muda, o endereco muda e o
+//    navegador e obrigado a baixar a versao nova (sem isso, aparelhos que guardaram
+//    a versao antiga podiam continuar com ela por muito tempo).
+// 2) LISTA OFFLINE: gera no sw.js a lista de arquivos que o app guarda para
+//    funcionar sem internet, e a versao do cache.
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -22,18 +26,46 @@ function walk(dir, out) {
     return out;
 }
 
+const shortHash = buf => crypto.createHash('sha1').update(buf).digest('hex').slice(0, 8);
+const toUrl = full => '/' + path.relative(ROOT, full).split(path.sep).join('/');
+
 const files = walk(ROOT, []).sort();
+const fileHash = {};
+for (const f of files) {
+    if (/\.(css|js)$/.test(f)) fileHash[path.resolve(f)] = shortHash(fs.readFileSync(f));
+}
+
+// ---------- 1) Versao nas referencias das paginas ----------
+let changedPages = 0;
+const versioned = {};   // url -> url?v=hash (para a lista offline)
+for (const page of files.filter(f => f.endsWith('.html'))) {
+    let html = fs.readFileSync(page, 'utf8');
+    // A pasta base da pagina: <base href="/x-game/"> ou a pasta do arquivo
+    const baseMatch = html.match(/<base\s+href="\/([^"]*)"/i);
+    const baseDir = baseMatch ? path.join(ROOT, baseMatch[1]) : path.dirname(page);
+    const updated = html.replace(/(<(?:link|script)\b[^>]*?\s(?:href|src)=")([^"]+?\.(?:css|js))(?:\?v=[0-9a-f]+)?(")/gi, (m, pre, ref, post) => {
+        if (/^(https?:)?\/\//i.test(ref)) return m;                 // arquivos externos ficam como estao
+        const full = path.resolve(ref.startsWith('/') ? path.join(ROOT, ref) : path.join(baseDir, ref));
+        const h = fileHash[full];
+        if (!h) return m;
+        versioned[toUrl(full)] = `${toUrl(full)}?v=${h}`;
+        return `${pre}${ref}?v=${h}${post}`;
+    });
+    if (updated !== html) { fs.writeFileSync(page, updated); changedPages++; }
+}
+
+// ---------- 2) Lista offline no sw.js ----------
 const hash = crypto.createHash('sha1');
 const urls = ['/'];
 for (const f of files) {
     hash.update(fs.readFileSync(f));
-    urls.push('/' + path.relative(ROOT, f).split(path.sep).join('/'));
+    const u = toUrl(f);
+    urls.push(versioned[u] || u);
 }
 const version = hash.digest('hex').slice(0, 10);
 
 const swPath = path.join(ROOT, 'sw.js');
 const sw = fs.readFileSync(swPath, 'utf8');
 const block = `// <PRECACHE>\nconst CACHE_VERSION = '${version}';\nconst PRECACHE = ${JSON.stringify(urls, null, 4)};\n// </PRECACHE>`;
-const updated = sw.replace(/\/\/ <PRECACHE>[\s\S]*?\/\/ <\/PRECACHE>/, block);
-fs.writeFileSync(swPath, updated);
-console.log(`sw.js atualizado: ${urls.length} arquivos, versao ${version}`);
+fs.writeFileSync(swPath, sw.replace(/\/\/ <PRECACHE>[\s\S]*?\/\/ <\/PRECACHE>/, block));
+console.log(`Páginas com versão atualizada: ${changedPages}. sw.js: ${urls.length} arquivos, versão ${version}`);
