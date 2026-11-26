@@ -632,3 +632,12 @@ body {
         font-size: 1.8rem;
     }
 }
+
+/* Explicacao + palavras-chave (4º ano) */
+mark.kw { background: #ffeaa7; color: #2d3436; padding: 0 3px; border-radius: 4px; font-weight: 800; }
+.explain { margin-top: 12px; background: #eef3ff; color: #1e3799; border-left: 6px solid #4a69bd; border-radius: 12px; padding: 12px 14px; font-size: 1.05rem; line-height: 1.5; text-align: left; }
+.explain:empty { display: none; }
+.next-btn { margin-top: 12px; width: 100%; border: none; border-radius: 16px; padding: 14px; font-family: 'Fredoka One', cursive; font-size: 1.2rem; color: #fff; background: linear-gradient(135deg, #00b894, #00a383); cursor: pointer; }
+.next-btn[hidden] { display: none; }
+.no-timer { display: inline-flex; gap: 8px; align-items: center; font-weight: 700; color: #555; margin-bottom: 14px; cursor: pointer; }
+.no-timer input { width: 20px; height: 20px; }

@@ -97,6 +97,22 @@
     {
       "source": "/corpo",
       "destination": "/corpo-game/index.html"
+    },
+    {
+      "source": "/leitura",
+      "destination": "/leitura-game/index.html"
+    },
+    {
+      "source": "/silabas",
+      "destination": "/silabas-game/index.html"
+    },
+    {
+      "source": "/interpretacao",
+      "destination": "/interpretacao-game/index.html"
+    },
+    {
+      "source": "/olimpiada",
+      "destination": "/olimpiada-game/index.html"
     }
   ]
 }

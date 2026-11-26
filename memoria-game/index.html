@@ -27,6 +27,28 @@
                     <h2>Jogo da Memoria!</h2>
                     <p>Encontre os pares e divirta-se!</p>
 
+                    <!-- Seletor de Modo -->
+                    <div class="mode-section">
+                        <h3>Como vamos jogar?</h3>
+                        <div class="mode-selector">
+                            <button class="mode-pick selected" data-mode="solo" onclick="selectMode('solo')">
+                                <span class="theme-icon">🙋</span>
+                                <span class="theme-name">Sozinha</span>
+                            </button>
+                            <button class="mode-pick" data-mode="duel" onclick="selectMode('duel')">
+                                <span class="theme-icon">⚔️</span>
+                                <span class="theme-name">Duelo Julia × Livia</span>
+                            </button>
+                        </div>
+                        <div id="duel-options" class="duel-options" hidden>
+                            <div class="duel-history" id="duel-history"></div>
+                            <label class="duel-rule">
+                                <input type="checkbox" id="opt-extra-turn">
+                                Quem acerta um par joga de novo
+                            </label>
+                        </div>
+                    </div>
+
                     <!-- Seletor de Tema -->
                     <div class="theme-section">
                         <h3>Escolha um tema:</h3>
@@ -59,6 +81,21 @@
 
             <!-- Tela do Jogo -->
             <div id="game-screen" class="screen">
+                <!-- Placar do duelo -->
+                <div id="duel-board" class="duel-board" hidden>
+                    <div class="player-panel julia" id="panel-julia">
+                        <span class="player-emoji">👸</span>
+                        <span class="player-name">Julia</span>
+                        <span class="player-score" id="score-julia">0</span>
+                    </div>
+                    <div class="turn-banner" id="turn-banner">Vez da Julia!</div>
+                    <div class="player-panel livia" id="panel-livia">
+                        <span class="player-emoji">🧚</span>
+                        <span class="player-name">Livia</span>
+                        <span class="player-score" id="score-livia">0</span>
+                    </div>
+                </div>
+                <div id="feedback-toast" class="feedback-toast"></div>
                 <div id="cards-grid" class="cards-grid">
                     <!-- Cards serao inseridos via JavaScript -->
                 </div>
@@ -80,6 +117,14 @@
                             <span class="stat-value" id="final-time">0:00</span>
                         </div>
                     </div>
+                    <div class="duel-result" id="duel-result" hidden>
+                        <div class="duel-final">
+                            <div class="final-player julia"><span>👸 Julia</span><strong id="final-julia">0</strong><small>pares</small></div>
+                            <div class="final-vs">×</div>
+                            <div class="final-player livia"><span>🧚 Livia</span><strong id="final-livia">0</strong><small>pares</small></div>
+                        </div>
+                        <div class="duel-history" id="duel-history-end"></div>
+                    </div>
                     <div class="stars-earned" id="stars-display">
                         <span class="star">⭐</span>
                         <span class="star">⭐</span>
@@ -94,6 +139,7 @@
         </main>
     </div>
 
+    <script src="../shared/kids-audio.js"></script>
     <script src="game.js"></script>
 </body>
 </html>

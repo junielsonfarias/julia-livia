@@ -1,0 +1,37 @@
+body.silabas { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+.silabas .game-header h1 { color: #6c5ce7; }
+.round-info { font-family: 'Fredoka One', cursive; font-size: 1.3rem; color: #6c5ce7; min-width: 60px; text-align: right; }
+
+.build-card { gap: 12px; }
+.build-picture { font-size: 6rem; line-height: 1; }
+.hear-btn { font-size: 1.1rem; padding: 10px 22px; }
+
+.slots { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+.slot {
+    min-width: 92px; height: 84px; border-radius: 18px; border: 4px dashed #b2bec3;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fredoka One', cursive; font-size: 2.4rem; color: #2d3436; background: #fafafa;
+}
+.slot.filled { border-style: solid; border-color: #00b894; background: #e8fff8; animation: pop .25s ease; }
+.slot.next { border-color: #6c5ce7; animation: pulse 1s infinite; }
+@keyframes pulse { 50% { transform: scale(1.06); } }
+
+.tiles { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
+.tile {
+    min-width: 96px; padding: 18px 16px; border: none; border-radius: 20px; cursor: pointer;
+    font-family: 'Fredoka One', cursive; font-size: 2.2rem; color: #fff;
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe); box-shadow: 0 6px 0 #4b3fb5;
+    touch-action: manipulation;
+}
+.tile:active { transform: translateY(4px); box-shadow: 0 2px 0 #4b3fb5; }
+.tile.used { visibility: hidden; }
+.tile.shake { animation: shake .4s ease; background: linear-gradient(135deg, #d63031, #ff7675); box-shadow: 0 6px 0 #a52121; }
+@keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+
+.stars { font-size: 3rem; margin: 10px 0; letter-spacing: 6px; }
+
+@media (max-width: 560px) {
+    .slot { min-width: 70px; height: 70px; font-size: 1.9rem; }
+    .tile { min-width: 76px; font-size: 1.8rem; padding: 14px 12px; }
+    .build-picture { font-size: 4.5rem; }
+}

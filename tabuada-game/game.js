@@ -192,6 +192,10 @@
         for (let i=0;i<state.total;i++){
             state.questions.push(generateQuestionWithOps(state.base, state.opsUsed));
         }
+        // Tipo de pergunta (4º ano): conta, numero que falta, problemas ou misturado
+        const kindSel = $('kind-select');
+        const kindChoice = kindSel ? kindSel.value : 'conta';
+        state.questions.forEach(q => applyKind(q, kindChoice));
         // evitar repetir exatamente a mesma sequência da última vez, se configurado
         const sig = state.questions.map(q=>`${q.a}${q.op}${q.b}`).join('|');
         if (state.avoidRepeat !== false) {
@@ -240,7 +244,8 @@
             $('progress').textContent = `Pergunta ${qidx+1} / ${total}`;
             $('score').textContent = `Pontos: ${state.correct}`;
             // montar texto conforme operação
-            $('question-text').textContent = `Quanto é ${q.a} ${q.op} ${q.b} ?`;
+            $('question-text').innerHTML = q.text || `Quanto é ${q.a} ${q.op} ${q.b} ?`;
+            $('question-text').classList.toggle('long-text', q.kind === 'problema');
 
             const container = $('choices');
             container.innerHTML = '';
@@ -362,7 +367,14 @@
         // update score
         $('score').textContent = `Pontos: ${state.correct}`;
         $('hint-btn').disabled = true;
-        // hide manual next button (avanco automatico)
+        // Acertou: avanca sozinho. Errou: espera "Proxima" para ler a explicacao com calma.
+        if (!isCorrect) {
+            const nb = $('next-btn');
+            nb.classList.remove('hidden');
+            nb.disabled = false;
+            checkAchievements();
+            return;
+        }
         $('next-btn').classList.add('hidden');
 
         // achievements check
@@ -444,13 +456,18 @@
     }
 
     function nextQuestion(){
+        if (sessionRemaining <= 0) return finishGame();
         state.current++;
+        if (state.current >= state.total) return finishGame();
+        try{ document.querySelectorAll('.choice-btn, .choice-input, .primary').forEach(b=>b.disabled=false); }catch(e){}
         renderQuestion();
     }
 
     function showExplanation(q){
         if (!q) return;
         let explanation = '';
+        const qa = Object.assign({}, q, { answer: q.res !== undefined ? q.res : q.answer });
+        q = qa;
 
         if (q.op === '+') {
             explanation = `<strong>Soma:</strong> ${q.a} + ${q.b} = ${q.answer}`;
@@ -466,8 +483,87 @@
             explanation = `<strong>Resultado:</strong> ${q.a} ${q.op} ${q.b} = ${q.answer}`;
         }
 
+        if (q.kind === 'falta') {
+            explanation = `<strong>O número que falta é ${q.missing}</strong>, porque ${q.a} ${q.op} ${q.b} = ${q.answer}.<br>` +
+                `💡 Use a operação inversa: ${inverseTip(q)}<br>` + explanation;
+        } else if (q.kind === 'problema') {
+            explanation = `<strong>A conta do problema:</strong> ${q.a} ${q.op} ${q.b} = ${q.answer}. ${q.why || ''}<br>` + explanation;
+        }
         $('hint-area').innerHTML = explanation;
         $('hint-area').classList.remove('hidden');
+    }
+
+    // Dica de verdade (sem entregar a resposta)
+    function showHint(q){
+        if (!q) return;
+        let tip = '';
+        if (q.kind === 'falta') tip = 'Use a operação inversa: ' + inverseTip(q, true);
+        else if (q.kind === 'problema') tip = 'Leia de novo: a história fala em juntar, tirar, grupos iguais ou repartir? ' + (q.why || '');
+        else if (q.op === '×') {
+            if (q.a === 9 || q.b === 9) { const o = q.a === 9 ? q.b : q.a; tip = `Truque do 9: faça ${o} × 10 e depois tire ${o}.`; }
+            else if (q.a === 5 || q.b === 5) { const o = q.a === 5 ? q.b : q.a; tip = `Truque do 5: é a metade de ${o} × 10.`; }
+            else if (q.a === 4 || q.b === 4) { const o = q.a === 4 ? q.b : q.a; tip = `Truque do 4: é o dobro do dobro de ${o}.`; }
+            else tip = `Pense em ${q.a} grupos de ${q.b}. Se souber ${q.a} × ${Math.max(1, q.b - 1)}, é só somar mais ${q.a}.`;
+        } else if (q.op === '÷') tip = `Pense: qual número vezes ${q.b} dá ${q.a}? Procure na tabuada do ${q.b}.`;
+        else if (q.op === '+') tip = `Some primeiro as dezenas, depois as unidades. Ou complete até a próxima dezena.`;
+        else tip = `Conte para frente a partir de ${q.b} até chegar em ${q.a}.`;
+        $('hint-area').innerHTML = '💡 <strong>Dica:</strong> ' + tip;
+        $('hint-area').classList.remove('hidden');
+        $('hint-btn').disabled = true;
+    }
+
+    function inverseTip(q, hideAnswer){
+        const r = q.res !== undefined ? q.res : q.answer;
+        const show = v => hideAnswer ? '?' : v;
+        if (q.op === '×') return q.unknown === 'a' ? `? × ${q.b} = ${r} → ${r} ÷ ${q.b} = ${show(q.a)}` : `${q.a} × ? = ${r} → ${r} ÷ ${q.a} = ${show(q.b)}`;
+        if (q.op === '÷') return q.unknown === 'a' ? `? ÷ ${q.b} = ${r} → ${r} × ${q.b} = ${show(q.a)}` : `${q.a} ÷ ? = ${r} → ${q.a} ÷ ${r} = ${show(q.b)}`;
+        if (q.op === '+') return `${q.a} + ? = ${r} → ${r} − ${q.a} = ${show(q.b)}`;
+        return `${q.a} − ? = ${r} → ${q.a} − ${r} = ${show(q.b)}`;
+    }
+
+    // ---------- Tipos de pergunta ----------
+    function pickOne(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+    const PROBLEMAS = {
+        '×': [
+            (a,b) => [`Uma caixa tem ${b} lápis. Quantos lápis há em ${a} caixas iguais?`, 'São grupos iguais: multiplicação.'],
+            (a,b) => [`Julia cola ${a} figurinhas em cada página do álbum. Quantas figurinhas ela cola em ${b} páginas?`, '“Em cada página” + várias páginas = multiplicação.'],
+            (a,b) => [`Um teatro tem ${a} fileiras com ${b} cadeiras em cada uma. Quantas cadeiras há ao todo?`, 'Fileiras × cadeiras de cada fileira.'],
+            (a,b) => [`Cada pacote tem ${b} biscoitos. Livia comprou ${a} pacotes. Quantos biscoitos ela comprou?`, 'Pacotes iguais: multiplicação.']
+        ],
+        '÷': [
+            (a,b) => [`${a} balas foram repartidas igualmente entre ${b} crianças. Quantas balas cada criança recebeu?`, '“Repartir igualmente” = divisão.'],
+            (a,b) => [`A professora tem ${a} alunos e vai formar grupos de ${b} alunos. Quantos grupos ela vai formar?`, '“Quantos grupos de…” = divisão (quantas vezes cabe).'],
+            (a,b) => [`Uma fita de ${a} metros foi cortada em ${b} pedaços iguais. Quantos metros tem cada pedaço?`, 'Pedaços iguais = divisão.']
+        ],
+        '+': [
+            (a,b) => [`Livia tinha ${a} adesivos e ganhou ${b} da vovó. Com quantos adesivos ela ficou?`, '“Ganhou” = juntar: adição.'],
+            (a,b) => [`Na festa havia ${a} meninas e ${b} meninos. Quantas crianças havia ao todo?`, '“Ao todo” = adição.']
+        ],
+        '-': [
+            (a,b) => [`Havia ${a} pássaros na árvore. ${b} voaram. Quantos pássaros ficaram?`, '“Voaram / ficaram” = tirar: subtração.'],
+            (a,b) => [`Julia tem ${a} reais e Livia tem ${b} reais. Quantos reais Julia tem a mais que Livia?`, '“A mais que” = diferença: subtração.']
+        ]
+    };
+
+    function applyKind(q, choice){
+        q.res = q.answer;
+        let kind = choice === 'misto' ? pickOne(['conta','falta','problema']) : (choice || 'conta');
+        if (kind === 'problema' && q.op === '-' && q.a === q.b) kind = 'conta';
+        q.kind = kind;
+        if (kind === 'falta') {
+            const unknownA = (q.op === '×' || q.op === '÷') ? Math.random() < 0.5 : false;
+            q.unknown = unknownA ? 'a' : 'b';
+            q.missing = unknownA ? q.a : q.b;
+            const left = unknownA ? `<span class="missing">?</span> ${q.op} ${q.b}` : `${q.a} ${q.op} <span class="missing">?</span>`;
+            q.text = `Qual número completa a conta?<br><span class="equation">${left} = ${q.res}</span>`;
+            q.answer = q.missing;
+        } else if (kind === 'problema') {
+            const op = (q.op === '*') ? '×' : (q.op === '/') ? '÷' : q.op;
+            const [text, why] = pickOne(PROBLEMAS[op] || PROBLEMAS['×'])(q.a, q.b);
+            q.text = text;
+            q.why = why;
+        }
     }
 
     function generateGrid(a,b){
@@ -822,7 +918,7 @@
             sessions.push(session);
             localStorage.setItem(key, JSON.stringify(sessions));
             // save last session questions for memorization
-            localStorage.setItem(`tabuada_last_${player}`, JSON.stringify(state.questions.map(q=>({a:q.a,b:q.b,op:q.op,answer:q.answer,correct:q.correct}))));
+            localStorage.setItem(`tabuada_last_${player}`, JSON.stringify(state.questions.map(q=>({a:q.a,b:q.b,op:q.op,answer:(q.res !== undefined ? q.res : q.answer),correct:q.correct}))));
         }catch(e){ console.log('Erro salvando progresso', e); }
     }
 
@@ -858,7 +954,7 @@
         let pool = raw ? JSON.parse(raw) : null;
         if (!pool || pool.length === 0) {
             // fallback to current state questions
-            pool = state.questions.map(q=>({a:q.a,b:q.b,op:q.op,answer:q.answer}));
+            pool = state.questions.map(q=>({a:q.a,b:q.b,op:q.op,answer:(q.res !== undefined ? q.res : q.answer)}));
         }
         if (!pool || pool.length === 0) return alert('Nenhuma sessão anterior para testar. Jogue uma sessão primeiro.');
 
@@ -926,7 +1022,7 @@
     document.addEventListener('DOMContentLoaded', ()=>{
         $('start-btn').addEventListener('click', startGame);
         $('next-btn').addEventListener('click', nextQuestion);
-        $('hint-btn').addEventListener('click', ()=>{ showExplanation(state.question); });
+        $('hint-btn').addEventListener('click', ()=>{ showHint(state.question); });
         $('retry-btn').addEventListener('click', retry);
         const rb = $('restart-btn'); if (rb) rb.addEventListener('click', ()=>{ startGame(); });
         const vp = $('view-progress-btn'); if (vp) vp.addEventListener('click', showProgressPanel);

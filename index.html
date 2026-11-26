@@ -36,7 +36,7 @@
             <div class="girls-info">
                 <div class="girl-card julia-card">
                     <div class="girl-avatar julia-avatar">
-                        <span class="age-badge">9 anos</span>
+                        <span class="age-badge"><span data-age="julia">10</span> anos</span>
                     </div>
                     <h3>Julia Caroline</h3>
                     <p>Aventureira e criativa!</p>
@@ -44,7 +44,7 @@
 
                 <div class="girl-card livia-card">
                     <div class="girl-avatar livia-avatar">
-                        <span class="age-badge">4 anos</span>
+                        <span class="age-badge"><span data-age="livia">5</span> anos</span>
                     </div>
                     <h3>Livia Marina</h3>
                     <p>Doce e encantadora!</p>
@@ -94,13 +94,13 @@
             <div class="menu-card julia-card-menu" onclick="openSection('julia')">
                 <div class="card-icon">&#128124;</div>
                 <h2>Julia</h2>
-                <p>9 aninhos de alegria</p>
+                <p><span data-age="julia">10</span> aninhos de alegria</p>
             </div>
 
             <div class="menu-card livia-card-menu" onclick="openSection('livia')">
                 <div class="card-icon">&#128118;</div>
                 <h2>Livia</h2>
-                <p>4 aninhos de amor</p>
+                <p><span data-age="livia">5</span> aninhos de amor</p>
             </div>
 
             <div class="menu-card memories-card" onclick="openSection('memories')">
@@ -118,8 +118,79 @@
             <h1>&#127918; Jogos</h1>
         </header>
 
+        <div class="games-filter" role="tablist" aria-label="Filtrar jogos">
+            <button class="filter-btn active" data-filter="todos">🎮 Todos</button>
+            <button class="filter-btn" data-filter="livia">🧚 Livia · <span data-age="livia">5</span> anos</button>
+            <button class="filter-btn" data-filter="julia">👸 Julia · 4º ano</button>
+        </div>
+
         <div class="games-container">
-            <div class="game-card" onclick="playGame('big-hero')">
+            <div class="game-card leitura-card" data-for="livia" onclick="playGame('leitura')">
+                <div class="game-thumbnail leitura-thumb">
+                    <span class="leitura-icon">⚡📖</span>
+                </div>
+                <div class="game-info">
+                    <h3>Leitura Relâmpago</h3>
+                    <p>Leia o máximo de palavras em 60 segundos e bata o recorde!</p>
+                    <div class="game-tags">
+                        <span class="tag">Alfabetização</span>
+                        <span class="tag livia-tag">Livia</span>
+                        <span class="tag new-tag">Novo!</span>
+                    </div>
+                </div>
+                <button class="play-btn">JOGAR</button>
+            </div>
+
+            <div class="game-card silabas-card" data-for="livia" onclick="playGame('silabas')">
+                <div class="game-thumbnail silabas-thumb">
+                    <span class="silabas-icon">🧩</span>
+                </div>
+                <div class="game-info">
+                    <h3>Monte a Palavra</h3>
+                    <p>Junte as sílabas na ordem certa para formar a palavra!</p>
+                    <div class="game-tags">
+                        <span class="tag">Alfabetização</span>
+                        <span class="tag livia-tag">Livia</span>
+                        <span class="tag new-tag">Novo!</span>
+                    </div>
+                </div>
+                <button class="play-btn">JOGAR</button>
+            </div>
+
+            <div class="game-card olimpiada-card" data-for="julia" onclick="playGame('olimpiada')">
+                <div class="game-thumbnail olimpiada-thumb">
+                    <span class="olimpiada-icon">🥇</span>
+                </div>
+                <div class="game-info">
+                    <h3>Treino Olímpico</h3>
+                    <p>Raciocínio no estilo OBMEP Mirim e Canguru, com simulado!</p>
+                    <div class="game-tags">
+                        <span class="tag">Matemática</span>
+                        <span class="tag julia-tag">Julia · 4º ano</span>
+                        <span class="tag new-tag">Novo!</span>
+                    </div>
+                </div>
+                <button class="play-btn">JOGAR</button>
+            </div>
+
+            <div class="game-card detetive-card" data-for="julia" onclick="playGame('interpretacao')">
+                <div class="game-thumbnail detetive-thumb">
+                    <span class="detetive-icon">🕵️‍♀️</span>
+                </div>
+                <div class="game-info">
+                    <h3>Detetive das Questões</h3>
+                    <p>Aprenda a entender o que a questão pede: problemas e textos.</p>
+                    <div class="game-tags">
+                        <span class="tag">Português</span>
+                        <span class="tag">Matemática</span>
+                        <span class="tag julia-tag">Julia · 4º ano</span>
+                        <span class="tag new-tag">Novo!</span>
+                    </div>
+                </div>
+                <button class="play-btn">JOGAR</button>
+            </div>
+
+            <div class="game-card" data-for="todas" onclick="playGame('big-hero')">
                 <div class="game-thumbnail big-hero-thumb">
                     <div class="game-characters">
                         <div class="mini-baymax"></div>
@@ -137,37 +208,37 @@
                 <button class="play-btn">JOGAR</button>
             </div>
 
-            <div class="game-card tabuada-card" onclick="playGame('tabuada')">
+            <div class="game-card tabuada-card" data-for="julia" onclick="playGame('tabuada')">
                 <div class="game-thumbnail tabuada-thumb">
                     <div class="tabuada-icon">×</div>
                 </div>
                 <div class="game-info">
                     <h3>Tabuada Divertida</h3>
-                    <p>Pratique a tabuada com desafios, dicas e recompensas.</p>
+                    <p>Contas, número que falta e problemas com historinha.</p>
                     <div class="game-tags">
                         <span class="tag">Matematica</span>
-                        <span class="tag">4º ano</span>
+                        <span class="tag julia-tag">Julia · 4º ano</span>
                     </div>
                 </div>
                 <button class="play-btn">JOGAR</button>
             </div>
 
-            <div class="game-card memoria-card" onclick="playGame('memoria')">
+            <div class="game-card memoria-card" data-for="todas" onclick="playGame('memoria')">
                 <div class="game-thumbnail memoria-thumb">
                     <span class="memoria-icon">🧠</span>
                 </div>
                 <div class="game-info">
                     <h3>Jogo da Memoria</h3>
-                    <p>Encontre os pares de animais fofinhos!</p>
+                    <p>Encontre os pares! Agora com duelo Julia × Livia.</p>
                     <div class="game-tags">
                         <span class="tag">Memoria</span>
-                        <span class="tag age-tag">4+ anos</span>
+                        <span class="tag livia-tag">Livia</span>
                     </div>
                 </div>
                 <button class="play-btn">JOGAR</button>
             </div>
 
-            <div class="game-card cores-card" onclick="playGame('cores-formas')">
+            <div class="game-card cores-card" data-for="livia" onclick="playGame('cores-formas')">
                 <div class="game-thumbnail cores-thumb">
                     <span class="cores-icon">🎨</span>
                 </div>
@@ -176,43 +247,43 @@
                     <p>Aprenda cores e formas de um jeito divertido!</p>
                     <div class="game-tags">
                         <span class="tag">Educativo</span>
-                        <span class="tag age-tag">4+ anos</span>
+                        <span class="tag livia-tag">Livia</span>
                     </div>
                 </div>
                 <button class="play-btn">JOGAR</button>
             </div>
 
-            <div class="game-card sequencia-card" onclick="playGame('sequencia')">
+            <div class="game-card sequencia-card" data-for="julia" onclick="playGame('sequencia')">
                 <div class="game-thumbnail sequencia-thumb">
                     <span class="sequencia-icon">🧩</span>
                 </div>
                 <div class="game-info">
                     <h3>Sequencia Logica</h3>
-                    <p>Desafie seu raciocinio com padroes!</p>
+                    <p>Descubra a regra escondida, como na olimpíada!</p>
                     <div class="game-tags">
                         <span class="tag">Logica</span>
-                        <span class="tag age-tag">9+ anos</span>
+                        <span class="tag julia-tag">Julia · 4º ano</span>
                     </div>
                 </div>
                 <button class="play-btn">JOGAR</button>
             </div>
 
-            <div class="game-card quiz-card" onclick="playGame('quiz')">
+            <div class="game-card quiz-card" data-for="julia" onclick="playGame('quiz')">
                 <div class="game-thumbnail quiz-thumb">
                     <span class="quiz-icon">🎓</span>
                 </div>
                 <div class="game-info">
                     <h3>Quiz Educativo</h3>
-                    <p>Teste seus conhecimentos em varias materias!</p>
+                    <p>Perguntas do 4º ano com explicação de cada resposta.</p>
                     <div class="game-tags">
                         <span class="tag">Quiz</span>
-                        <span class="tag age-tag">9+ anos</span>
+                        <span class="tag julia-tag">Julia · 4º ano</span>
                     </div>
                 </div>
                 <button class="play-btn">JOGAR</button>
             </div>
 
-            <div class="game-card desenhar-card" onclick="playGame('desenhar')">
+            <div class="game-card desenhar-card" data-for="todas" onclick="playGame('desenhar')">
                 <div class="game-thumbnail desenhar-thumb">
                     <span class="desenhar-icon">🎨</span>
                 </div>
@@ -221,13 +292,13 @@
                     <p>Solte sua criatividade com cores e pinceis!</p>
                     <div class="game-tags">
                         <span class="tag">Criativo</span>
-                        <span class="tag age-tag">4+ anos</span>
+                        <span class="tag livia-tag">Livia</span>
                     </div>
                 </div>
                 <button class="play-btn">JOGAR</button>
             </div>
 
-            <div class="game-card contar-card" onclick="playGame('contar')">
+            <div class="game-card contar-card" data-for="livia" onclick="playGame('contar')">
                 <div class="game-thumbnail contar-thumb">
                     <span class="contar-icon">🔢</span>
                 </div>
@@ -236,13 +307,13 @@
                     <p>Conte os objetos de forma divertida!</p>
                     <div class="game-tags">
                         <span class="tag">Numeros</span>
-                        <span class="tag age-tag">4+ anos</span>
+                        <span class="tag livia-tag">Livia</span>
                     </div>
                 </div>
                 <button class="play-btn">JOGAR</button>
             </div>
 
-            <div class="game-card animais-card" onclick="playGame('animais')">
+            <div class="game-card animais-card" data-for="livia" onclick="playGame('animais')">
                 <div class="game-thumbnail animais-thumb">
                     <span class="animais-icon">🐶</span>
                 </div>
@@ -251,13 +322,13 @@
                     <p>Ouca o som e encontre o animal!</p>
                     <div class="game-tags">
                         <span class="tag">Sons</span>
-                        <span class="tag age-tag">4+ anos</span>
+                        <span class="tag livia-tag">Livia</span>
                     </div>
                 </div>
                 <button class="play-btn">JOGAR</button>
             </div>
 
-            <div class="game-card puzzle-card" onclick="playGame('puzzle')">
+            <div class="game-card puzzle-card" data-for="livia" onclick="playGame('puzzle')">
                 <div class="game-thumbnail puzzle-thumb">
                     <span class="puzzle-icon">🧩</span>
                 </div>
@@ -266,13 +337,13 @@
                     <p>Monte as pecas no lugar certo!</p>
                     <div class="game-tags">
                         <span class="tag">Puzzle</span>
-                        <span class="tag age-tag">4+ anos</span>
+                        <span class="tag livia-tag">Livia</span>
                     </div>
                 </div>
                 <button class="play-btn">JOGAR</button>
             </div>
 
-            <div class="game-card emocoes-card" onclick="playGame('emocoes')">
+            <div class="game-card emocoes-card" data-for="livia" onclick="playGame('emocoes')">
                 <div class="game-thumbnail emocoes-thumb">
                     <span class="emocoes-icon">😊</span>
                 </div>
@@ -281,43 +352,43 @@
                     <p>Aprenda a identificar sentimentos!</p>
                     <div class="game-tags">
                         <span class="tag">Emocoes</span>
-                        <span class="tag age-tag">4+ anos</span>
+                        <span class="tag livia-tag">Livia</span>
                     </div>
                 </div>
                 <button class="play-btn">JOGAR</button>
             </div>
 
-            <div class="game-card fracoes-card" onclick="playGame('fracoes')">
+            <div class="game-card fracoes-card" data-for="julia" onclick="playGame('fracoes')">
                 <div class="game-thumbnail fracoes-thumb">
                     <span class="fracoes-icon">🍕</span>
                 </div>
                 <div class="game-info">
                     <h3>Jogo das Fracoes</h3>
-                    <p>Aprenda fracoes de forma visual!</p>
+                    <p>Veja, compare e resolva problemas com frações!</p>
                     <div class="game-tags">
                         <span class="tag">Matematica</span>
-                        <span class="tag age-tag">9+ anos</span>
+                        <span class="tag julia-tag">Julia · 4º ano</span>
                     </div>
                 </div>
                 <button class="play-btn">JOGAR</button>
             </div>
 
-            <div class="game-card ortografia-card" onclick="playGame('ortografia')">
+            <div class="game-card ortografia-card" data-for="julia" onclick="playGame('ortografia')">
                 <div class="game-thumbnail ortografia-thumb">
                     <span class="ortografia-icon">📝</span>
                 </div>
                 <div class="game-info">
                     <h3>Jogo de Ortografia</h3>
-                    <p>Complete palavras com a letra certa!</p>
+                    <p>Complete palavras e aprenda a regrinha de cada uma!</p>
                     <div class="game-tags">
                         <span class="tag">Portugues</span>
-                        <span class="tag age-tag">9+ anos</span>
+                        <span class="tag julia-tag">Julia · 4º ano</span>
                     </div>
                 </div>
                 <button class="play-btn">JOGAR</button>
             </div>
 
-            <div class="game-card corpo-card" onclick="playGame('corpo')">
+            <div class="game-card corpo-card" data-for="livia" onclick="playGame('corpo')">
                 <div class="game-thumbnail corpo-thumb">
                     <span class="corpo-icon">🧍</span>
                 </div>
@@ -326,7 +397,7 @@
                     <p>Aprenda as partes do corpo!</p>
                     <div class="game-tags">
                         <span class="tag">Corpo</span>
-                        <span class="tag age-tag">4+ anos</span>
+                        <span class="tag livia-tag">Livia</span>
                     </div>
                 </div>
                 <button class="play-btn">JOGAR</button>
@@ -382,15 +453,15 @@
         <div class="profile-container">
             <div class="profile-card julia-profile">
                 <div class="profile-avatar julia-big-avatar">
-                    <span class="profile-age">9</span>
+                    <span class="profile-age" data-age="julia">10</span>
                 </div>
                 <h2>Julia Caroline</h2>
-                <p class="profile-subtitle">Nossa aventureira de 9 anos!</p>
+                <p class="profile-subtitle">Nossa aventureira de <span data-age="julia">10</span> anos!</p>
 
                 <div class="profile-info">
                     <div class="info-item">
                         <span class="info-icon">&#127874;</span>
-                        <span>Aniversario: [Data]</span>
+                        <span>Aniversário: 14/09/2016 · <b data-countdown="julia"></b></span>
                     </div>
                     <div class="info-item">
                         <span class="info-icon">&#128150;</span>
@@ -418,15 +489,15 @@
         <div class="profile-container">
             <div class="profile-card livia-profile">
                 <div class="profile-avatar livia-big-avatar">
-                    <span class="profile-age">4</span>
+                    <span class="profile-age" data-age="livia">5</span>
                 </div>
                 <h2>Livia Marina</h2>
-                <p class="profile-subtitle">Nossa princesinha de 4 anos!</p>
+                <p class="profile-subtitle">Nossa princesinha de <span data-age="livia">5</span> anos!</p>
 
                 <div class="profile-info">
                     <div class="info-item">
                         <span class="info-icon">&#127874;</span>
-                        <span>Aniversario: [Data]</span>
+                        <span>Aniversário: 23/09/2021 · <b data-countdown="livia"></b></span>
                     </div>
                     <div class="info-item">
                         <span class="info-icon">&#128150;</span>

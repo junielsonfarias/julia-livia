@@ -35,8 +35,8 @@
                             <span class="den">4</span>
                         </div>
                     </div>
-                    <h2>Jogo das Fracoes!</h2>
-                    <p>Aprenda fracoes de forma visual e divertida!</p>
+                    <h2>Jogo das Frações!</h2>
+                    <p>Aprenda frações vendo, comparando e resolvendo problemas!</p>
 
                     <div class="mode-select">
                         <button class="mode-btn" onclick="startGame('identify')">
@@ -48,6 +48,11 @@
                             <span class="mode-icon">⚖️</span>
                             <span class="mode-name">Comparar Fracoes</span>
                             <span class="mode-desc">Qual fracao e maior?</span>
+                        </button>
+                        <button class="mode-btn" onclick="startGame('problems')">
+                            <span class="mode-icon">🕵️</span>
+                            <span class="mode-name">Problemas com Frações</span>
+                            <span class="mode-desc">Leia, entenda e resolva</span>
                         </button>
                         <button class="mode-btn" onclick="startGame('equivalent')">
                             <span class="mode-icon">🎯</span>
@@ -72,6 +77,8 @@
                     </div>
 
                     <div class="feedback" id="feedback"></div>
+                    <div class="explain" id="explain"></div>
+                    <button class="next-btn" id="next-btn" onclick="goNext()" hidden>Próxima ➜</button>
 
                     <div class="progress-bar">
                         <div class="progress-fill" id="progress-fill"></div>

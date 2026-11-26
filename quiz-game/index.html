@@ -25,7 +25,9 @@
                 <div class="start-content">
                     <div class="game-icon">🎓</div>
                     <h2>Quiz Educativo!</h2>
-                    <p>Teste seus conhecimentos e aprenda coisas novas!</p>
+                    <p>Leia cada pergunta com atenção: as <mark class="kw">palavras-chave</mark> mudam a resposta!</p>
+
+                    <label class="no-timer"><input type="checkbox" id="opt-no-timer"> ⏱️ Jogar sem cronômetro (ler com calma)</label>
 
                     <div class="category-select">
                         <h3>Escolha uma categoria:</h3>
@@ -68,6 +70,8 @@
                         <!-- Opcoes serao inseridas via JavaScript -->
                     </div>
                     <div class="feedback" id="feedback"></div>
+                    <div class="explain" id="explain"></div>
+                    <button class="next-btn" id="next-btn" onclick="nextQuestion()" hidden>Próxima ➜</button>
                     <div class="timer-bar">
                         <div class="timer-fill" id="timer-fill"></div>
                     </div>

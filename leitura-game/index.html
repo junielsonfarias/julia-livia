@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leitura Relampago - Mundo de Julia & Livia</title>
+    <base href="/leitura-game/">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1>⚡ Leitura Relâmpago</h1>
+            <div class="header-spacer"></div>
+        </header>
+
+        <main class="game-area">
+            <!-- INICIO -->
+            <section id="start-screen" class="screen active">
+                <div class="panel">
+                    <div class="big-icon">📖</div>
+                    <h2>Vamos ler?</h2>
+                    <p class="lead">Leia a palavra em voz alta. Acertou? Toque no <b>✓</b> e venha a próxima!<br>Você tem <b>60 segundos</b>.</p>
+
+                    <h3>Quem vai ler?</h3>
+                    <div class="choice-row" id="reader-row">
+                        <button class="chip reader selected" data-reader="Livia">🧚 Livia</button>
+                        <button class="chip reader" data-reader="Julia">👸 Julia</button>
+                        <button class="chip reader" data-reader="Convidado">🙂 Convidado</button>
+                    </div>
+
+                    <h3>Escolha o tamanho das palavras:</h3>
+                    <div class="mode-grid">
+                        <button class="mode-btn m2" onclick="startGame(2)">
+                            <span class="mode-sample"><i>BO</i><i>LA</i></span>
+                            <span class="mode-name">2 sílabas</span>
+                            <span class="mode-record" data-mode="2"></span>
+                        </button>
+                        <button class="mode-btn m3" onclick="startGame(3)">
+                            <span class="mode-sample"><i>SA</i><i>PA</i><i>TO</i></span>
+                            <span class="mode-name">3 sílabas</span>
+                            <span class="mode-record" data-mode="3"></span>
+                        </button>
+                        <button class="mode-btn m4" onclick="startGame(4)">
+                            <span class="mode-sample"><i>BOR</i><i>BO</i><i>LE</i><i>TA</i></span>
+                            <span class="mode-name">4 sílabas</span>
+                            <span class="mode-record" data-mode="4"></span>
+                        </button>
+                        <button class="mode-btn mv" onclick="startGame('variadas')">
+                            <span class="mode-sample">🎲</span>
+                            <span class="mode-name">Variadas</span>
+                            <span class="mode-record" data-mode="variadas"></span>
+                        </button>
+                    </div>
+
+                    <details class="options">
+                        <summary>⚙️ Opções</summary>
+                        <label><input type="checkbox" id="opt-syllables" checked> Separar as sílabas com cores (BO‑LA)</label>
+                        <label><input type="checkbox" id="opt-lower"> Usar letra minúscula (bola)</label>
+                        <label><input type="checkbox" id="opt-picture"> Mostrar a figura como dica</label>
+                        <label id="mic-option"><input type="checkbox" id="opt-mic"> 🎤 Usar o microfone (passa sozinho quando ouvir a palavra)</label>
+                    </details>
+
+                    <button class="link-btn" onclick="showRanking()">🏆 Ver recordes</button>
+                </div>
+            </section>
+
+            <!-- CONTAGEM -->
+            <section id="countdown-screen" class="screen">
+                <div class="countdown" id="countdown">3</div>
+            </section>
+
+            <!-- JOGO -->
+            <section id="game-screen" class="screen">
+                <div class="hud">
+                    <div class="hud-item"><span class="hud-label">Acertos</span><span class="hud-value" id="score">0</span></div>
+                    <div class="timer-ring">
+                        <svg viewBox="0 0 100 100" aria-hidden="true">
+                            <circle class="ring-bg" cx="50" cy="50" r="44"></circle>
+                            <circle class="ring-fg" id="ring" cx="50" cy="50" r="44"></circle>
+                        </svg>
+                        <span id="time">60</span>
+                    </div>
+                    <div class="hud-item"><span class="hud-label">Recorde</span><span class="hud-value" id="best">0</span></div>
+                </div>
+
+                <div class="word-card" id="word-card">
+                    <div class="word-picture" id="word-picture"></div>
+                    <div class="word" id="word">BOLA</div>
+                    <div class="mic-status" id="mic-status"></div>
+                </div>
+
+                <div class="actions">
+                    <button class="act skip" onclick="skipWord()" title="Pular (seta →)">Pular ➜</button>
+                    <button class="act listen" onclick="listenWord()" title="Ouvir a palavra">🔊</button>
+                    <button class="act ok" onclick="correctWord()" title="Li certo! (Espaço)">✓ Li certo!</button>
+                </div>
+                <p class="hint-keys">Teclado: <kbd>Espaço</kbd> = acertou · <kbd>→</kbd> = pular</p>
+            </section>
+
+            <!-- RESULTADO -->
+            <section id="result-screen" class="screen">
+                <div class="panel">
+                    <div class="big-icon" id="result-icon">🎉</div>
+                    <h2 id="result-title">Tempo esgotado!</h2>
+                    <div class="result-score"><span id="final-score">0</span><small>palavras lidas</small></div>
+                    <p class="new-record" id="new-record" hidden>🏆 NOVO RECORDE! 🏆</p>
+                    <p class="lead" id="result-msg"></p>
+
+                    <div class="word-lists">
+                        <div>
+                            <h4>✅ Leu certinho</h4>
+                            <div class="mini-words" id="read-list"></div>
+                        </div>
+                        <div>
+                            <h4>🔁 Para treinar (toque para ouvir)</h4>
+                            <div class="mini-words" id="skip-list"></div>
+                        </div>
+                    </div>
+
+                    <div class="btn-row">
+                        <button class="big-btn primary" onclick="startGame(state.mode)">Jogar de novo</button>
+                        <button class="big-btn" onclick="showScreen('start-screen'); renderRecords();">Mudar modo</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RANKING -->
+            <section id="ranking-screen" class="screen">
+                <div class="panel">
+                    <div class="big-icon">🏆</div>
+                    <h2>Recordes</h2>
+                    <div class="ranking" id="ranking"></div>
+                    <button class="big-btn primary" onclick="showScreen('start-screen'); renderRecords();">Voltar</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../shared/kids-audio.js"></script>
+    <script src="../shared/palavras.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

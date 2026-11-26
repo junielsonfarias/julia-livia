@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detetive das Questoes - Mundo de Julia & Livia</title>
+    <base href="/interpretacao-game/">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1>🕵️ Detetive das Questões</h1>
+            <div class="game-stats">
+                <span>Pontos: <strong id="score">0</strong></span>
+                <span id="progress-label"></span>
+            </div>
+        </header>
+
+        <main class="game-area">
+            <!-- INICIO -->
+            <section id="start-screen" class="screen active">
+                <div class="panel">
+                    <div class="big-icon">🕵️‍♀️</div>
+                    <h2>Detetive das Questões</h2>
+                    <p class="lead">Um bom detetive <b>lê com calma</b>, descobre <b>o que a questão pede</b> e procura as <b>pistas</b> antes de responder.</p>
+
+                    <div class="mode-grid">
+                        <button class="mode-btn math" onclick="startGame('matematica')">
+                            <span class="mode-icon">🔢</span>
+                            <span class="mode-name">Problemas de Matemática</span>
+                            <span class="mode-desc">Resolva em 4 passos de detetive</span>
+                        </button>
+                        <button class="mode-btn port" onclick="startGame('portugues')">
+                            <span class="mode-icon">📖</span>
+                            <span class="mode-name">Interpretação de Texto</span>
+                            <span class="mode-desc">Responda e prove no texto</span>
+                        </button>
+                        <button class="mode-btn mix" onclick="startGame('misturado')">
+                            <span class="mode-icon">🎯</span>
+                            <span class="mode-name">Misturado</span>
+                            <span class="mode-desc">Um pouco de cada</span>
+                        </button>
+                    </div>
+
+                    <div class="method">
+                        <h3>🔎 O método do detetive</h3>
+                        <ol>
+                            <li><b>Leia tudo</b> até o fim, com calma.</li>
+                            <li>Descubra <b>o que a pergunta quer saber</b>.</li>
+                            <li>Separe as <b>informações importantes</b> (e ignore as pegadinhas!).</li>
+                            <li>Fique de olho nas <mark>palavras-chave</mark>: NÃO, INCORRETA, cada, metade, sobrou, a mais...</li>
+                            <li>Responda e <b>confira se faz sentido</b>.</li>
+                        </ol>
+                    </div>
+
+                    <label class="toggle"><input type="checkbox" id="opt-keywords" checked> 🖍️ Marcar as palavras-chave</label>
+                    <button class="link-btn" onclick="showReport()">📊 Ver meu progresso</button>
+                </div>
+            </section>
+
+            <!-- MATEMATICA -->
+            <section id="math-screen" class="screen">
+                <div class="panel left">
+                    <div class="badge-row">
+                        <span class="badge" id="math-theme">Problema</span>
+                        <button class="speak-btn" onclick="readAloud('math')" title="Ler em voz alta">🔊 Ouvir</button>
+                    </div>
+                    <div class="problem-text" id="problem-text"></div>
+
+                    <div class="stepper" id="stepper">
+                        <div class="step" data-step="0"><span>1</span>O que pede?</div>
+                        <div class="step" data-step="1"><span>2</span>Dados</div>
+                        <div class="step" data-step="2"><span>3</span>Conta</div>
+                        <div class="step" data-step="3"><span>4</span>Resposta</div>
+                    </div>
+
+                    <div class="step-box">
+                        <h3 id="step-title"></h3>
+                        <p class="step-help" id="step-help"></p>
+                        <div class="options" id="math-options"></div>
+                        <button class="check-btn" id="check-data-btn" onclick="checkData()" hidden>Conferir dados ✔</button>
+                        <div class="feedback" id="math-feedback"></div>
+                        <button class="next-btn" id="math-next" onclick="nextMathProblem()" hidden>Próximo problema ➜</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PORTUGUES -->
+            <section id="text-screen" class="screen">
+                <div class="panel left">
+                    <div class="badge-row">
+                        <span class="badge" id="text-genre">Gênero</span>
+                        <button class="speak-btn" onclick="readAloud('text')" title="Ler em voz alta">🔊 Ouvir</button>
+                    </div>
+                    <h3 class="text-title" id="text-title"></h3>
+                    <div class="text-body" id="text-body"></div>
+
+                    <div class="question-box">
+                        <div class="qtype" id="qtype"></div>
+                        <div class="question" id="question"></div>
+                        <button class="check-btn" id="show-options-btn" onclick="revealOptions()">Já entendi o que a pergunta pede ➜</button>
+                        <div class="options" id="text-options"></div>
+                        <div class="feedback" id="text-feedback"></div>
+                        <button class="next-btn" id="text-next" onclick="nextTextQuestion()" hidden>Próxima ➜</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RESULTADO -->
+            <section id="result-screen" class="screen">
+                <div class="panel">
+                    <div class="big-icon" id="result-icon">🏆</div>
+                    <h2 id="result-title">Caso resolvido!</h2>
+                    <div class="result-score"><span id="final-score">0</span><small>pontos</small></div>
+                    <p class="lead" id="result-msg"></p>
+                    <div class="skills" id="skills"></div>
+                    <div class="btn-row">
+                        <button class="big-btn primary" onclick="startGame(state.mode)">Jogar de novo</button>
+                        <button class="big-btn" onclick="showScreen('start-screen')">Menu</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RELATORIO -->
+            <section id="report-screen" class="screen">
+                <div class="panel">
+                    <div class="big-icon">📊</div>
+                    <h2>Meu progresso</h2>
+                    <p class="lead">Acertos de primeira em cada habilidade (todas as partidas).</p>
+                    <div class="skills" id="report"></div>
+                    <div class="btn-row">
+                        <button class="big-btn primary" onclick="showScreen('start-screen')">Voltar</button>
+                        <button class="big-btn" onclick="resetReport()">Zerar progresso</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../shared/kids-audio.js"></script>
+    <script src="data.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

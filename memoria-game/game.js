@@ -1,4 +1,4 @@
-// Jogo da Memoria - Para criancas de 4 anos
+// Jogo da Memoria - Livia (5 anos) e duelo Julia x Livia
 // Mundo de Julia & Livia
 
 // Temas com diferentes tipos de personagens
@@ -65,15 +65,29 @@ const THEMES = {
 let gameState = {
     level: 'easy',
     theme: 'animais',
+    mode: 'solo',           // 'solo' ou 'duel'
     cards: [],
     flippedCards: [],
     matchedPairs: 0,
     totalPairs: 0,
     moves: 0,
-    isLocked: false,
+    isLocked: true,
     startTime: null,
-    timerInterval: null
+    // Duelo
+    players: ['julia', 'livia'],
+    currentPlayer: 0,
+    scores: { julia: 0, livia: 0 },
+    extraTurn: false
 };
+
+const PLAYER_INFO = {
+    julia: { name: 'Julia', emoji: '👸' },
+    livia: { name: 'Livia', emoji: '🧚' }
+};
+
+const DUEL_KEY = 'memoria_duelos_v1';
+const PRAISES = ['Acertou!', 'Muito bem!', 'Isso aí!', 'Que memória!', 'Parabéns!', 'Uhuu!'];
+const TRY_AGAIN = ['Ops! Tente de novo!', 'Quase!', 'Não foi dessa vez!'];
 
 // Configuracoes de nivel
 const LEVELS = {
@@ -81,6 +95,8 @@ const LEVELS = {
     medium: { pairs: 8, cols: 4 },
     hard: { pairs: 10, cols: 5 }
 };
+
+const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 // Funcao para voltar
 function goBack() {
@@ -90,7 +106,7 @@ function goBack() {
                 window.parent.closeGameModal();
                 return;
             }
-        } catch(e) {}
+        } catch (e) {}
     }
     if (window.history.length > 1) {
         window.history.back();
@@ -99,103 +115,118 @@ function goBack() {
     }
 }
 
-// Mostrar tela
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(screenId).classList.add('active');
 }
 
-// Ir para menu inicial
 function goToMenu() {
-    if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+    gameState.isLocked = true;
+    renderDuelHistory();
     showScreen('start-screen');
 }
 
-// Selecionar tema
 function selectTheme(themeName) {
     gameState.theme = themeName;
-
-    // Atualizar visual dos botoes de tema
     document.querySelectorAll('.theme-btn').forEach(btn => {
-        btn.classList.remove('selected');
-        if (btn.dataset.theme === themeName) {
-            btn.classList.add('selected');
-        }
+        btn.classList.toggle('selected', btn.dataset.theme === themeName);
     });
-
-    // Tocar som de selecao
     playSound('select');
 }
 
-// Iniciar jogo
+function selectMode(mode) {
+    gameState.mode = mode;
+    document.querySelectorAll('.mode-pick').forEach(btn => {
+        btn.classList.toggle('selected', btn.dataset.mode === mode);
+    });
+    document.getElementById('duel-options').hidden = mode !== 'duel';
+    renderDuelHistory();
+    playSound('select');
+}
+
+// ---------- Historico de duelos ----------
+function loadDuelHistory() {
+    const empty = { julia: 0, livia: 0, empates: 0, lastStarter: 'livia' };
+    try {
+        return Object.assign(empty, JSON.parse(localStorage.getItem(DUEL_KEY)) || {});
+    } catch (e) {
+        return empty;
+    }
+}
+function saveDuelHistory(h) {
+    try { localStorage.setItem(DUEL_KEY, JSON.stringify(h)); } catch (e) {}
+}
+function renderDuelHistory() {
+    const h = loadDuelHistory();
+    const html = `🏆 Vitórias — 👸 Julia: <b>${h.julia}</b> · 🧚 Livia: <b>${h.livia}</b>` +
+        (h.empates ? ` · 🤝 Empates: <b>${h.empates}</b>` : '');
+    ['duel-history', 'duel-history-end'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = html;
+    });
+}
+
+// ---------- Jogo ----------
 function startGame(level) {
     gameState.level = level;
     gameState.matchedPairs = 0;
     gameState.moves = 0;
     gameState.flippedCards = [];
-    gameState.isLocked = false;
+    gameState.isLocked = true;
     gameState.totalPairs = LEVELS[level].pairs;
     gameState.startTime = Date.now();
+    gameState.scores = { julia: 0, livia: 0 };
+    gameState.extraTurn = document.getElementById('opt-extra-turn').checked;
 
-    // Atualizar UI
     document.getElementById('moves-count').textContent = '0';
     document.getElementById('pairs-count').textContent = '0';
     document.getElementById('total-pairs').textContent = gameState.totalPairs;
 
-    // Tocar som de inicio
-    playSound('start');
+    const isDuel = gameState.mode === 'duel';
+    document.getElementById('duel-board').hidden = !isDuel;
+    if (isDuel) {
+        // Alterna quem comeca a cada partida
+        const h = loadDuelHistory();
+        const starter = h.lastStarter === 'julia' ? 'livia' : 'julia';
+        h.lastStarter = starter;
+        saveDuelHistory(h);
+        gameState.currentPlayer = gameState.players.indexOf(starter);
+        updateDuelBoard();
+    }
 
-    // Criar cartas
+    playSound('start');
     createCards();
     showScreen('game-screen');
 
     // Mostrar todas as cartas brevemente
     setTimeout(() => {
-        document.querySelectorAll('.memory-card').forEach(card => {
-            card.classList.add('flipped');
-        });
+        document.querySelectorAll('.memory-card').forEach(card => card.classList.add('flipped'));
         setTimeout(() => {
-            document.querySelectorAll('.memory-card').forEach(card => {
-                card.classList.remove('flipped');
-            });
+            document.querySelectorAll('.memory-card').forEach(card => card.classList.remove('flipped'));
+            gameState.isLocked = false;
+            if (isDuel) announceTurn();
         }, 2000);
     }, 300);
 }
 
-// Criar cartas
 function createCards() {
     const grid = document.getElementById('cards-grid');
     grid.innerHTML = '';
     grid.className = 'cards-grid ' + gameState.level;
 
-    // Obter itens do tema selecionado
     const theme = THEMES[gameState.theme];
-    // Usar itens estilizados se disponiveis, senao usar itens normais
     const themeItems = (theme.useStyled && theme.styledItems) ? theme.styledItems : theme.items;
+    const selectedItems = shuffleArray(themeItems).slice(0, gameState.totalPairs);
+    gameState.cards = shuffleArray([...selectedItems, ...selectedItems]);
 
-    // Selecionar itens aleatorios
-    const shuffledItems = [...themeItems].sort(() => Math.random() - 0.5);
-    const selectedItems = shuffledItems.slice(0, gameState.totalPairs);
-
-    // Criar pares
-    const cardPairs = [...selectedItems, ...selectedItems];
-
-    // Embaralhar
-    gameState.cards = cardPairs.sort(() => Math.random() - 0.5);
-
-    // Verificar se e tema de numeros ou letras para estilo especial
     const isTextTheme = gameState.theme === 'numeros' || gameState.theme === 'letras';
 
-    // Criar elementos
     gameState.cards.forEach((item, index) => {
         const card = document.createElement('div');
         card.className = 'memory-card';
         card.dataset.index = index;
         card.dataset.item = item;
-
-        // Adicionar classe especial para temas de texto
         const textClass = isTextTheme ? ' text-theme' : '';
-
         card.innerHTML = `
             <div class="card-inner">
                 <div class="card-back"></div>
@@ -207,16 +238,21 @@ function createCards() {
     });
 }
 
-// Virar carta
+function shuffleArray(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
 function flipCard(card) {
     if (gameState.isLocked) return;
-    if (card.classList.contains('flipped')) return;
-    if (card.classList.contains('matched')) return;
+    if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
     if (gameState.flippedCards.length >= 2) return;
 
-    // Som de virar carta
     playSound('flip');
-
     card.classList.add('flipped');
     gameState.flippedCards.push(card);
 
@@ -227,199 +263,180 @@ function flipCard(card) {
     }
 }
 
-// Verificar par
 function checkMatch() {
     const [card1, card2] = gameState.flippedCards;
     const match = card1.dataset.item === card2.dataset.item;
+    const isDuel = gameState.mode === 'duel';
+    const player = gameState.players[gameState.currentPlayer];
 
     gameState.isLocked = true;
 
     if (match) {
-        // Som de acerto
-        playSound('match');
-
-        card1.classList.add('matched');
-        card2.classList.add('matched');
+        playSound('correct');
+        const owner = 'by-' + (isDuel ? player : 'solo');
+        card1.classList.add('matched', owner);
+        card2.classList.add('matched', owner);
         gameState.matchedPairs++;
         document.getElementById('pairs-count').textContent = gameState.matchedPairs;
         gameState.flippedCards = [];
-        gameState.isLocked = false;
+
+        if (isDuel) {
+            gameState.scores[player]++;
+            updateDuelBoard(true);
+            const praise = rand(PRAISES);
+            showToast(`${PLAYER_INFO[player].emoji} ${praise}`, 'good');
+            speak(`${praise} Ponto para ${PLAYER_INFO[player].name}!`);
+        } else {
+            const praise = rand(PRAISES);
+            showToast(praise, 'good');
+            speak(praise);
+        }
 
         if (gameState.matchedPairs === gameState.totalPairs) {
-            setTimeout(showWinScreen, 500);
+            setTimeout(showWinScreen, 1000);
+            return;
         }
-    } else {
-        // Som de erro
-        playSound('wrong');
 
         setTimeout(() => {
-            card1.classList.remove('flipped');
-            card2.classList.remove('flipped');
-            gameState.flippedCards = [];
+            if (isDuel && !gameState.extraTurn) nextPlayer();
             gameState.isLocked = false;
         }, 1000);
+    } else {
+        playSound('wrong');
+        card1.classList.add('miss');
+        card2.classList.add('miss');
+        showToast(rand(TRY_AGAIN), 'bad');
+
+        setTimeout(() => {
+            card1.classList.remove('flipped', 'miss');
+            card2.classList.remove('flipped', 'miss');
+            gameState.flippedCards = [];
+            if (isDuel) nextPlayer();
+            gameState.isLocked = false;
+        }, 1200);
     }
 }
 
-// Tela de vitoria
+// ---------- Duelo ----------
+function nextPlayer() {
+    gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.players.length;
+    updateDuelBoard();
+    announceTurn();
+}
+
+function announceTurn() {
+    const p = PLAYER_INFO[gameState.players[gameState.currentPlayer]];
+    playSound('turn');
+    speak(`Vez da ${p.name}!`, { interrupt: false });
+}
+
+function updateDuelBoard(bump) {
+    const current = gameState.players[gameState.currentPlayer];
+    ['julia', 'livia'].forEach(p => {
+        document.getElementById('panel-' + p).classList.toggle('active', p === current);
+        const scoreEl = document.getElementById('score-' + p);
+        scoreEl.textContent = gameState.scores[p];
+        if (bump && p === current) {
+            scoreEl.classList.remove('bump'); void scoreEl.offsetWidth; scoreEl.classList.add('bump');
+        }
+    });
+    const banner = document.getElementById('turn-banner');
+    banner.textContent = `Vez da ${PLAYER_INFO[current].name}!`;
+    banner.className = 'turn-banner ' + current;
+    document.getElementById('cards-grid').dataset.turn = current;
+}
+
+function showToast(text, kind) {
+    const t = document.getElementById('feedback-toast');
+    t.textContent = text;
+    t.className = 'feedback-toast show ' + kind;
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => { t.className = 'feedback-toast'; }, 1100);
+}
+
+// ---------- Vitoria ----------
 function showWinScreen() {
-    const endTime = Date.now();
-    const timeElapsed = Math.floor((endTime - gameState.startTime) / 1000);
+    const timeElapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
     const minutes = Math.floor(timeElapsed / 60);
     const seconds = timeElapsed % 60;
 
     document.getElementById('final-moves').textContent = gameState.moves;
-    document.getElementById('final-time').textContent =
-        `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    document.getElementById('final-time').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
-    // Calcular estrelas
-    const perfectMoves = gameState.totalPairs;
-    const goodMoves = perfectMoves * 1.5;
-    let stars = 1;
-    if (gameState.moves <= perfectMoves) stars = 3;
-    else if (gameState.moves <= goodMoves) stars = 2;
-
-    // Mostrar estrelas
+    const isDuel = gameState.mode === 'duel';
+    const titleEl = document.querySelector('#win-screen h2');
+    const msgEl = document.querySelector('#win-screen .win-content > p');
+    const iconEl = document.querySelector('#win-screen .win-icon');
     const starsDisplay = document.getElementById('stars-display');
-    starsDisplay.querySelectorAll('.star').forEach((star, i) => {
-        star.classList.remove('earned');
-        if (i < stars) {
-            setTimeout(() => {
-                star.classList.add('earned');
-                playSound('star');
-            }, i * 400);
+    document.getElementById('duel-result').hidden = !isDuel;
+    starsDisplay.hidden = isDuel;
+
+    if (isDuel) {
+        const { julia, livia } = gameState.scores;
+        const h = loadDuelHistory();
+        document.getElementById('final-julia').textContent = julia;
+        document.getElementById('final-livia').textContent = livia;
+        if (julia === livia) {
+            h.empates++;
+            iconEl.textContent = '🤝';
+            titleEl.textContent = 'Empate!';
+            msgEl.textContent = 'As duas foram incríveis!';
+            speak('Empate! As duas foram incríveis!');
+        } else {
+            const winner = julia > livia ? 'julia' : 'livia';
+            h[winner]++;
+            iconEl.textContent = '🏆';
+            titleEl.textContent = `${PLAYER_INFO[winner].name} venceu!`;
+            msgEl.textContent = `Parabéns, ${PLAYER_INFO[winner].name}! Que memória!`;
+            speak(`${PLAYER_INFO[winner].name} venceu! Parabéns!`);
         }
-    });
+        saveDuelHistory(h);
+        renderDuelHistory();
+    } else {
+        iconEl.textContent = '🎉';
+        titleEl.textContent = 'Parabéns!';
+        msgEl.textContent = 'Você encontrou todos os pares!';
+        speak('Parabéns! Você encontrou todos os pares!');
 
-    // Som de vitoria
+        const perfectMoves = gameState.totalPairs;
+        let stars = 1;
+        if (gameState.moves <= perfectMoves * 1.5) stars = 3;
+        else if (gameState.moves <= perfectMoves * 2.2) stars = 2;
+
+        starsDisplay.querySelectorAll('.star').forEach((star, i) => {
+            star.classList.remove('earned');
+            if (i < stars) {
+                setTimeout(() => { star.classList.add('earned'); playSound('star'); }, 600 + i * 400);
+            }
+        });
+    }
+
     setTimeout(() => playSound('win'), 200);
-
     showScreen('win-screen');
 }
 
-// Reiniciar jogo
 function restartGame() {
     startGame(gameState.level);
 }
 
-// ==========================================
-// SISTEMA DE AUDIO MELHORADO
-// ==========================================
-
+// ---------- Audio (modulo compartilhado) ----------
 function playSound(type) {
-    try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
-
-        const ctx = new AudioCtx();
-        const masterGain = ctx.createGain();
-        masterGain.connect(ctx.destination);
-        masterGain.gain.setValueAtTime(0.15, ctx.currentTime);
-
-        const now = ctx.currentTime;
-
-        switch(type) {
-            case 'flip':
-                // Som suave de virar carta
-                playTone(ctx, masterGain, 880, now, 0.08, 'sine');
-                playTone(ctx, masterGain, 1100, now + 0.03, 0.06, 'sine');
-                break;
-
-            case 'select':
-                // Som de selecao de tema
-                playTone(ctx, masterGain, 660, now, 0.1, 'sine');
-                playTone(ctx, masterGain, 880, now + 0.08, 0.1, 'sine');
-                break;
-
-            case 'start':
-                // Som animado de inicio de jogo
-                playTone(ctx, masterGain, 523, now, 0.15, 'sine');
-                playTone(ctx, masterGain, 659, now + 0.12, 0.15, 'sine');
-                playTone(ctx, masterGain, 784, now + 0.24, 0.2, 'sine');
-                break;
-
-            case 'match':
-                // Melodia alegre de acerto - Do Mi Sol (acorde maior)
-                playTone(ctx, masterGain, 523, now, 0.15, 'sine'); // Do
-                playTone(ctx, masterGain, 659, now + 0.1, 0.15, 'sine'); // Mi
-                playTone(ctx, masterGain, 784, now + 0.2, 0.2, 'sine'); // Sol
-                playTone(ctx, masterGain, 1047, now + 0.3, 0.25, 'sine'); // Do agudo
-                break;
-
-            case 'wrong':
-                // Som triste mas gentil - notas descendentes
-                playTone(ctx, masterGain, 330, now, 0.2, 'sine');
-                playTone(ctx, masterGain, 277, now + 0.15, 0.25, 'sine');
-                break;
-
-            case 'star':
-                // Som brilhante de estrela
-                playTone(ctx, masterGain, 1047, now, 0.1, 'sine');
-                playTone(ctx, masterGain, 1319, now + 0.08, 0.15, 'sine');
-                playTone(ctx, masterGain, 1568, now + 0.16, 0.2, 'triangle');
-                break;
-
-            case 'win':
-                // Fanfarra de vitoria - melodia completa
-                const melody = [
-                    { freq: 523, time: 0, dur: 0.15 },     // Do
-                    { freq: 523, time: 0.15, dur: 0.15 },  // Do
-                    { freq: 523, time: 0.3, dur: 0.15 },   // Do
-                    { freq: 659, time: 0.45, dur: 0.3 },   // Mi
-                    { freq: 784, time: 0.75, dur: 0.15 },  // Sol
-                    { freq: 784, time: 0.9, dur: 0.15 },   // Sol
-                    { freq: 659, time: 1.05, dur: 0.15 },  // Mi
-                    { freq: 784, time: 1.2, dur: 0.15 },   // Sol
-                    { freq: 1047, time: 1.35, dur: 0.4 }   // Do agudo
-                ];
-                melody.forEach(note => {
-                    playTone(ctx, masterGain, note.freq, now + note.time, note.dur, 'sine');
-                });
-                break;
-        }
-
-        // Fechar contexto depois de um tempo
-        const maxDuration = type === 'win' ? 2000 : 800;
-        setTimeout(() => {
-            try { ctx.close(); } catch(e) {}
-        }, maxDuration);
-
-    } catch(e) {
-        console.log('Audio error:', e);
-    }
+    if (window.KidsAudio) KidsAudio.play(type);
 }
 
-// Funcao auxiliar para tocar um tom
-function playTone(ctx, masterGain, frequency, startTime, duration, waveType = 'sine') {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = waveType;
-    osc.frequency.setValueAtTime(frequency, startTime);
-
-    osc.connect(gain);
-    gain.connect(masterGain);
-
-    // Envelope suave
-    gain.gain.setValueAtTime(0.001, startTime);
-    gain.gain.exponentialRampToValueAtTime(0.3, startTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
-    osc.start(startTime);
-    osc.stop(startTime + duration + 0.05);
+function speak(text, opts) {
+    if (window.KidsAudio) KidsAudio.speak(text, opts);
 }
 
 // Criar botoes de tema dinamicamente
 function createThemeButtons() {
     const container = document.getElementById('theme-selector');
     if (!container) return;
-
     container.innerHTML = '';
-
     Object.keys(THEMES).forEach(themeKey => {
         const theme = THEMES[themeKey];
         const btn = document.createElement('button');
-        btn.className = 'theme-btn' + (themeKey === 'animais' ? ' selected' : '');
+        btn.className = 'theme-btn' + (themeKey === gameState.theme ? ' selected' : '');
         btn.dataset.theme = themeKey;
         btn.onclick = () => selectTheme(themeKey);
         btn.innerHTML = `
@@ -430,8 +447,8 @@ function createThemeButtons() {
     });
 }
 
-// Inicializacao
 document.addEventListener('DOMContentLoaded', () => {
     createThemeButtons();
+    renderDuelHistory();
     showScreen('start-screen');
 });

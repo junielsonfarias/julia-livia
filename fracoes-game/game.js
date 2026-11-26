@@ -1,4 +1,4 @@
-// Jogo das Fracoes - Para criancas de 9 anos
+// Jogo das Fracoes - Julia (4º ano)
 // Mundo de Julia & Livia
 // Habilidade BNCC: EF04MA09
 
@@ -102,12 +102,17 @@ function updateProgress() {
 function nextQuestion() {
     document.getElementById('feedback').textContent = '';
     document.getElementById('feedback').className = 'feedback';
+    document.getElementById('explain').innerHTML = '';
+    document.getElementById('next-btn').hidden = true;
+    document.getElementById('options-area').className = 'options-area';
     updateProgress();
 
     if (gameState.mode === 'identify') {
         generateIdentifyQuestion();
     } else if (gameState.mode === 'compare') {
         generateCompareQuestion();
+    } else if (gameState.mode === 'problems') {
+        generateProblemQuestion();
     } else {
         generateEquivalentQuestion();
     }
@@ -175,7 +180,7 @@ function createIdentifyOptions() {
         !(f.num === gameState.currentFraction.num && f.den === gameState.currentFraction.den) &&
         f.den <= 6
     );
-    const shuffledOthers = otherFractions.sort(() => Math.random() - 0.5).slice(0, 3);
+    const shuffledOthers = shuffleList(otherFractions).slice(0, 3);
     const options = [gameState.currentFraction, ...shuffledOthers].sort(() => Math.random() - 0.5);
 
     options.forEach(fraction => {
@@ -199,15 +204,22 @@ function generateCompareQuestion() {
 
     // Selecionar duas fracoes diferentes
     let frac1, frac2;
-    do {
-        frac1 = simpleFractions[Math.floor(Math.random() * simpleFractions.length)];
-        frac2 = simpleFractions[Math.floor(Math.random() * simpleFractions.length)];
-    } while (frac1.decimal === frac2.decimal);
+    if (Math.random() < 0.2) {
+        // As vezes as duas fracoes sao iguais (equivalentes), ex.: 1/2 e 2/4
+        const group = EQUIVALENTS[Math.floor(Math.random() * EQUIVALENTS.length)];
+        [frac1, frac2] = shuffleList(group.fractions).slice(0, 2);
+    } else {
+        do {
+            frac1 = simpleFractions[Math.floor(Math.random() * simpleFractions.length)];
+            frac2 = simpleFractions[Math.floor(Math.random() * simpleFractions.length)];
+        } while (Math.abs(frac1.num / frac1.den - frac2.num / frac2.den) < 0.001);
+    }
 
     gameState.currentFraction = { frac1, frac2 };
-    gameState.correctAnswer = frac1.decimal > frac2.decimal ? 'left' : 'right';
+    const v1 = frac1.num / frac1.den, v2 = frac2.num / frac2.den;
+    gameState.correctAnswer = Math.abs(v1 - v2) < 0.001 ? 'equal' : (v1 > v2 ? 'left' : 'right');
 
-    document.getElementById('question-text').textContent = 'Qual fracao e MAIOR?';
+    document.getElementById('question-text').textContent = 'Qual fração é MAIOR? (ou são iguais?)';
 
     // Criar visualizacao
     const display = document.getElementById('fraction-display');
@@ -255,7 +267,7 @@ function createCompareOptions() {
 
     const options = [
         { value: 'left', text: `${gameState.currentFraction.frac1.num}/${gameState.currentFraction.frac1.den}`, emoji: '👈' },
-        { value: 'equal', text: 'Sao Iguais', emoji: '🤝' },
+        { value: 'equal', text: 'São iguais', emoji: '🤝' },
         { value: 'right', text: `${gameState.currentFraction.frac2.num}/${gameState.currentFraction.frac2.den}`, emoji: '👉' }
     ];
 
@@ -306,10 +318,10 @@ function createEquivalentOptions(correctFraction) {
     optionsArea.className = 'options-area';
 
     // Gerar opcoes incorretas (fracoes nao equivalentes)
-    const wrongOptions = FRACTIONS.filter(f =>
+    const wrongOptions = shuffleList(FRACTIONS.filter(f =>
         Math.abs(f.decimal - gameState.currentFraction.num / gameState.currentFraction.den) > 0.01 &&
         f.den <= 8
-    ).slice(0, 3);
+    )).slice(0, 3);
 
     const options = [correctFraction, ...wrongOptions].sort(() => Math.random() - 0.5);
 
@@ -330,13 +342,14 @@ function createEquivalentOptions(correctFraction) {
 
 // Verificar resposta
 function checkAnswer(answer, type) {
+    if (!document.getElementById('next-btn').hidden) return;
     const feedbackEl = document.getElementById('feedback');
     const buttons = document.querySelectorAll('.option-btn');
     let isCorrect = false;
 
     if (type === 'identify') {
         isCorrect = answer.num === gameState.correctAnswer.num && answer.den === gameState.correctAnswer.den;
-    } else if (type === 'compare') {
+    } else if (type === 'compare' || type === 'problem') {
         isCorrect = answer === gameState.correctAnswer;
     } else {
         isCorrect = answer.num === gameState.correctAnswer.num && answer.den === gameState.correctAnswer.den;
@@ -347,7 +360,10 @@ function checkAnswer(answer, type) {
 
     // Marcar resposta
     buttons.forEach(btn => {
-        if (type === 'identify' || type === 'equivalent') {
+        if (type === 'problem') {
+            if (btn.dataset.value === answer) btn.classList.add(isCorrect ? 'correct' : 'wrong');
+            if (btn.dataset.value === gameState.correctAnswer) btn.classList.add('correct');
+        } else if (type === 'identify' || type === 'equivalent') {
             const numEl = btn.querySelector('.frac-num');
             const denEl = btn.querySelector('.frac-den');
             if (numEl && denEl) {
@@ -361,8 +377,12 @@ function checkAnswer(answer, type) {
                 }
             }
         } else {
-            if (btn.textContent.includes(answer === 'left' ? '👈' : (answer === 'right' ? '👉' : '🤝'))) {
+            const emojiOf = v => v === 'left' ? '👈' : (v === 'right' ? '👉' : '🤝');
+            if (btn.textContent.includes(emojiOf(answer))) {
                 btn.classList.add(isCorrect ? 'correct' : 'wrong');
+            }
+            if (btn.textContent.includes(emojiOf(gameState.correctAnswer))) {
+                btn.classList.add('correct');
             }
         }
     });
@@ -375,27 +395,138 @@ function checkAnswer(answer, type) {
         gameState.correctAnswers++;
     } else {
         playSound('wrong');
-        if (type === 'identify') {
-            feedbackEl.textContent = `A resposta correta e ${gameState.correctAnswer.num}/${gameState.correctAnswer.den}`;
-        } else if (type === 'compare') {
-            const winner = gameState.correctAnswer === 'left' ? gameState.currentFraction.frac1 : gameState.currentFraction.frac2;
-            feedbackEl.textContent = `${winner.num}/${winner.den} e maior!`;
-        } else {
-            feedbackEl.textContent = `${gameState.correctAnswer.num}/${gameState.correctAnswer.den} e equivalente!`;
-        }
+        feedbackEl.textContent = 'Não foi dessa vez! A resposta certa está em verde.';
         feedbackEl.className = 'feedback wrong';
         gameState.wrongAnswers++;
     }
 
+    // Explicacao + botao "Proxima" (tempo para entender o porque)
+    document.getElementById('explain').innerHTML = '💡 <b>Por quê?</b> ' + explainAnswer(type);
     gameState.currentQuestion++;
-    updateStats();
-
-    if (gameState.currentQuestion >= gameState.totalQuestions) {
-        setTimeout(showResults, 2000);
-    } else {
-        setTimeout(nextQuestion, 2000);
-    }
+    const nextBtn = document.getElementById('next-btn');
+    nextBtn.textContent = gameState.currentQuestion >= gameState.totalQuestions ? 'Ver resultado 🏆' : 'Próxima ➜';
+    nextBtn.hidden = false;
 }
+
+function goNext() {
+    updateStats();
+    if (gameState.currentQuestion >= gameState.totalQuestions) showResults();
+    else nextQuestion();
+}
+
+function explainAnswer(type) {
+    if (type === 'identify') {
+        const f = gameState.correctAnswer;
+        return `A pizza foi dividida em <b>${f.den}</b> partes iguais (o denominador, número de baixo) e <b>${f.num}</b> estão coloridas (o numerador, número de cima): ${f.num}/${f.den}.`;
+    }
+    if (type === 'compare') {
+        const { frac1: a, frac2: b } = gameState.currentFraction;
+        if (gameState.correctAnswer === 'equal') {
+            return `${a.num}/${a.den} e ${b.num}/${b.den} são frações equivalentes: veja nas barras, a parte pintada tem o mesmo tamanho!`;
+        }
+        const big = gameState.correctAnswer === 'left' ? a : b;
+        const small = big === a ? b : a;
+        if (a.den === b.den) return `Os denominadores são iguais (${a.den}), então é maior a que tem mais partes: ${big.num}/${big.den}.`;
+        if (a.num === b.num) return `Os numeradores são iguais. Quanto MAIOR o denominador, MENORES são os pedaços. Por isso ${big.num}/${big.den} é maior que ${small.num}/${small.den}.`;
+        return `Compare as barras: a parte pintada de ${big.num}/${big.den} é maior que a de ${small.num}/${small.den}.`;
+    }
+    if (type === 'equivalent') {
+        const a = gameState.currentFraction, b = gameState.correctAnswer;
+        const k = b.den / a.den;
+        return `Multiplicando o numerador e o denominador pelo mesmo número (${k}): ${a.num} × ${k} = ${b.num} e ${a.den} × ${k} = ${b.den}. Então ${a.num}/${a.den} = ${b.num}/${b.den}.`;
+    }
+    return gameState.problemExplain || '';
+}
+
+function shuffleList(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+// ==========================================
+// SITUACOES-PROBLEMA COM FRACOES (EF04MA09)
+// Treina interpretar: "quanto deu?" x "quanto sobrou?"
+// ==========================================
+const NOMES = ['Julia', 'Livia', 'Pedro', 'Ana', 'Lucas', 'Bia', 'Theo', 'Marina'];
+const ITENS = [['figurinhas', 'f'], ['balas', 'f'], ['adesivos', 'm'], ['morangos', 'm'], ['bolinhas de gude', 'f'], ['chaveiros', 'm']];
+
+function rnd(n) { return Math.floor(Math.random() * n); }
+function pick(arr) { return arr[rnd(arr.length)]; }
+
+function generateProblemQuestion() {
+    const kind = pick(['deu', 'sobrou', 'pizza', 'comparar', 'deu', 'sobrou']);
+    const nome = pick(NOMES);
+    let text, correct, wrongs, explain;
+
+    if (kind === 'deu' || kind === 'sobrou') {
+        const den = pick([2, 3, 4, 5, 6]);
+        const num = den === 2 ? 1 : 1 + rnd(den - 1);
+        const total = den * (2 + rnd(5));
+        const [itens, gen] = pick(ITENS);
+        const quantos = gen === 'f' ? 'quantas' : 'quantos';
+        const deles = gen === 'f' ? 'delas' : 'deles';
+        const unidade = total / den;
+        const parte = unidade * num;
+        const resto = total - parte;
+        const pergunta = kind === 'deu' ? `${quantos[0].toUpperCase() + quantos.slice(1)} ${itens} ${nome} deu?` : `Com ${quantos} ${itens} ${nome} ficou?`;
+        text = `${nome} tinha ${total} ${itens}. Deu ${num}/${den} ${deles} para um amigo. ${pergunta}`;
+        correct = kind === 'deu' ? parte : resto;
+        wrongs = [kind === 'deu' ? resto : parte, unidade, total - num, total + num, num * den];
+        explain = `1/${den} de ${total} = ${total} ÷ ${den} = ${unidade}. Então ${num}/${den} de ${total} = ${num} × ${unidade} = ${parte}. ` +
+            (kind === 'deu' ? `A pergunta é quanto DEU: ${parte}.` : `A pergunta é com quanto FICOU: ${total} − ${parte} = ${resto}.`);
+    } else if (kind === 'pizza') {
+        const den = pick([4, 6, 8]);
+        const comeu = 1 + rnd(den - 2);
+        const pede = pick(['comeu', 'sobrou']);
+        text = `Uma pizza foi cortada em ${den} pedaços iguais. ${nome} comeu ${comeu} pedaço(s). Que fração da pizza ${pede === 'comeu' ? nome + ' comeu' : 'sobrou'}?`;
+        correct = pede === 'comeu' ? `${comeu}/${den}` : `${den - comeu}/${den}`;
+        wrongs = [pede === 'comeu' ? `${den - comeu}/${den}` : `${comeu}/${den}`, `${den}/${comeu}`, `${comeu}/${den - comeu}`, `1/${den}`];
+        explain = `A pizza tem ${den} pedaços (denominador). ` + (pede === 'comeu'
+            ? `${nome} comeu ${comeu}: ${comeu}/${den}.`
+            : `Sobraram ${den} − ${comeu} = ${den - comeu} pedaços: ${den - comeu}/${den}.`) +
+            ' Leia com atenção se a pergunta é o que comeu ou o que sobrou!';
+    } else {
+        const outro = pick(NOMES.filter(n => n !== nome));
+        const d1 = pick([2, 3, 4, 5, 6, 8]);
+        let d2;
+        do { d2 = pick([2, 3, 4, 5, 6, 8]); } while (d2 === d1);
+        text = `${nome} comeu 1/${d1} de uma barra de chocolate. ${outro} comeu 1/${d2} de outra barra igual. Quem comeu MAIS chocolate?`;
+        correct = d1 < d2 ? nome : outro;
+        wrongs = [d1 < d2 ? outro : nome, 'Os dois comeram igual', 'Não dá para saber'];
+        explain = `Quando o numerador é 1, quanto MAIOR o denominador, MENOR é o pedaço (a barra foi dividida em mais partes). 1/${Math.min(d1, d2)} é maior que 1/${Math.max(d1, d2)}, então quem comeu mais foi ${correct}.`;
+    }
+
+    if (typeof correct === 'number') wrongs.push(correct + 1, correct + 2, correct * 2, correct + 3);
+    const opts = [String(correct)];
+    for (const w of wrongs) {
+        const v = String(w);
+        if (opts.length < 4 && !opts.includes(v) && !(typeof w === 'number' && w <= 0)) opts.push(v);
+    }
+    gameState.correctAnswer = String(correct);
+    gameState.problemExplain = explain;
+
+    document.getElementById('question-text').innerHTML = highlightProblem(text);
+    document.getElementById('fraction-display').innerHTML = '';
+    const area = document.getElementById('options-area');
+    area.innerHTML = '';
+    shuffleList(opts).forEach(v => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn problem-btn';
+        btn.dataset.value = v;
+        btn.textContent = v;
+        btn.onclick = () => checkAnswer(v, 'problem');
+        area.appendChild(btn);
+    });
+}
+
+function highlightProblem(text) {
+    return text.replace(/(Deu|deu|ficou|comeu|sobrou|MAIS|Quantos|Quantas|quantos|quantas|Que fração)/g, '<mark class="kw">$1</mark>');
+}
+
 
 // Mostrar resultados
 function showResults() {

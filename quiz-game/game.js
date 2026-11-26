@@ -1,69 +1,57 @@
-// Quiz Educativo - Para criancas de 9 anos
+// Quiz Educativo - Julia (4º ano)
 // Mundo de Julia & Livia
 
 // Banco de perguntas por categoria
 const QUESTIONS = {
     matematica: [
-        {
-            question: "Quanto e 25 + 37?",
-            options: ["62", "52", "72", "58"],
-            correct: 0
-        },
-        {
-            question: "Qual e o resultado de 8 x 7?",
-            options: ["54", "56", "48", "64"],
-            correct: 1
-        },
-        {
-            question: "Quanto e 100 - 43?",
-            options: ["67", "57", "47", "63"],
-            correct: 1
-        },
-        {
-            question: "Qual e a metade de 84?",
-            options: ["44", "40", "42", "48"],
-            correct: 2
-        },
-        {
-            question: "Quanto e 9 x 9?",
-            options: ["72", "81", "89", "90"],
-            correct: 1
-        },
-        {
-            question: "Qual o dobro de 35?",
-            options: ["60", "65", "70", "75"],
-            correct: 2
-        },
-        {
-            question: "Quanto e 144 dividido por 12?",
-            options: ["10", "11", "12", "14"],
-            correct: 2
-        },
-        {
-            question: "Qual e o resultado de 15 x 4?",
-            options: ["50", "55", "60", "65"],
-            correct: 2
-        },
-        {
-            question: "Quanto e 1000 - 456?",
-            options: ["544", "554", "534", "564"],
-            correct: 0
-        },
-        {
-            question: "Qual numero e primo?",
-            options: ["15", "21", "23", "25"],
-            correct: 2
-        },
-        {
-            question: "Quanto e 3 elevado ao cubo (3³)?",
-            options: ["9", "18", "27", "36"],
-            correct: 2
-        },
-        {
-            question: "Qual e 1/4 de 100?",
-            options: ["20", "25", "30", "40"],
-            correct: 1
-        }
+        { question: "Julia tinha 125 figurinhas e ganhou 48 da avó. Quantas figurinhas ela tem agora?",
+          options: ["173", "77", "163", "183"], correct: 0,
+          explain: "“Ganhou” → juntar: 125 + 48 = 173." },
+        { question: "Um ônibus tem 42 lugares. Quantos lugares há em 5 ônibus iguais?",
+          options: ["47", "210", "200", "220"], correct: 1,
+          explain: "São 5 grupos iguais de 42 → 5 × 42 = 210." },
+        { question: "Livia tem 36 adesivos e quer colar a mesma quantidade em cada uma de 4 páginas. Quantos adesivos ficam em cada página?",
+          options: ["32", "40", "9", "8"], correct: 2,
+          explain: "“A mesma quantidade em cada” → repartir igualmente: 36 ÷ 4 = 9." },
+        { question: "Como se escreve o número 3.507 por extenso?",
+          options: ["Três mil, quinhentos e sete", "Três mil e cinquenta e sete", "Trezentos e cinquenta e sete", "Três mil, quinhentos e setenta"], correct: 0,
+          explain: "3.507 = 3 milhares + 5 centenas + 0 dezenas + 7 unidades." },
+        { question: "No número 4.826, qual é o valor do algarismo 8?",
+          options: ["8", "80", "800", "8.000"], correct: 2,
+          explain: "O 8 está na casa das centenas, então vale 800." },
+        { question: "Qual destes números NÃO é múltiplo de 6?",
+          options: ["12", "18", "16", "24"], correct: 2,
+          explain: "6 × 2 = 12, 6 × 3 = 18, 6 × 4 = 24. O 16 não aparece na tabuada do 6. Atenção ao NÃO!" },
+        { question: "Uma pizza foi dividida em 8 pedaços iguais. Pedro comeu 3 pedaços. Que fração da pizza Pedro comeu?",
+          options: ["5/8", "3/8", "8/3", "3/5"], correct: 1,
+          explain: "Ele comeu 3 dos 8 pedaços: 3/8. Cuidado: 5/8 é o que SOBROU." },
+        { question: "Uma aula começa às 7h15 e dura 50 minutos. A que horas ela termina?",
+          options: ["7h65", "7h55", "8h15", "8h05"], correct: 3,
+          explain: "7h15 + 45 min = 8h00. Faltam 5 minutos: 8h05. (Lembre: 60 minutos = 1 hora.)" },
+        { question: "Quantos centímetros há em 3 metros?",
+          options: ["300 cm", "30 cm", "3.000 cm", "3 cm"], correct: 0,
+          explain: "1 metro = 100 centímetros, então 3 metros = 300 cm." },
+        { question: "Mariana pagou uma conta de R$ 37,50 com uma nota de R$ 50,00. Quanto ela recebeu de troco?",
+          options: ["R$ 13,50", "R$ 12,50", "R$ 87,50", "R$ 22,50"], correct: 1,
+          explain: "Troco = valor pago − valor da conta: 50,00 − 37,50 = 12,50." },
+        { question: "Qual é o resultado de 254 − 178?",
+          options: ["86", "132", "76", "124"], correct: 2,
+          explain: "254 − 178 = 76. Confira com a operação inversa: 178 + 76 = 254." },
+        { question: "Uma figura tem 4 lados iguais e 4 ângulos retos. Que figura é essa?",
+          options: ["Retângulo", "Quadrado", "Triângulo", "Losango"], correct: 1,
+          explain: "O losango tem 4 lados iguais, mas nem sempre ângulos retos. O retângulo tem ângulos retos, mas os lados podem ser diferentes. Só o quadrado tem as duas coisas." },
+        { question: "Na sequência 5, 12, 19, 26, ... cada número é o anterior mais 7. Qual é o próximo número?",
+          options: ["33", "32", "34", "30"], correct: 0,
+          explain: "26 + 7 = 33." },
+        { question: "Na turma, 8 alunos preferem futebol, 12 preferem vôlei e 5 preferem natação. Quantos alunos a mais preferem vôlei do que futebol?",
+          options: ["20", "25", "4", "7"], correct: 2,
+          explain: "“A mais” pede a diferença entre vôlei e futebol: 12 − 8 = 4. A natação não entra na conta!" },
+        { question: "Quantos minutos há em 2 horas e meia?",
+          options: ["120 minutos", "150 minutos", "250 minutos", "130 minutos"], correct: 1,
+          explain: "2 horas = 120 minutos; meia hora = 30 minutos; 120 + 30 = 150." },
+        { question: "Qual é o dobro de 125?",
+          options: ["225", "62", "250", "127"], correct: 2,
+          explain: "Dobro = multiplicar por 2: 125 × 2 = 250." }
     ],
     ciencias: [
         {
@@ -190,66 +178,54 @@ const QUESTIONS = {
         }
     ],
     portugues: [
-        {
-            question: "Qual e o plural de 'cidadao'?",
-            options: ["Cidadoes", "Cidadaos", "Cidadaes", "Cidadans"],
-            correct: 1
-        },
-        {
-            question: "Qual palavra e um substantivo?",
-            options: ["Correr", "Rapido", "Casa", "Belo"],
-            correct: 2
-        },
-        {
-            question: "Qual e o antonimo de 'alegre'?",
-            options: ["Feliz", "Triste", "Contente", "Animado"],
-            correct: 1
-        },
-        {
-            question: "Quantas letras tem o alfabeto portugues?",
-            options: ["23", "24", "25", "26"],
-            correct: 3
-        },
-        {
-            question: "Qual palavra esta escrita corretamente?",
-            options: ["Essessao", "Excessao", "Excecao", "Excesao"],
-            correct: 2
-        },
-        {
-            question: "Qual e o sinonimo de 'veloz'?",
-            options: ["Lento", "Devagar", "Rapido", "Parado"],
-            correct: 2
-        },
-        {
-            question: "Qual frase tem sujeito oculto?",
-            options: ["Ele correu.", "Corri muito.", "O cao latiu.", "Maria chegou."],
-            correct: 1
-        },
-        {
-            question: "Qual palavra e um adjetivo?",
-            options: ["Livro", "Grande", "Estudar", "Hoje"],
-            correct: 1
-        },
-        {
-            question: "Qual e o feminino de 'poeta'?",
-            options: ["Poetisa", "Poeta", "Poetriz", "Poetesa"],
-            correct: 0
-        },
-        {
-            question: "Quantas silabas tem 'paralelepipedo'?",
-            options: ["5", "6", "7", "8"],
-            correct: 2
-        },
-        {
-            question: "Qual palavra e proparoxitona?",
-            options: ["Cafe", "Musica", "Parede", "Animal"],
-            correct: 1
-        },
-        {
-            question: "Qual e o coletivo de lobos?",
-            options: ["Bando", "Alcateia", "Manada", "Cardume"],
-            correct: 1
-        }
+        { question: "Na frase “Os meninos correram até a praça”, qual palavra é o verbo?",
+          options: ["meninos", "correram", "praça", "até"], correct: 1,
+          explain: "Verbo é a palavra que indica ação: “correram” (verbo correr)." },
+        { question: "Qual palavra está escrita CORRETAMENTE?",
+          options: ["Cabesa", "Cabessa", "Cabeça", "Kabeça"], correct: 2,
+          explain: "Usamos Ç antes de A, O e U para fazer o som de S: cabeça." },
+        { question: "Qual é o plural de “pão”?",
+          options: ["Pãos", "Pães", "Pões", "Pãoes"], correct: 1,
+          explain: "Algumas palavras terminadas em ÃO fazem o plural em ÃES: pão → pães, cão → cães." },
+        { question: "Na frase “A menina estava muito feliz”, a palavra FELIZ é um:",
+          options: ["Adjetivo", "Verbo", "Substantivo", "Artigo"], correct: 0,
+          explain: "Adjetivo é a palavra que dá uma característica ao substantivo (a menina → feliz)." },
+        { question: "Qual palavra tem o mesmo sentido (sinônimo) de “enorme”?",
+          options: ["Minúsculo", "Pequeno", "Gigante", "Baixo"], correct: 2,
+          explain: "Sinônimo = sentido parecido. Enorme = gigante." },
+        { question: "Qual palavra tem o sentido contrário (antônimo) de “antigo”?",
+          options: ["Velho", "Novo", "Idoso", "Usado"], correct: 1,
+          explain: "Antônimo = sentido oposto. O contrário de antigo é novo." },
+        { question: "Em qual frase o ponto de interrogação foi usado corretamente?",
+          options: ["Que dia lindo?", "Eu gosto de bolo?", "Você vai à festa?", "Pare agora?"], correct: 2,
+          explain: "O ponto de interrogação (?) é usado em perguntas." },
+        { question: "Qual destas palavras tem acento AGUDO (´)?",
+          options: ["Avô", "Café", "Mãe", "Pão"], correct: 1,
+          explain: "Café tem acento agudo (´). Avô tem circunflexo (^). Mãe e pão têm til (~)." },
+        { question: "Qual palavra é um substantivo PRÓPRIO?",
+          options: ["cidade", "menina", "Brasil", "cachorro"], correct: 2,
+          explain: "Substantivo próprio é o nome específico de algo ou alguém e começa com letra maiúscula: Brasil." },
+        { question: "Leia: “Meus avós chegaram cedo para o almoço.” Quem chegou cedo?",
+          options: ["Eu", "Os avós", "Os pais", "Ninguém"], correct: 1,
+          explain: "Quem faz a ação de chegar é “meus avós”. Pergunte ao verbo: QUEM chegou?" },
+        { question: "Qual frase está no tempo PASSADO?",
+          options: ["Amanhã eu brincarei no parque.", "Hoje eu brinco no parque.", "Ontem eu brinquei no parque.", "Eu vou brincar no parque."], correct: 2,
+          explain: "“Ontem” e o verbo “brinquei” mostram que a ação já aconteceu." },
+        { question: "Qual é o coletivo de abelhas?",
+          options: ["Cardume", "Enxame", "Rebanho", "Matilha"], correct: 1,
+          explain: "Enxame = abelhas. Cardume = peixes. Rebanho = ovelhas/bois. Matilha = cães/lobos." },
+        { question: "Qual é a separação silábica correta de “pássaro”?",
+          options: ["pá-ssa-ro", "pás-sa-ro", "pás-sar-o", "p-ás-sa-ro"], correct: 1,
+          explain: "Na separação silábica, o SS se separa: pás-sa-ro." },
+        { question: "Na frase “Julia e Livia foram ao cinema. Elas adoraram o filme.”, a palavra ELAS se refere a:",
+          options: ["O cinema", "O filme", "Julia e Livia", "Todas as pessoas do cinema"], correct: 2,
+          explain: "“Elas” é um pronome que substitui “Julia e Livia” para não repetir os nomes." },
+        { question: "Qual palavra é OXÍTONA (a sílaba mais forte é a última)?",
+          options: ["Mesa", "Lápis", "Música", "Sofá"], correct: 3,
+          explain: "so-FÁ: a sílaba mais forte é a última. Me-sa e lá-pis são paroxítonas; mú-si-ca é proparoxítona." },
+        { question: "Em qual frase a palavra “mas” foi usada corretamente?",
+          options: ["Eu tenho mas dois lápis.", "Eu queria ir, mas estava chovendo.", "Quero mas suco, por favor.", "Ele correu mas rápido."], correct: 1,
+          explain: "“Mas” indica oposição (= porém). “Mais” indica quantidade: mais lápis, mais suco." }
     ],
     historia: [
         {
@@ -325,8 +301,31 @@ let gameState = {
     questions: [],
     totalQuestions: 10,
     timer: null,
-    timeLeft: 20
+    timeLeft: 40
 };
+
+// Tempo maior para dar tempo de LER o enunciado com calma (4º ano)
+const QUESTION_TIME = 40;
+
+// Palavras que mudam o sentido da pergunta: destacadas para treinar a atencao
+const KEYWORDS = ['NÃO', 'INCORRETA', 'CORRETAMENTE', 'EXCETO', 'PASSADO', 'PRÓPRIO', 'OXÍTONA', 'AGUDO',
+    'a mais', 'cada', 'troco', 'dobro', 'metade', 'ganhou', 'iguais', 'mesma quantidade', 'Quem', 'sinônimo', 'antônimo'];
+
+function escapeHtml(s) {
+    return s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+}
+
+function highlightKeywords(text) {
+    let html = escapeHtml(text);
+    const words = [...KEYWORDS].sort((a, b) => b.length - a.length);
+    const re = new RegExp('(^|[^\\p{L}])(' + words.join('|') + ')(?=[^\\p{L}]|$)', 'gu');
+    return html.replace(re, '$1<mark class="kw">$2</mark>');
+}
+
+function noTimer() {
+    const el = document.getElementById('opt-no-timer');
+    return el && el.checked;
+}
 
 // Funcao para voltar
 function goBack() {
@@ -382,14 +381,20 @@ function startGame(category) {
         gameState.questions = gameState.questions.map(q => ({...q, category: category}));
     }
 
+    gameState.totalQuestions = Math.min(10, gameState.questions.length);
     updateStats();
     showQuestion();
     showScreen('game-screen');
 }
 
-// Embaralhar array
+// Embaralhar array (Fisher-Yates)
 function shuffleArray(array) {
-    return array.sort(() => Math.random() - 0.5);
+    const a = array.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
 }
 
 // Atualizar estatisticas
@@ -411,9 +416,11 @@ function showQuestion() {
     };
 
     document.getElementById('category-badge').textContent = categoryNames[question.category] || 'Quiz';
-    document.getElementById('question-text').textContent = question.question;
+    document.getElementById('question-text').innerHTML = highlightKeywords(question.question);
     document.getElementById('feedback').textContent = '';
     document.getElementById('feedback').className = 'feedback';
+    document.getElementById('explain').innerHTML = '';
+    document.getElementById('next-btn').hidden = true;
 
     // Criar opcoes
     const optionsArea = document.getElementById('options-area');
@@ -439,8 +446,10 @@ function showQuestion() {
 // Iniciar timer
 function startTimer() {
     clearTimer();
-    gameState.timeLeft = 20;
+    gameState.timeLeft = QUESTION_TIME;
+    document.querySelector('.timer-bar').style.visibility = noTimer() ? 'hidden' : 'visible';
     updateTimerDisplay();
+    if (noTimer()) return;
 
     gameState.timer = setInterval(() => {
         gameState.timeLeft--;
@@ -456,10 +465,10 @@ function startTimer() {
 // Atualizar display do timer
 function updateTimerDisplay() {
     const timerFill = document.getElementById('timer-fill');
-    const percentage = (gameState.timeLeft / 20) * 100;
+    const percentage = (gameState.timeLeft / QUESTION_TIME) * 100;
     timerFill.style.width = percentage + '%';
 
-    if (gameState.timeLeft <= 5) {
+    if (gameState.timeLeft <= 8) {
         timerFill.classList.add('warning');
     } else {
         timerFill.classList.remove('warning');
@@ -490,11 +499,21 @@ function timeUp() {
     gameState.wrongAnswers++;
     playSound('wrong');
 
-    setTimeout(nextQuestion, 2000);
+    showExplanation(question);
+}
+
+// Mostra a explicacao e espera a crianca tocar em "Proxima"
+function showExplanation(question) {
+    const box = document.getElementById('explain');
+    box.innerHTML = question.explain ? `💡 <b>Por quê?</b> ${escapeHtml(question.explain)}` : '';
+    const btn = document.getElementById('next-btn');
+    btn.textContent = gameState.currentQuestion + 1 >= gameState.totalQuestions ? 'Ver resultado 🏆' : 'Próxima ➜';
+    btn.hidden = false;
 }
 
 // Selecionar resposta
 function selectAnswer(index) {
+    if (!document.getElementById('next-btn').hidden) return;
     clearTimer();
 
     const question = gameState.questions[gameState.currentQuestion];
@@ -512,19 +531,19 @@ function selectAnswer(index) {
         playSound('correct');
         feedbackEl.textContent = getRandomPraise();
         feedbackEl.className = 'feedback correct';
-        gameState.score += 10 + Math.floor(gameState.timeLeft / 2);
+        gameState.score += noTimer() ? 10 : 10 + Math.floor(gameState.timeLeft / 4);
         gameState.correctAnswers++;
     } else {
         // Resposta errada
         playSound('wrong');
         buttons[index].classList.add('wrong');
-        feedbackEl.textContent = 'Nao foi dessa vez!';
+        feedbackEl.textContent = 'Não foi dessa vez! Veja a resposta certa em verde.';
         feedbackEl.className = 'feedback wrong';
         gameState.wrongAnswers++;
     }
 
     updateStats();
-    setTimeout(nextQuestion, 2000);
+    showExplanation(question);
 }
 
 // Proxima pergunta

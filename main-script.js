@@ -78,7 +78,11 @@ function playGame(gameId) {
         'emocoes': 'emocoes-game/index.html',
         'fracoes': 'fracoes-game/index.html',
         'ortografia': 'ortografia-game/index.html',
-        'corpo': 'corpo-game/index.html'
+        'corpo': 'corpo-game/index.html',
+        'leitura': 'leitura-game/index.html',
+        'silabas': 'silabas-game/index.html',
+        'interpretacao': 'interpretacao-game/index.html',
+        'olimpiada': 'olimpiada-game/index.html'
     };
 
     const route = gameRoutes[gameId];
@@ -520,6 +524,67 @@ document.addEventListener('DOMContentLoaded', function(){
             setAudioVolume(e.target.value);
         });
     }
+});
+
+// ==========================================
+// IDADES AUTOMATICAS + CONTAGEM PARA O ANIVERSARIO
+// ==========================================
+const BIRTHDAYS = {
+    julia: { y: 2016, m: 9, d: 14 },
+    livia: { y: 2021, m: 9, d: 23 }
+};
+
+function ageOn(b, now) {
+    let age = now.getFullYear() - b.y;
+    if (now.getMonth() + 1 < b.m || (now.getMonth() + 1 === b.m && now.getDate() < b.d)) age--;
+    return age;
+}
+
+function daysToBirthday(b, now) {
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let next = new Date(now.getFullYear(), b.m - 1, b.d);
+    if (next < today) next = new Date(now.getFullYear() + 1, b.m - 1, b.d);
+    return Math.round((next - today) / 86400000);
+}
+
+function updateAges() {
+    const now = new Date();
+    document.querySelectorAll('[data-age]').forEach(el => {
+        const b = BIRTHDAYS[el.dataset.age];
+        if (b) el.textContent = ageOn(b, now);
+    });
+    document.querySelectorAll('[data-countdown]').forEach(el => {
+        const b = BIRTHDAYS[el.dataset.countdown];
+        if (!b) return;
+        const days = daysToBirthday(b, now);
+        const nextAge = ageOn(b, now) + (days === 0 ? 0 : 1);
+        el.textContent = days === 0 ? `🎉 Hoje é o aniversário! ${nextAge} anos!`
+            : days === 1 ? `Amanhã faz ${nextAge} anos!`
+            : `Faltam ${days} dias para os ${nextAge} anos`;
+    });
+}
+
+// ==========================================
+// FILTRO DE JOGOS (Todos / Livia / Julia)
+// ==========================================
+function filterGames(who) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === who));
+    document.querySelectorAll('.games-container .game-card').forEach(card => {
+        const forWho = card.dataset.for || 'todas';
+        card.style.display = (who === 'todos' || forWho === 'todas' || forWho === who) ? '' : 'none';
+    });
+    try { localStorage.setItem('gamesFilter', who); } catch (e) {}
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    updateAges();
+    document.querySelectorAll('.filter-btn').forEach(b => b.addEventListener('click', () => {
+        filterGames(b.dataset.filter);
+        playSound('click');
+    }));
+    let saved = 'todos';
+    try { saved = localStorage.getItem('gamesFilter') || 'todos'; } catch (e) {}
+    filterGames(saved);
 });
 
 console.log('Mundo de Julia e Livia carregado com sucesso!');

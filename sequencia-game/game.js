@@ -1,5 +1,7 @@
-// Jogo de Sequencia Logica - Para criancas de 9 anos
+// Jogo de Sequencia Logica - Julia (4º ano) - estilo olimpiada (OBMEP Mirim / Canguru)
 // Mundo de Julia & Livia
+// A regra NAO aparece na pergunta: descobrir o padrao faz parte do desafio.
+// Depois de cada resposta aparece a explicacao da regra.
 
 // Estado do jogo
 let gameState = {
@@ -7,10 +9,28 @@ let gameState = {
     level: 1,
     score: 0,
     questionsAnswered: 0,
-    questionsPerLevel: 5,
+    questionsPerLevel: 6,
     currentAnswer: null,
-    difficulty: 1
+    currentExplain: '',
+    difficulty: 1,
+    answered: false
 };
+
+const SHAPES = ['circle', 'square', 'triangle'];
+const COLORS = ['pattern-red', 'pattern-blue', 'pattern-green', 'pattern-yellow'];
+const SHAPE_NAMES = { circle: 'círculo', square: 'quadrado', triangle: 'triângulo' };
+const COLOR_NAMES = { 'pattern-red': 'vermelho', 'pattern-blue': 'azul', 'pattern-green': 'verde', 'pattern-yellow': 'amarelo' };
+
+function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function shuffleList(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
 
 // Funcao para voltar
 function goBack() {
@@ -20,7 +40,7 @@ function goBack() {
                 window.parent.closeGameModal();
                 return;
             }
-        } catch(e) {}
+        } catch (e) {}
     }
     if (window.history.length > 1) {
         window.history.back();
@@ -29,13 +49,11 @@ function goBack() {
     }
 }
 
-// Mostrar tela
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(screenId).classList.add('active');
 }
 
-// Ir para menu inicial
 function goToMenu() {
     gameState.level = 1;
     gameState.score = 0;
@@ -44,16 +62,16 @@ function goToMenu() {
     showScreen('start-screen');
 }
 
-// Atualizar estatisticas na tela
 function updateStats() {
     document.getElementById('score').textContent = gameState.score;
     document.getElementById('current-level').textContent = gameState.level;
 }
 
-// Iniciar jogo
 function startGame(mode) {
     gameState.mode = mode;
+    gameState.level = 1;
     gameState.questionsAnswered = 0;
+    gameState.questionsPerLevel = 6;
     gameState.score = 0;
     gameState.difficulty = 1;
     updateStats();
@@ -62,132 +80,138 @@ function startGame(mode) {
     showScreen('game-screen');
 }
 
-// Proxima pergunta
 function nextQuestion() {
+    gameState.answered = false;
     document.getElementById('feedback').textContent = '';
     document.getElementById('feedback').className = 'feedback';
+    document.getElementById('explain').innerHTML = '';
+    document.getElementById('next-btn').hidden = true;
 
-    // Limpar classes das opcoes
-    document.querySelectorAll('.option-btn').forEach(btn => {
-        btn.classList.remove('correct', 'wrong');
-    });
-
-    if (gameState.mode === 'numbers') {
-        generateNumberSequence();
-    } else if (gameState.mode === 'patterns') {
-        generatePatternSequence();
-    } else {
-        // Modo misto
-        if (Math.random() > 0.5) {
-            generateNumberSequence();
-        } else {
-            generatePatternSequence();
-        }
-    }
+    if (gameState.mode === 'numbers') generateNumberSequence();
+    else if (gameState.mode === 'patterns') generatePatternSequence();
+    else if (Math.random() > 0.5) generateNumberSequence();
+    else generatePatternSequence();
 }
 
-// Gerar sequencia numerica
+// ==========================================
+// SEQUENCIAS NUMERICAS
+// ==========================================
 function generateNumberSequence() {
-    const sequenceTypes = [
-        'arithmetic',      // +2, +3, +5, etc.
-        'geometric',       // x2, x3, etc.
-        'fibonacci',       // cada numero e a soma dos dois anteriores
-        'squares',         // quadrados perfeitos
-        'alternate'        // alterna entre duas operacoes
-    ];
+    const d = gameState.difficulty;
+    // Tipos liberados conforme a dificuldade sobe
+    const types = ['soma', 'subtrai', 'meio'];
+    if (d >= 2) types.push('alternada', 'dobra', 'posicao');
+    if (d >= 3) types.push('diferencas', 'fibonacci', 'quadrados');
+    if (d >= 4) types.push('posicao', 'meio');
+    const type = pick(types);
 
-    // Escolher tipo baseado na dificuldade
-    const availableTypes = sequenceTypes.slice(0, Math.min(gameState.difficulty + 2, sequenceTypes.length));
-    const type = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+    let seq = [], answer, hole = 4, question = 'Qual número substitui o “?”', explain = '';
 
-    let sequence = [];
-    let answer;
-    let questionText = 'Complete a sequencia:';
-
-    switch(type) {
-        case 'arithmetic':
-            const step = Math.floor(Math.random() * (3 + gameState.difficulty)) + 2;
-            const start = Math.floor(Math.random() * 10) + 1;
-            for (let i = 0; i < 5; i++) {
-                sequence.push(start + (step * i));
-            }
-            answer = sequence[4];
-            sequence[4] = '?';
-            questionText = `Qual o proximo numero? (+${step})`;
+    switch (type) {
+        case 'soma': {
+            const k = rnd(2, 4 + 2 * d), a = rnd(1, 20);
+            seq = [0, 1, 2, 3, 4].map(i => a + k * i);
+            explain = `Cada número é o anterior <b>mais ${k}</b>: ${seq[3]} + ${k} = ${seq[4]}.`;
             break;
-
-        case 'geometric':
-            const multiplier = Math.floor(Math.random() * 2) + 2; // x2 ou x3
-            let geoStart = Math.floor(Math.random() * 3) + 1;
-            for (let i = 0; i < 5; i++) {
-                sequence.push(geoStart * Math.pow(multiplier, i));
-            }
-            answer = sequence[4];
-            sequence[4] = '?';
-            questionText = `Qual o proximo numero? (x${multiplier})`;
+        }
+        case 'subtrai': {
+            const k = rnd(2, 3 + 2 * d), a = k * 5 + rnd(5, 40);
+            seq = [0, 1, 2, 3, 4].map(i => a - k * i);
+            explain = `Cada número é o anterior <b>menos ${k}</b>: ${seq[3]} − ${k} = ${seq[4]}.`;
             break;
-
-        case 'fibonacci':
-            sequence = [1, 1, 2, 3, 5];
-            answer = 8;
-            sequence[4] = '?';
-            questionText = 'Sequencia de Fibonacci - qual o proximo?';
+        }
+        case 'meio': {
+            const k = rnd(3, 5 + 2 * d), a = rnd(1, 30);
+            seq = [0, 1, 2, 3, 4].map(i => a + k * i);
+            hole = rnd(1, 3);
+            question = 'Qual número está faltando no meio da sequência?';
+            explain = `A sequência aumenta de <b>${k} em ${k}</b>. O número que falta é ${seq[hole - 1]} + ${k} = ${seq[hole]}. Confira: ${seq[hole]} + ${k} = ${seq[hole + 1]} ✔`;
             break;
-
-        case 'squares':
-            sequence = [1, 4, 9, 16, 25];
-            answer = 25;
-            sequence[4] = '?';
-            questionText = 'Quadrados perfeitos - qual o proximo?';
+        }
+        case 'alternada': {
+            const p = rnd(2, 6), q = rnd(1, 4) * -1 + (Math.random() < .5 ? 0 : rnd(5, 9));
+            const a = rnd(5, 20);
+            seq = [a];
+            for (let i = 1; i < 6; i++) seq.push(seq[i - 1] + (i % 2 ? p : q));
+            hole = 5;
+            const qs = q >= 0 ? `+${q}` : `${q}`;
+            explain = `Os saltos se alternam: <b>+${p}, ${qs}, +${p}, ${qs}...</b> O próximo salto é +${p}: ${seq[4]} + ${p} = ${seq[5]}.`;
             break;
-
-        case 'alternate':
-            // +2, +3, +2, +3, ...
-            sequence = [1, 3, 6, 8, 11];
-            answer = 11;
-            sequence[4] = '?';
-            questionText = 'Sequencia alternada - qual o proximo?';
+        }
+        case 'dobra': {
+            const m = pick([2, 2, 3]), a = rnd(1, 4);
+            seq = [0, 1, 2, 3, 4].map(i => a * Math.pow(m, i));
+            explain = `Cada número é o anterior <b>vezes ${m}</b>${m === 2 ? ' (o dobro)' : ' (o triplo)'}: ${seq[3]} × ${m} = ${seq[4]}.`;
             break;
+        }
+        case 'diferencas': {
+            const a = rnd(1, 10), s = rnd(1, 3);
+            seq = [a];
+            for (let i = 1; i < 6; i++) seq.push(seq[i - 1] + s + i - 1);
+            hole = 5;
+            const diffs = seq.slice(1).map((v, i) => v - seq[i]);
+            explain = `Olhe os saltos: <b>+${diffs.slice(0, 4).join(', +')}</b>... cada salto aumenta 1. O próximo é +${diffs[4]}: ${seq[4]} + ${diffs[4]} = ${seq[5]}.`;
+            break;
+        }
+        case 'fibonacci': {
+            const a = rnd(1, 5), b = rnd(a, a + 4);
+            seq = [a, b];
+            for (let i = 2; i < 6; i++) seq.push(seq[i - 1] + seq[i - 2]);
+            hole = 5;
+            explain = `Cada número é a <b>soma dos dois anteriores</b>: ${seq[3]} + ${seq[4]} = ${seq[5]}.`;
+            break;
+        }
+        case 'quadrados': {
+            const n = rnd(1, 5);
+            seq = [0, 1, 2, 3, 4].map(i => (n + i) * (n + i));
+            explain = `São números “quadrados”: ${seq.map((v, i) => `${n + i}×${n + i}`).join(', ')}. O próximo é ${n + 4} × ${n + 4} = ${seq[4]}.`;
+            break;
+        }
+        case 'posicao': {
+            const k = rnd(2, 6), a = rnd(1, 9), pos = pick([10, 12, 15, 20]);
+            seq = [0, 1, 2, 3].map(i => a + k * i);
+            answer = a + k * (pos - 1);
+            showNumberSequence([...seq, '...'], -1, `Continuando esta sequência, qual será o <b>${pos}º número</b>?`);
+            gameState.currentAnswer = answer;
+            gameState.currentExplain = `A sequência começa em ${a} e aumenta ${k} a cada passo. Do 1º até o ${pos}º número são <b>${pos - 1} saltos</b> de ${k}: ${a} + ${pos - 1} × ${k} = ${a} + ${(pos - 1) * k} = ${answer}. (Cuidado: não são ${pos} saltos!)`;
+            generateNumberOptions(answer, [a + k * pos, k * pos, answer - 1]);
+            return;
+        }
     }
 
+    answer = seq[hole];
+    const shown = seq.slice();
+    shown[hole] = '?';
     gameState.currentAnswer = answer;
-
-    // Atualizar UI
-    document.getElementById('question-text').textContent = questionText;
-
-    const sequenceDisplay = document.getElementById('sequence-display');
-    sequenceDisplay.innerHTML = '';
-    sequence.forEach((num, index) => {
-        const item = document.createElement('div');
-        item.className = 'sequence-item' + (num === '?' ? ' mystery' : '');
-        item.textContent = num;
-        sequenceDisplay.appendChild(item);
-    });
-
-    // Gerar opcoes
+    gameState.currentExplain = explain;
+    showNumberSequence(shown, hole, question);
     generateNumberOptions(answer);
 }
 
-// Gerar opcoes para sequencias numericas
-function generateNumberOptions(correctAnswer) {
+function showNumberSequence(shown, hole, question) {
+    document.getElementById('question-text').innerHTML = question;
+    const display = document.getElementById('sequence-display');
+    display.innerHTML = '';
+    shown.forEach(num => {
+        const item = document.createElement('div');
+        item.className = 'sequence-item' + (num === '?' ? ' mystery' : '');
+        item.textContent = num;
+        display.appendChild(item);
+    });
+}
+
+function generateNumberOptions(correctAnswer, traps) {
     const options = [correctAnswer];
-
-    // Gerar opcoes erradas proximas do valor correto
-    while (options.length < 4) {
-        const offset = Math.floor(Math.random() * 10) - 5;
-        const wrongAnswer = correctAnswer + offset;
-        if (wrongAnswer > 0 && !options.includes(wrongAnswer) && wrongAnswer !== correctAnswer) {
-            options.push(wrongAnswer);
-        }
+    (traps || []).forEach(t => { if (t > 0 && !options.includes(t)) options.push(t); });
+    let guard = 0;
+    while (options.length < 4 && guard++ < 100) {
+        const offset = rnd(-6, 6);
+        const wrong = correctAnswer + offset;
+        if (wrong > 0 && !options.includes(wrong)) options.push(wrong);
     }
-
-    // Embaralhar
-    options.sort(() => Math.random() - 0.5);
-
     const optionsArea = document.getElementById('options-area');
     optionsArea.innerHTML = '';
-
-    options.forEach(option => {
+    shuffleList(options.slice(0, 4)).forEach(option => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
         btn.textContent = option;
@@ -196,151 +220,93 @@ function generateNumberOptions(correctAnswer) {
     });
 }
 
-// Gerar sequencia de padroes
+// ==========================================
+// PADROES DE FIGURAS (grupo que se repete)
+// ==========================================
+function randomUnit(len) {
+    // Grupo de figuras que se repete; garante que nao seja tudo igual
+    let unit;
+    do {
+        unit = Array.from({ length: len }, () => ({ shape: pick(SHAPES), color: pick(COLORS) }));
+    } while (new Set(unit.map(u => u.shape + u.color)).size < Math.min(len, 2));
+    return unit;
+}
+
+function itemName(it) { return `${SHAPE_NAMES[it.shape]} ${COLOR_NAMES[it.color]}`; }
+
 function generatePatternSequence() {
-    const shapes = ['circle', 'square', 'triangle'];
-    const colors = ['pattern-red', 'pattern-blue', 'pattern-green', 'pattern-yellow'];
+    const d = gameState.difficulty;
+    const len = Math.min(4, 2 + Math.floor(Math.random() * Math.min(3, d + 1)));
+    const unit = randomUnit(len);
+    const askPosition = d >= 2 && Math.random() < 0.45;
 
-    const patternTypes = [
-        'shape-repeat',     // circulo, quadrado, circulo, quadrado, ?
-        'color-repeat',     // vermelho, azul, vermelho, azul, ?
-        'grow',             // pequeno, medio, grande, ?
-        'alternate-shape'   // duas formas alternando
-    ];
-
-    const type = patternTypes[Math.floor(Math.random() * patternTypes.length)];
-
-    let sequence = [];
-    let answer;
-    let options = [];
-    let questionText = 'Complete o padrao:';
-
-    switch(type) {
-        case 'shape-repeat':
-            const shape1 = shapes[0];
-            const shape2 = shapes[1];
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            sequence = [
-                { shape: shape1, color },
-                { shape: shape2, color },
-                { shape: shape1, color },
-                { shape: shape2, color },
-                { shape: '?', color: '' }
-            ];
-            answer = { shape: shape1, color };
-            options = [
-                { shape: shape1, color },
-                { shape: shape2, color },
-                { shape: shapes[2], color },
-                { shape: shape1, color: colors[1] }
-            ];
-            questionText = 'Qual forma vem a seguir?';
-            break;
-
-        case 'color-repeat':
-            const baseShape = shapes[Math.floor(Math.random() * shapes.length)];
-            const color1 = colors[0];
-            const color2 = colors[1];
-            sequence = [
-                { shape: baseShape, color: color1 },
-                { shape: baseShape, color: color2 },
-                { shape: baseShape, color: color1 },
-                { shape: baseShape, color: color2 },
-                { shape: '?', color: '' }
-            ];
-            answer = { shape: baseShape, color: color1 };
-            options = [
-                { shape: baseShape, color: color1 },
-                { shape: baseShape, color: color2 },
-                { shape: baseShape, color: colors[2] },
-                { shape: baseShape, color: colors[3] }
-            ];
-            questionText = 'Qual cor vem a seguir?';
-            break;
-
-        case 'alternate-shape':
-            const altColor = colors[Math.floor(Math.random() * colors.length)];
-            sequence = [
-                { shape: 'circle', color: altColor },
-                { shape: 'square', color: altColor },
-                { shape: 'triangle', color: altColor },
-                { shape: 'circle', color: altColor },
-                { shape: '?', color: '' }
-            ];
-            answer = { shape: 'square', color: altColor };
-            options = [
-                { shape: 'circle', color: altColor },
-                { shape: 'square', color: altColor },
-                { shape: 'triangle', color: altColor },
-                { shape: 'circle', color: colors[1] }
-            ];
-            questionText = 'Qual forma completa o padrao?';
-            break;
-
-        default:
-            // Padrao simples de repeticao
-            const simpleShape = shapes[0];
-            const simpleColor = colors[0];
-            sequence = [
-                { shape: simpleShape, color: simpleColor },
-                { shape: simpleShape, color: simpleColor },
-                { shape: simpleShape, color: simpleColor },
-                { shape: simpleShape, color: simpleColor },
-                { shape: '?', color: '' }
-            ];
-            answer = { shape: simpleShape, color: simpleColor };
-            options = [
-                { shape: simpleShape, color: simpleColor },
-                { shape: shapes[1], color: simpleColor },
-                { shape: simpleShape, color: colors[1] },
-                { shape: shapes[2], color: colors[2] }
-            ];
+    let shownCount, answerIndex, question;
+    if (askPosition) {
+        shownCount = len * 2;
+        answerIndex = pick([15, 20, 23, 30, 50]);
+        question = `O grupo de figuras continua se repetindo. Qual figura estará na <b>${answerIndex}ª posição</b>?`;
+    } else {
+        shownCount = len * 2 + rnd(0, len - 1);
+        answerIndex = shownCount + 1;
+        question = 'Qual figura vem a seguir?';
     }
 
+    const at = pos => unit[(pos - 1) % len];
+    const answer = at(answerIndex);
+    const sequence = Array.from({ length: shownCount }, (_, i) => at(i + 1));
+    if (!askPosition) sequence.push({ shape: '?', color: '' });
+
+    const r = answerIndex % len;
     gameState.currentAnswer = answer;
+    gameState.currentExplain = askPosition
+        ? `O grupo que se repete tem <b>${len} figuras</b>. ${answerIndex} ÷ ${len} = ${Math.floor(answerIndex / len)} grupos completos e resto ${r}. ` +
+          (r === 0 ? `Resto 0 quer dizer que a posição ${answerIndex} é a <b>última</b> figura do grupo: ${itemName(answer)}.`
+                   : `Resto ${r} quer dizer a <b>${r}ª figura</b> do grupo: ${itemName(answer)}.`)
+        : `O grupo de ${len} figuras se repete. Depois da ${shownCount}ª figura vem a ${((shownCount) % len) + 1}ª figura do grupo: ${itemName(answer)}.`;
 
-    // Atualizar UI
-    document.getElementById('question-text').textContent = questionText;
-
-    const sequenceDisplay = document.getElementById('sequence-display');
-    sequenceDisplay.innerHTML = '';
-
-    sequence.forEach((item, index) => {
+    document.getElementById('question-text').innerHTML = question;
+    const display = document.getElementById('sequence-display');
+    display.innerHTML = '';
+    sequence.forEach(item => {
         const container = document.createElement('div');
         container.className = 'sequence-item' + (item.shape === '?' ? ' mystery' : '');
-
-        if (item.shape === '?') {
-            container.textContent = '?';
-        } else {
+        if (item.shape === '?') container.textContent = '?';
+        else {
             const shapeEl = document.createElement('div');
             shapeEl.className = `pattern-item ${item.shape} ${item.color}`;
             container.appendChild(shapeEl);
         }
-
-        sequenceDisplay.appendChild(container);
+        display.appendChild(container);
     });
+    if (askPosition) {
+        const more = document.createElement('div');
+        more.className = 'sequence-item';
+        more.textContent = '...';
+        display.appendChild(more);
+    }
 
-    // Gerar opcoes de padrao
-    generatePatternOptions(options, answer);
+    // Opcoes: resposta + outras figuras do grupo + uma "quase igual"
+    const key = it => it.shape + it.color;
+    const options = [answer];
+    unit.forEach(u => { if (!options.some(o => key(o) === key(u))) options.push(u); });
+    let guard = 0;
+    while (options.length < 4 && guard++ < 50) {
+        const cand = Math.random() < .5 ? { shape: answer.shape, color: pick(COLORS) } : { shape: pick(SHAPES), color: answer.color };
+        if (!options.some(o => key(o) === key(cand))) options.push(cand);
+    }
+    generatePatternOptions(options.slice(0, 4), answer);
 }
 
 // Gerar opcoes para sequencias de padrao
 function generatePatternOptions(options, correctAnswer) {
-    // Embaralhar opcoes
-    options.sort(() => Math.random() - 0.5);
-
     const optionsArea = document.getElementById('options-area');
     optionsArea.innerHTML = '';
-
-    options.forEach((option, index) => {
+    shuffleList(options).forEach(option => {
         const btn = document.createElement('button');
-        btn.className = 'option-btn';
-        btn.dataset.index = index;
-
+        btn.className = 'option-btn pattern-option';
         const shapeEl = document.createElement('div');
         shapeEl.className = `pattern-item ${option.shape} ${option.color}`;
         btn.appendChild(shapeEl);
-
         btn.onclick = () => checkPatternAnswer(option, correctAnswer, btn);
         optionsArea.appendChild(btn);
     });
@@ -348,32 +314,21 @@ function generatePatternOptions(options, correctAnswer) {
 
 // Verificar resposta numerica
 function checkAnswer(answer) {
-    const feedbackEl = document.getElementById('feedback');
+    if (gameState.answered) return;
     const isCorrect = answer === gameState.currentAnswer;
-
-    // Encontrar o botao clicado
-    const buttons = document.querySelectorAll('.option-btn');
-    buttons.forEach(btn => {
-        if (parseInt(btn.textContent) === answer) {
-            btn.classList.add(isCorrect ? 'correct' : 'wrong');
-        }
-        if (parseInt(btn.textContent) === gameState.currentAnswer) {
-            btn.classList.add('correct');
-        }
+    document.querySelectorAll('.option-btn').forEach(btn => {
+        if (parseInt(btn.textContent) === answer) btn.classList.add(isCorrect ? 'correct' : 'wrong');
+        if (parseInt(btn.textContent) === gameState.currentAnswer) btn.classList.add('correct');
     });
-
-    processAnswer(isCorrect, feedbackEl);
+    processAnswer(isCorrect);
 }
 
 // Verificar resposta de padrao
 function checkPatternAnswer(answer, correctAnswer, clickedBtn) {
-    const feedbackEl = document.getElementById('feedback');
+    if (gameState.answered) return;
     const isCorrect = answer.shape === correctAnswer.shape && answer.color === correctAnswer.color;
-
     clickedBtn.classList.add(isCorrect ? 'correct' : 'wrong');
-
     if (!isCorrect) {
-        // Mostrar a resposta correta
         document.querySelectorAll('.option-btn').forEach(btn => {
             const shapeEl = btn.querySelector('.pattern-item');
             if (shapeEl && shapeEl.classList.contains(correctAnswer.shape) && shapeEl.classList.contains(correctAnswer.color)) {
@@ -381,12 +336,13 @@ function checkPatternAnswer(answer, correctAnswer, clickedBtn) {
             }
         });
     }
-
-    processAnswer(isCorrect, feedbackEl);
+    processAnswer(isCorrect);
 }
 
-// Processar resposta
-function processAnswer(isCorrect, feedbackEl) {
+// Processar resposta: mostra a regra e espera "Proxima"
+function processAnswer(isCorrect) {
+    gameState.answered = true;
+    const feedbackEl = document.getElementById('feedback');
     if (isCorrect) {
         playSound('correct');
         feedbackEl.textContent = getRandomPraise();
@@ -395,79 +351,55 @@ function processAnswer(isCorrect, feedbackEl) {
         gameState.questionsAnswered++;
         updateStats();
         updateProgress();
-
-        // Aumentar dificuldade gradualmente
         if (gameState.questionsAnswered % 3 === 0) {
             gameState.difficulty = Math.min(gameState.difficulty + 1, 5);
         }
-
-        if (gameState.questionsAnswered >= gameState.questionsPerLevel) {
-            setTimeout(showWinScreen, 1500);
-        } else {
-            setTimeout(nextQuestion, 1500);
-        }
     } else {
         playSound('wrong');
-        feedbackEl.textContent = 'Nao foi dessa vez! A resposta certa esta marcada.';
+        feedbackEl.textContent = 'Não foi dessa vez! A resposta certa está marcada.';
         feedbackEl.className = 'feedback wrong';
-
-        setTimeout(nextQuestion, 2500);
     }
+    document.getElementById('explain').innerHTML = '🔎 <b>A regra:</b> ' + gameState.currentExplain;
+    const nextBtn = document.getElementById('next-btn');
+    nextBtn.textContent = gameState.questionsAnswered >= gameState.questionsPerLevel ? 'Ver resultado 🏆' : 'Próxima ➜';
+    nextBtn.hidden = false;
 }
 
-// Frases de elogio aleatorias
+function goNext() {
+    if (gameState.questionsAnswered >= gameState.questionsPerLevel) showWinScreen();
+    else nextQuestion();
+}
+
 function getRandomPraise() {
-    const praises = [
-        'Excelente raciocinio!',
-        'Voce e muito esperto!',
-        'Incrivel!',
-        'Logica perfeita!',
-        'Fantastico!',
-        'Genial!',
-        'Muito bem!',
-        'Continue assim!'
-    ];
+    const praises = ['Excelente raciocínio!', 'Você descobriu a regra!', 'Incrível!', 'Lógica perfeita!', 'Fantástico!', 'Genial!', 'Muito bem!', 'Pensou como uma olímpica!'];
     return praises[Math.floor(Math.random() * praises.length)];
 }
 
-// Atualizar barra de progresso
 function updateProgress() {
     const progress = (gameState.questionsAnswered / gameState.questionsPerLevel) * 100;
     document.getElementById('progress-fill').style.width = progress + '%';
 }
 
-// Tela de vitoria
 function showWinScreen() {
     document.getElementById('final-score').textContent = gameState.score;
-
-    // Calcular estrelas
-    const maxScore = gameState.questionsPerLevel * 15 * 3;
+    const maxScore = gameState.questionsPerLevel * (10 + 5 * 5);
     const percentage = gameState.score / maxScore;
     let stars = 1;
-    if (percentage >= 0.8) stars = 3;
-    else if (percentage >= 0.5) stars = 2;
-
-    // Mostrar estrelas
+    if (percentage >= 0.6) stars = 3;
+    else if (percentage >= 0.35) stars = 2;
     const starsDisplay = document.getElementById('stars-display');
     starsDisplay.querySelectorAll('.star').forEach((star, i) => {
         star.classList.remove('earned');
-        if (i < stars) {
-            setTimeout(() => {
-                star.classList.add('earned');
-                playSound('star');
-            }, i * 300);
-        }
+        if (i < stars) setTimeout(() => { star.classList.add('earned'); playSound('star'); }, i * 300);
     });
-
     playSound('win');
     showScreen('win-screen');
 }
 
-// Proximo nivel
 function nextLevel() {
     gameState.level++;
     gameState.questionsAnswered = 0;
-    gameState.questionsPerLevel = Math.min(5 + gameState.level, 8);
+    gameState.questionsPerLevel = Math.min(6 + gameState.level, 10);
     gameState.difficulty = Math.min(gameState.difficulty + 1, 5);
     updateStats();
     updateProgress();

@@ -15,7 +15,7 @@ const WORDS = {
         { word: 'ROSA', blank: 'RO_A', answer: 'S', hint: 'Flor bonita' },
         { word: 'VASO', blank: 'VA_O', answer: 'S', hint: 'Onde colocamos flores' },
         { word: 'PESO', blank: 'PE_O', answer: 'S', hint: 'Medida de massa' },
-        { word: 'ÚSSARO', blank: 'A__UNTO', answer: 'SS', hint: 'Tema ou matéria' },
+        { word: 'ASSUNTO', blank: 'A__UNTO', answer: 'SS', hint: 'Tema ou matéria' },
         { word: 'MISSÃO', blank: 'MI__ÃO', answer: 'SS', hint: 'Tarefa importante' }
     ],
     'c_ç': [
@@ -35,7 +35,7 @@ const WORDS = {
     g_j: [
         { word: 'VIAGEM', blank: 'VIA_EM', answer: 'G', hint: 'Ir para outro lugar' },
         { word: 'GARAGEM', blank: 'GARA_EM', answer: 'G', hint: 'Onde guarda o carro' },
-        { word: 'AGEM', blank: 'IMA_EM', answer: 'G', hint: 'Figura ou foto' },
+        { word: 'IMAGEM', blank: 'IMA_EM', answer: 'G', hint: 'Figura ou foto' },
         { word: 'CORAGEM', blank: 'CORA_EM', answer: 'G', hint: 'Não ter medo' },
         { word: 'GIRAFA', blank: '_IRAFA', answer: 'G', hint: 'Animal de pescoço longo' },
         { word: 'GELO', blank: '_ELO', answer: 'G', hint: 'Água congelada' },
@@ -212,6 +212,18 @@ function createOptions() {
     });
 }
 
+// Regrinhas para explicar depois de cada resposta
+const RULES = {
+    'SS': 'Entre duas vogais, para ter som de S usamos SS (pá-ssa-ro).',
+    'S': 'S sozinho entre vogais tem som de Z (ca-sa, ro-sa).',
+    'Ç': 'Ç só aparece antes de A, O, U e nunca começa palavra.',
+    'C': 'Antes de E e I, o C já tem som de S (cidade, cebola), sem cedilha.',
+    'G': 'Palavras terminadas em -GEM costumam ser com G (viagem, garagem). Exceções: pajem, lambujem.',
+    'J': 'Palavras derivadas de outras com J mantêm o J (loja → lojista; jeito → ajeitar).',
+    'X': 'Depois de ditongo (ai, ei, ou) usamos X: baixo, peixe, caixa.',
+    'CH': 'CH e X têm o mesmo som; muitas palavras precisam ser memorizadas: chuva, chave.'
+};
+
 // Verificar resposta
 function checkAnswer(answer) {
     const feedbackEl = document.getElementById('feedback');
@@ -235,13 +247,13 @@ function checkAnswer(answer) {
 
     if (isCorrect) {
         playSound('correct');
-        feedbackEl.textContent = getRandomPraise();
+        feedbackEl.textContent = getRandomPraise() + ' ' + (RULES[gameState.currentWord.answer] || '');
         feedbackEl.className = 'feedback correct';
         gameState.score += 10;
         gameState.correctAnswers++;
     } else {
         playSound('wrong');
-        feedbackEl.textContent = `A palavra correta e: ${gameState.currentWord.word}`;
+        feedbackEl.textContent = `A palavra correta é: ${gameState.currentWord.word}. ${RULES[gameState.currentWord.answer] || ''}`;
         feedbackEl.className = 'feedback wrong';
         gameState.wrongAnswers++;
     }
@@ -250,9 +262,9 @@ function checkAnswer(answer) {
     updateStats();
 
     if (gameState.currentQuestion >= gameState.totalQuestions) {
-        setTimeout(showResults, 2000);
+        setTimeout(showResults, 3500);
     } else {
-        setTimeout(nextQuestion, 2000);
+        setTimeout(nextQuestion, 3500);
     }
 }
 
