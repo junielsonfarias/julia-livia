@@ -117,9 +117,15 @@
                 <p><span data-age="livia">5</span> aninhos de amor</p>
             </div>
 
+            <div class="menu-card progress-card" onclick="openSection('progress')">
+                <div class="card-icon">📊</div>
+                <h2>Progresso</h2>
+                <p>Como elas estão indo</p>
+            </div>
+
             <div class="menu-card memories-card" onclick="openSection('memories')">
                 <div class="card-icon">&#128150;</div>
-                <h2>Memorias</h2>
+                <h2>Memórias</h2>
                 <p>Nossa historia</p>
             </div>
         </nav>
@@ -541,7 +547,7 @@
         </header>
 
         <div class="photos-container">
-            <div class="photo-upload-area">
+            <div class="photo-upload-area" data-upload="photos">
                 <p>&#128248; Arraste fotos aqui ou clique para adicionar</p>
                 <input type="file" accept="image/*" multiple id="photo-input" aria-label="Adicionar fotos" title="Adicionar fotos">
             </div>
@@ -560,7 +566,7 @@
         </header>
 
         <div class="drawings-container">
-            <div class="drawing-upload-area">
+            <div class="drawing-upload-area" data-upload="drawings">
                 <p>&#127912; Adicione os desenhos das meninas!</p>
                 <input type="file" accept="image/*" multiple id="drawing-input" aria-label="Adicionar desenhos" title="Adicionar desenhos">
             </div>
@@ -599,6 +605,9 @@
 
                 <div class="profile-gallery">
                     <h3>Momentos Especiais</h3>
+                    <div class="mini-upload" data-upload="julia">📸 Adicionar fotos da Julia
+                        <input type="file" accept="image/*" multiple hidden aria-label="Adicionar fotos da Julia">
+                    </div>
                     <div class="mini-gallery" id="julia-gallery">
                         <p class="empty-message">Adicione fotos da Julia!</p>
                     </div>
@@ -635,6 +644,9 @@
 
                 <div class="profile-gallery">
                     <h3>Momentos Especiais</h3>
+                    <div class="mini-upload" data-upload="livia">📸 Adicionar fotos da Livia
+                        <input type="file" accept="image/*" multiple hidden aria-label="Adicionar fotos da Livia">
+                    </div>
                     <div class="mini-gallery" id="livia-gallery">
                         <p class="empty-message">Adicione fotos da Livia!</p>
                     </div>
@@ -643,11 +655,23 @@
         </div>
     </div>
 
+    <!-- Secao Progresso (para os pais) -->
+    <div id="progress-section" class="screen section-screen">
+        <header class="section-header progress-header">
+            <button class="back-btn" onclick="backToMenu()">&#8592; Voltar</button>
+            <h1>📊 Progresso</h1>
+        </header>
+        <div class="progress-container">
+            <p class="progress-note">Resumo do que a Julia e a Livia jogaram neste aparelho. As habilidades com menos acertos aparecem primeiro: é por elas que vale treinar.</p>
+            <div class="progress-grid" id="progress-content"></div>
+        </div>
+    </div>
+
     <!-- Secao Memorias -->
     <div id="memories-section" class="screen section-screen">
         <header class="section-header memories-header">
             <button class="back-btn" onclick="backToMenu()">&#8592; Voltar</button>
-            <h1>&#128150; Memorias</h1>
+            <h1>&#128150; Memórias</h1>
         </header>
 
         <div class="memories-container">
@@ -661,7 +685,18 @@
                 </div>
             </div>
 
-            <button class="add-memory-btn">+ Adicionar Memoria</button>
+            <button class="add-memory-btn" type="button">+ Adicionar Memória</button>
+
+            <form class="memory-form" id="memory-form" hidden>
+                <h3>💖 Nova memória</h3>
+                <label>Ano <input name="year" type="number" min="2000" max="2100" inputmode="numeric"></label>
+                <label>Título <input name="title" type="text" maxlength="80" required placeholder="Ex.: Primeiro dia na escola"></label>
+                <label>O que aconteceu? <textarea name="description" rows="3" maxlength="500" placeholder="Conte como foi..."></textarea></label>
+                <div class="memory-form-buttons">
+                    <button type="button" class="memory-cancel">Cancelar</button>
+                    <button type="submit" class="memory-save">Guardar 💖</button>
+                </div>
+            </form>
         </div>
     </div>
 

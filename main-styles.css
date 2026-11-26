@@ -1514,3 +1514,67 @@ body.is-app { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-ar
 .relampago-icon { font-size: 72px; animation: pulse 1s infinite; }
 .velha-thumb { background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%); }
 .velha-icon { font-size: 72px; animation: bounce 2s infinite; }
+
+/* ==========================================
+   GALERIAS, MEMORIAS E PROGRESSO
+   ========================================== */
+.gallery-item { position: relative; border-radius: 15px; overflow: hidden; aspect-ratio: 1; cursor: pointer; background: #f3f3f3; transition: transform .25s ease; }
+.gallery-item:hover { transform: scale(1.04); }
+.gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gallery-del { position: absolute; top: 6px; right: 6px; border: none; border-radius: 50%; width: 36px; height: 36px; background: rgba(255,255,255,.9); cursor: pointer; font-size: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+.photo-upload-area.drag, .drawing-upload-area.drag, .mini-upload.drag { border-color: #667eea !important; background: #f0f0ff !important; }
+.mini-upload { margin: 8px 0 12px; padding: 12px; border: 3px dashed #ddd; border-radius: 16px; text-align: center; font-weight: 800; color: #888; cursor: pointer; background: #fff; }
+.mini-upload:hover { border-color: #667eea; color: #667eea; }
+
+.lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.9); display: flex; align-items: center; justify-content: center; z-index: 10000; cursor: pointer; }
+.lightbox img { max-width: 92%; max-height: 90%; border-radius: 10px; box-shadow: 0 10px 50px rgba(0,0,0,.5); }
+.lightbox button { position: absolute; top: 20px; right: 20px; background: #fff; border: none; width: 48px; height: 48px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; }
+
+.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; z-index: 20001; padding: 16px; }
+.confirm-box { background: #fff; border-radius: 22px; padding: 22px; max-width: 340px; width: 100%; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,.3); }
+.confirm-box p { font-size: 1.2rem; font-weight: 800; margin-bottom: 16px; color: #444; }
+.confirm-buttons { display: flex; gap: 10px; justify-content: center; }
+.confirm-buttons button { border: none; border-radius: 16px; padding: 12px 22px; font-size: 1.1rem; font-weight: 800; cursor: pointer; }
+.confirm-no { background: #dfe6e9; }
+.confirm-yes { background: #e17055; color: #fff; }
+
+.app-toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 30px); opacity: 0; background: #2d3436; color: #fff; padding: 12px 20px; border-radius: 30px; font-weight: 800; z-index: 20002; transition: all .3s ease; pointer-events: none; max-width: 90vw; text-align: center; }
+.app-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+.timeline-content { position: relative; }
+.memory-del { position: absolute; top: 8px; right: 8px; border: none; background: transparent; cursor: pointer; font-size: 1rem; opacity: .6; }
+.memory-del:hover { opacity: 1; }
+.memory-form { max-width: 520px; margin: 18px auto 0; background: #fff; border-radius: 22px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,.15); display: grid; gap: 12px; }
+.memory-form[hidden] { display: none; }
+.memory-form h3 { font-family: 'Fredoka One', cursive; color: #E74C3C; }
+.memory-form label { display: grid; gap: 4px; font-weight: 800; color: #555; }
+.memory-form input, .memory-form textarea { font: inherit; font-weight: 600; padding: 10px 12px; border-radius: 12px; border: 2px solid #ddd; }
+.memory-form input:focus, .memory-form textarea:focus { outline: none; border-color: #F39C12; }
+.memory-form-buttons { display: flex; gap: 10px; justify-content: flex-end; }
+.memory-form-buttons button { border: none; border-radius: 14px; padding: 12px 20px; font-weight: 800; cursor: pointer; font-size: 1rem; }
+.memory-cancel { background: #eee; }
+.memory-save { background: linear-gradient(135deg, #F39C12, #E74C3C); color: #fff; }
+
+.progress-card::before { background: linear-gradient(90deg, #00b894, #0984e3); }
+.progress-header { background: linear-gradient(135deg, #00b894, #0984e3); }
+.progress-container { max-width: 1100px; margin: 0 auto; padding: 24px 16px 40px; }
+.progress-note { background: rgba(255,255,255,.9); border-radius: 16px; padding: 12px 16px; margin-bottom: 18px; color: #555; font-weight: 600; }
+.progress-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.pg-card { background: #fff; border-radius: 20px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.12); border-top: 6px solid #ccc; }
+.pg-card.livia { border-top-color: #ff6b9d; }
+.pg-card.julia { border-top-color: #9b59b6; }
+.pg-card.duel { border-top-color: #f39c12; }
+.pg-card h3 { font-family: 'Fredoka One', cursive; color: #333; margin-bottom: 4px; }
+.pg-sub { color: #777; font-size: .92rem; margin-bottom: 10px; }
+.pg-empty { color: #aaa; font-style: italic; }
+.pg-table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+.pg-table th { text-align: left; color: #888; font-weight: 800; padding: 4px 6px; border-bottom: 2px solid #eee; }
+.pg-table td { padding: 6px; border-bottom: 1px solid #f2f2f2; font-weight: 700; }
+.pg-skill { margin-bottom: 8px; }
+.pg-skill-head { display: flex; justify-content: space-between; gap: 8px; font-size: .92rem; font-weight: 700; margin-bottom: 3px; }
+.pg-skill-head small { color: #999; font-weight: 600; }
+.pg-bar { height: 10px; background: #eef1f6; border-radius: 8px; overflow: hidden; }
+.pg-fill { height: 100%; border-radius: 8px; }
+.pg-fill.high { background: #00b894; }
+.pg-fill.mid { background: #fdcb6e; }
+.pg-fill.low { background: #e17055; }

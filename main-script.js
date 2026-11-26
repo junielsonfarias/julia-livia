@@ -5,12 +5,7 @@
 // Estado da aplicacao
 let appState = {
     currentScreen: 'welcome',
-    photos: [],
-    drawings: [],
-    juliaPhotos: [],
-    liviaPhotos: [],
-    memories: [],
-    audioVolume: parseFloat(localStorage.getItem('audioVolume') || '1')
+    audioVolume: (() => { try { return parseFloat(localStorage.getItem('audioVolume') || '1'); } catch (e) { return 1; } })()
 };
 
 // Navegacao
@@ -57,6 +52,10 @@ function openSection(section) {
             break;
         case 'memories':
             showScreen('memories-section');
+            break;
+        case 'progress':
+            renderProgress();
+            showScreen('progress-section');
             break;
     }
     playSound('click');
@@ -200,327 +199,358 @@ function playSound(type){
     }catch(e){ return false; }
 }
 
-// Upload de fotos
-document.addEventListener('DOMContentLoaded', function() {
-    // Photo upload
-    const photoUpload = document.querySelector('.photo-upload-area');
-    const photoInput = document.getElementById('photo-input');
+// ==========================================
+// FOTOS, DESENHOS E MEMORIAS
+// Fotos ficam no IndexedDB do aparelho (cabe muito mais que o localStorage)
+// e sao reduzidas antes de salvar. Memorias ficam no localStorage.
+// ==========================================
+const MEDIA_DB = 'mundoJuliaLiviaFotos';
+const MEDIA_STORE = 'imagens';
+const GALLERIES = {
+    photos: { el: 'photo-gallery', empty: 'Nenhuma foto ainda... Adicione momentos especiais!' },
+    drawings: { el: 'drawings-gallery', empty: 'Os desenhos de Julia e Livia aparecerão aqui!' },
+    julia: { el: 'julia-gallery', empty: 'Adicione fotos da Julia!' },
+    livia: { el: 'livia-gallery', empty: 'Adicione fotos da Livia!' }
+};
 
-    if (photoUpload && photoInput) {
-        photoUpload.addEventListener('click', () => photoInput.click());
-        photoInput.addEventListener('change', handlePhotoUpload);
-    }
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
 
-    // Drawing upload
-    const drawingUpload = document.querySelector('.drawing-upload-area');
-    const drawingInput = document.getElementById('drawing-input');
-
-    if (drawingUpload && drawingInput) {
-        drawingUpload.addEventListener('click', () => drawingInput.click());
-        drawingInput.addEventListener('change', handleDrawingUpload);
-    }
-
-    // Carregar dados salvos
-    loadSavedData();
-
-    // Detectar dispositivo movel
-    detectMobile();
-});
-
-function handlePhotoUpload(event) {
-    const files = event.target.files;
-    const gallery = document.getElementById('photo-gallery');
-
-    if (!gallery) return;
-
-    // Limpar mensagem vazia
-    const emptyMsg = gallery.querySelector('.empty-message');
-    if (emptyMsg) emptyMsg.remove();
-
-    Array.from(files).forEach(file => {
-        if (file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const photoItem = createGalleryItem(e.target.result, file.name);
-                gallery.appendChild(photoItem);
-                appState.photos.push({ name: file.name, data: e.target.result });
-                saveData();
-            };
-            reader.readAsDataURL(file);
-        }
+function openMediaDB() {
+    return new Promise((resolve, reject) => {
+        if (!('indexedDB' in window)) return reject(new Error('sem IndexedDB'));
+        const req = indexedDB.open(MEDIA_DB, 1);
+        req.onupgradeneeded = () => {
+            const db = req.result;
+            if (!db.objectStoreNames.contains(MEDIA_STORE)) {
+                const st = db.createObjectStore(MEDIA_STORE, { keyPath: 'id', autoIncrement: true });
+                st.createIndex('kind', 'kind');
+            }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
     });
 }
 
-function handleDrawingUpload(event) {
-    const files = event.target.files;
-    const gallery = document.getElementById('drawings-gallery');
-
-    if (!gallery) return;
-
-    const emptyMsg = gallery.querySelector('.empty-message');
-    if (emptyMsg) emptyMsg.remove();
-
-    Array.from(files).forEach(file => {
-        if (file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const drawingItem = createGalleryItem(e.target.result, file.name);
-                gallery.appendChild(drawingItem);
-                appState.drawings.push({ name: file.name, data: e.target.result });
-                saveData();
-            };
-            reader.readAsDataURL(file);
-        }
+async function mediaTx(mode, fn) {
+    const db = await openMediaDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(MEDIA_STORE, mode);
+        const store = tx.objectStore(MEDIA_STORE);
+        let result;
+        Promise.resolve(fn(store)).then(r => { result = r; });
+        tx.oncomplete = () => resolve(result);
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error);
     });
 }
 
-function createGalleryItem(imageSrc, title) {
-    const item = document.createElement('div');
-    item.className = 'gallery-item';
-    item.innerHTML = `
-        <img src="${imageSrc}" alt="${title}" onclick="openLightbox(this.src)">
-        <div class="gallery-item-overlay">
-            <span>${title}</span>
-        </div>
-    `;
-    item.style.cssText = `
-        position: relative;
-        border-radius: 15px;
-        overflow: hidden;
-        aspect-ratio: 1;
-        cursor: pointer;
-        transition: transform 0.3s ease;
-    `;
+function mediaAdd(item) { return mediaTx('readwrite', st => new Promise(r => { st.add(item).onsuccess = e => r(e.target.result); })); }
+function mediaDelete(id) { return mediaTx('readwrite', st => { st.delete(id); }); }
+function mediaList(kind) {
+    return mediaTx('readonly', st => new Promise(r => {
+        const out = [];
+        st.index('kind').openCursor(IDBKeyRange.only(kind)).onsuccess = e => {
+            const c = e.target.result;
+            if (c) { out.push(c.value); c.continue(); } else r(out);
+        };
+    }));
+}
 
-    const img = item.querySelector('img');
-    img.style.cssText = `
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    `;
-
-    const overlay = item.querySelector('.gallery-item-overlay');
-    overlay.style.cssText = `
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        padding: 10px;
-        background: linear-gradient(transparent, rgba(0,0,0,0.7));
-        color: white;
-        font-size: 0.9rem;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    `;
-
-    item.addEventListener('mouseenter', () => {
-        item.style.transform = 'scale(1.05)';
-        overlay.style.opacity = '1';
+// Reduz a imagem (lado maior ate 1280px, JPEG) para economizar espaco
+function shrinkImage(file, maxSide) {
+    maxSide = maxSide || 1280;
+    return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+            const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+            const c = document.createElement('canvas');
+            c.width = Math.round(img.width * scale);
+            c.height = Math.round(img.height * scale);
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, c.width, c.height);
+            ctx.drawImage(img, 0, 0, c.width, c.height);
+            URL.revokeObjectURL(url);
+            c.toBlob(b => b ? resolve(b) : reject(new Error('falha ao converter')), 'image/jpeg', 0.82);
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('imagem inválida')); };
+        img.src = url;
     });
+}
 
-    item.addEventListener('mouseleave', () => {
-        item.style.transform = 'scale(1)';
-        overlay.style.opacity = '0';
+function showToast(msg) {
+    let t = document.getElementById('app-toast');
+    if (!t) {
+        t = document.createElement('div');
+        t.id = 'app-toast';
+        t.className = 'app-toast';
+        document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+async function addImages(kind, files) {
+    const list = Array.from(files || []).filter(f => f.type.startsWith('image/'));
+    if (!list.length) return;
+    let ok = 0;
+    for (const file of list) {
+        try {
+            const blob = await shrinkImage(file);
+            await mediaAdd({ kind, name: file.name, blob, date: new Date().toISOString() });
+            ok++;
+        } catch (e) {
+            console.log('Erro ao salvar imagem', e);
+        }
+    }
+    await renderGallery(kind);
+    showToast(ok === list.length
+        ? `✅ ${ok} ${ok === 1 ? 'imagem salva' : 'imagens salvas'}!`
+        : `⚠️ ${ok} de ${list.length} imagens salvas. O aparelho pode estar sem espaço.`);
+}
+
+const objectUrls = {};
+async function renderGallery(kind) {
+    const cfg = GALLERIES[kind];
+    const gallery = cfg && document.getElementById(cfg.el);
+    if (!gallery) return;
+    let items = [];
+    try { items = await mediaList(kind); } catch (e) { /* sem IndexedDB */ }
+    (objectUrls[kind] || []).forEach(u => URL.revokeObjectURL(u));
+    objectUrls[kind] = [];
+    gallery.innerHTML = '';
+    if (!items.length) {
+        gallery.innerHTML = `<p class="empty-message">${cfg.empty}</p>`;
+        return;
+    }
+    items.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    items.forEach(it => {
+        const src = URL.createObjectURL(it.blob);
+        objectUrls[kind].push(src);
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        item.innerHTML = `<img src="${src}" alt="${escapeHtml(it.name || 'foto')}" loading="lazy">
+            <button class="gallery-del" type="button" aria-label="Apagar imagem">🗑️</button>`;
+        item.querySelector('img').addEventListener('click', () => openLightbox(src));
+        item.querySelector('.gallery-del').addEventListener('click', (e) => {
+            e.stopPropagation();
+            confirmInPage('Apagar esta imagem?', async () => {
+                await mediaDelete(it.id);
+                renderGallery(kind);
+            });
+        });
+        gallery.appendChild(item);
     });
+}
 
-    return item;
+// Confirmacao dentro da pagina (sem caixa do navegador)
+function confirmInPage(text, onYes) {
+    const wrap = document.createElement('div');
+    wrap.className = 'confirm-overlay';
+    wrap.innerHTML = `<div class="confirm-box"><p>${escapeHtml(text)}</p>
+        <div class="confirm-buttons"><button class="confirm-no" type="button">✖ Não</button><button class="confirm-yes" type="button">✔ Sim</button></div></div>`;
+    document.body.appendChild(wrap);
+    wrap.querySelector('.confirm-no').onclick = () => wrap.remove();
+    wrap.querySelector('.confirm-yes').onclick = () => { wrap.remove(); onYes(); };
+    wrap.addEventListener('click', e => { if (e.target === wrap) wrap.remove(); });
+}
+
+// Fotos antigas que estavam no localStorage vao para o IndexedDB (uma vez so)
+async function migrateOldImages() {
+    try {
+        const raw = localStorage.getItem('mundoJuliaLivia');
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        const moves = [['photos', data.photos], ['drawings', data.drawings]];
+        let moved = 0;
+        for (const [kind, arr] of moves) {
+            for (const p of (arr || [])) {
+                if (!p || !p.data) continue;
+                const blob = await (await fetch(p.data)).blob();
+                await mediaAdd({ kind, name: p.name || 'imagem', blob, date: new Date().toISOString() });
+                moved++;
+            }
+        }
+        if (moved) {
+            delete data.photos; delete data.drawings; delete data.juliaPhotos; delete data.liviaPhotos;
+            localStorage.setItem('mundoJuliaLivia', JSON.stringify(data));
+        }
+    } catch (e) { console.log('Migração de fotos não concluída', e); }
 }
 
 // Lightbox
 function openLightbox(src) {
     const lightbox = document.createElement('div');
-    lightbox.id = 'lightbox';
-    lightbox.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.9);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10000;
-        cursor: pointer;
-    `;
-
-    lightbox.innerHTML = `
-        <img src="${src}" style="max-width: 90%; max-height: 90%; border-radius: 10px; box-shadow: 0 10px 50px rgba(0,0,0,0.5);">
-        <button style="position: absolute; top: 20px; right: 20px; background: white; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer;">X</button>
-    `;
-
+    lightbox.className = 'lightbox';
+    lightbox.innerHTML = `<img src="${src}" alt="Foto ampliada"><button type="button" aria-label="Fechar">✕</button>`;
     lightbox.addEventListener('click', () => lightbox.remove());
     document.body.appendChild(lightbox);
 }
 
-// Persistencia de dados
-function saveData() {
+// ---------- Memorias ----------
+function loadMemories() {
+    try { return (JSON.parse(localStorage.getItem('mundoJuliaLivia') || '{}').memories) || []; } catch (e) { return []; }
+}
+function saveMemories(list) {
     try {
-        localStorage.setItem('mundoJuliaLivia', JSON.stringify(appState));
-    } catch (e) {
-        console.log('Erro ao salvar dados:', e);
-    }
-}
-
-function loadSavedData() {
-    try {
-        const saved = localStorage.getItem('mundoJuliaLivia');
-        if (saved) {
-            const data = JSON.parse(saved);
-            appState = { ...appState, ...data };
-            renderSavedPhotos();
-            renderSavedDrawings();
-        }
-    } catch (e) {
-        console.log('Erro ao carregar dados:', e);
-    }
-}
-
-function renderSavedPhotos() {
-    const gallery = document.getElementById('photo-gallery');
-    if (!gallery || appState.photos.length === 0) return;
-
-    const emptyMsg = gallery.querySelector('.empty-message');
-    if (emptyMsg) emptyMsg.remove();
-
-    appState.photos.forEach(photo => {
-        const item = createGalleryItem(photo.data, photo.name);
-        gallery.appendChild(item);
-    });
-}
-
-function renderSavedDrawings() {
-    const gallery = document.getElementById('drawings-gallery');
-    if (!gallery || appState.drawings.length === 0) return;
-
-    const emptyMsg = gallery.querySelector('.empty-message');
-    if (emptyMsg) emptyMsg.remove();
-
-    appState.drawings.forEach(drawing => {
-        const item = createGalleryItem(drawing.data, drawing.name);
-        gallery.appendChild(item);
-    });
-}
-
-// Deteccao de dispositivo movel
-function detectMobile() {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-    if (isMobile) {
-        document.body.classList.add('is-mobile');
-    }
-}
-
-// Drag and drop para fotos
-document.addEventListener('DOMContentLoaded', function() {
-    const dropAreas = document.querySelectorAll('.photo-upload-area, .drawing-upload-area');
-
-    dropAreas.forEach(area => {
-        area.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            area.style.borderColor = '#667eea';
-            area.style.background = '#f0f0ff';
-        });
-
-        area.addEventListener('dragleave', () => {
-            area.style.borderColor = '#ccc';
-            area.style.background = 'white';
-        });
-
-        area.addEventListener('drop', (e) => {
-            e.preventDefault();
-            area.style.borderColor = '#ccc';
-            area.style.background = 'white';
-
-            const files = e.dataTransfer.files;
-            const input = area.querySelector('input');
-
-            if (input && files.length > 0) {
-                // Criar um novo FileList-like object
-                const dt = new DataTransfer();
-                Array.from(files).forEach(file => dt.items.add(file));
-                input.files = dt.files;
-                input.dispatchEvent(new Event('change'));
-            }
-        });
-    });
-});
-
-// Animacao de entrada
-function animateOnScroll() {
-    const elements = document.querySelectorAll('.menu-card, .game-card, .profile-card');
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-            }
-        });
-    }, { threshold: 0.1 });
-
-    elements.forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(30px)';
-        el.style.transition = 'all 0.5s ease';
-        observer.observe(el);
-    });
-}
-
-// Adicionar memoria
-function addMemory() {
-    const year = prompt('Ano da memoria:');
-    const title = prompt('Titulo da memoria:');
-    const description = prompt('Descricao:');
-
-    if (year && title) {
-        const memory = { year, title, description, date: new Date().toISOString() };
-        appState.memories.push(memory);
-        saveData();
-        renderMemories();
-    }
+        const data = JSON.parse(localStorage.getItem('mundoJuliaLivia') || '{}');
+        data.memories = list;
+        localStorage.setItem('mundoJuliaLivia', JSON.stringify(data));
+    } catch (e) { showToast('⚠️ Não foi possível salvar a memória.'); }
 }
 
 function renderMemories() {
     const timeline = document.querySelector('.timeline');
     if (!timeline) return;
+    const list = loadMemories().slice().sort((a, b) => String(b.year).localeCompare(String(a.year)) || (b.date || '').localeCompare(a.date || ''));
+    if (!list.length) {
+        timeline.innerHTML = `<div class="timeline-item"><div class="timeline-date">✨</div>
+            <div class="timeline-content"><h3>Começo de uma linda história!</h3><p>Toque em “+ Adicionar Memória” para guardar momentos especiais.</p></div></div>`;
+        return;
+    }
+    timeline.innerHTML = list.map(m => `<div class="timeline-item">
+        <div class="timeline-date">${escapeHtml(m.year)}</div>
+        <div class="timeline-content">
+            <button class="memory-del" type="button" data-date="${escapeHtml(m.date)}" aria-label="Apagar memória">🗑️</button>
+            <h3>${escapeHtml(m.title)}</h3><p>${escapeHtml(m.description || '')}</p>
+        </div></div>`).join('');
+    timeline.querySelectorAll('.memory-del').forEach(b => b.addEventListener('click', () => {
+        confirmInPage('Apagar esta memória?', () => {
+            saveMemories(loadMemories().filter(m => m.date !== b.dataset.date));
+            renderMemories();
+        });
+    }));
+}
 
-    // Limpar e reconstruir
-    timeline.innerHTML = '';
+function openMemoryForm() {
+    const form = document.getElementById('memory-form');
+    if (!form) return;
+    form.hidden = false;
+    form.reset();
+    form.querySelector('[name="year"]').value = new Date().getFullYear();
+    form.querySelector('[name="title"]').focus();
+}
 
-    appState.memories.forEach(memory => {
-        const item = document.createElement('div');
-        item.className = 'timeline-item';
-        item.innerHTML = `
-            <div class="timeline-date">${memory.year}</div>
-            <div class="timeline-content">
-                <h3>${memory.title}</h3>
-                <p>${memory.description || ''}</p>
-            </div>
-        `;
-        timeline.appendChild(item);
+function setupMemoryForm() {
+    const form = document.getElementById('memory-form');
+    const btn = document.querySelector('.add-memory-btn');
+    if (btn) btn.addEventListener('click', openMemoryForm);
+    if (!form) return;
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        const fd = new FormData(form);
+        const title = String(fd.get('title') || '').trim();
+        if (!title) return;
+        const list = loadMemories();
+        list.push({ year: String(fd.get('year') || '').trim() || String(new Date().getFullYear()), title,
+            description: String(fd.get('description') || '').trim(), date: new Date().toISOString() });
+        saveMemories(list);
+        form.hidden = true;
+        renderMemories();
+        showToast('💖 Memória guardada!');
     });
+    form.querySelector('.memory-cancel').addEventListener('click', () => { form.hidden = true; });
+}
 
-    if (appState.memories.length === 0) {
-        timeline.innerHTML = `
-            <div class="timeline-item">
-                <div class="timeline-date">2024</div>
-                <div class="timeline-content">
-                    <h3>Comeco de uma linda historia!</h3>
-                    <p>Adicione memorias especiais...</p>
-                </div>
-            </div>
-        `;
+function setupUploads() {
+    document.querySelectorAll('[data-upload]').forEach(area => {
+        const kind = area.dataset.upload;
+        const input = area.querySelector('input[type="file"]');
+        if (!input) return;
+        area.addEventListener('click', e => { if (e.target !== input) input.click(); });
+        input.addEventListener('change', () => { addImages(kind, input.files); input.value = ''; });
+        area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('drag'); });
+        area.addEventListener('dragleave', () => area.classList.remove('drag'));
+        area.addEventListener('drop', e => { e.preventDefault(); area.classList.remove('drag'); addImages(kind, e.dataTransfer.files); });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', async function () {
+    detectMobile();
+    setupUploads();
+    setupMemoryForm();
+    renderMemories();
+    await migrateOldImages();
+    Object.keys(GALLERIES).forEach(renderGallery);
+});
+
+// Deteccao de dispositivo movel
+function detectMobile() {
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        document.body.classList.add('is-mobile');
     }
 }
 
-// Conectar botao de adicionar memoria
-document.addEventListener('DOMContentLoaded', function() {
-    const addMemoryBtn = document.querySelector('.add-memory-btn');
-    if (addMemoryBtn) {
-        addMemoryBtn.addEventListener('click', addMemory);
-    }
-});
+// ==========================================
+// PAINEL DE PROGRESSO (para os pais)
+// Le o que cada jogo ja guarda no aparelho e mostra um resumo.
+// ==========================================
+function readJSON(key, fallback) {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; }
+}
+
+function skillBars(stats) {
+    const entries = Object.entries(stats || {}).filter(([, s]) => s && s.total);
+    if (!entries.length) return '<p class="pg-empty">Ainda não jogou.</p>';
+    return entries.sort((a, b) => a[1].ok / a[1].total - b[1].ok / b[1].total).map(([name, s]) => {
+        const pct = Math.round(100 * s.ok / s.total);
+        const cls = pct >= 80 ? 'high' : pct >= 50 ? 'mid' : 'low';
+        return `<div class="pg-skill"><div class="pg-skill-head"><span>${escapeHtml(name)}</span><b>${pct}% <small>(${s.ok}/${s.total})</small></b></div>
+            <div class="pg-bar"><div class="pg-fill ${cls}" style="width:${pct}%"></div></div></div>`;
+    }).join('');
+}
+
+function renderProgress() {
+    const box = document.getElementById('progress-content');
+    if (!box) return;
+    const cards = [];
+
+    // Livia - Leitura Relampago
+    const rec = readJSON('leitura_recordes_v1', {});
+    const modeNames = { 2: '2 sílabas', 3: '3 sílabas', 4: '4 sílabas', variadas: 'Variadas' };
+    const rows = Object.keys(modeNames).map(m => {
+        const list = rec[m] || [];
+        const best = name => list.filter(r => r.name === name).reduce((x, r) => Math.max(x, r.score), 0);
+        return `<tr><td>${modeNames[m]}</td><td>${best('Livia') || '—'}</td><td>${best('Julia') || '—'}</td></tr>`;
+    }).join('');
+    cards.push(`<div class="pg-card livia"><h3>⚡ Leitura Relâmpago</h3><p class="pg-sub">Recorde de palavras lidas em 60 s</p>
+        <table class="pg-table"><tr><th>Modo</th><th>🧚 Livia</th><th>👸 Julia</th></tr>${rows}</table></div>`);
+
+    // Julia - Detetive das Questoes
+    cards.push(`<div class="pg-card julia"><h3>🕵️ Detetive das Questões</h3><p class="pg-sub">Acertos de primeira por habilidade (as mais difíceis primeiro)</p>
+        ${skillBars(readJSON('detetive_stats_v1', {}))}</div>`);
+
+    // Julia - Olimpiada
+    const sim = readJSON('olimpiada_simulado_recorde_v1', null);
+    cards.push(`<div class="pg-card julia"><h3>🥇 Treino Olímpico</h3>
+        <p class="pg-sub">${sim ? `Melhor simulado: <b>${sim.score}/10</b> em ${new Date(sim.date).toLocaleDateString('pt-BR')}` : 'Ainda não fez simulado.'}</p>
+        ${skillBars(readJSON('olimpiada_stats_v1', {}))}</div>`);
+
+    // Julia - Tabuada (ultimas sessoes)
+    const tab = readJSON('tabuada_progress_julia', []);
+    const lastTab = tab.slice(-5).reverse();
+    cards.push(`<div class="pg-card julia"><h3>✖️ Tabuada</h3><p class="pg-sub">Últimas partidas da Julia</p>
+        ${lastTab.length ? '<table class="pg-table"><tr><th>Data</th><th>Acertos</th><th>Tempo médio</th></tr>' + lastTab.map(s =>
+            `<tr><td>${new Date(s.date).toLocaleDateString('pt-BR')}</td><td>${s.correct}/${s.total} (${s.percent}%)</td><td>${s.avgResponseMs ? (s.avgResponseMs / 1000).toFixed(1) + ' s' : '—'}</td></tr>`).join('') + '</table>'
+            : '<p class="pg-empty">Ainda não jogou.</p>'}</div>`);
+
+    // Duelos
+    const d = readJSON('duelos_placar_v1', { total: { julia: 0, livia: 0, empates: 0 }, jogos: {} });
+    const mem = readJSON('memoria_duelos_v1', { julia: 0, livia: 0, empates: 0 });
+    const gameNames = { trilha: '🎲 Trilha do Saber', relampago: '⚡ Duelo Relâmpago', velha: '⭕ Jogo da Velha' };
+    const duelRows = Object.entries(gameNames).map(([k, n]) => {
+        const g = (d.jogos || {})[k] || { julia: 0, livia: 0, empates: 0 };
+        return `<tr><td>${n}</td><td>${g.julia}</td><td>${g.livia}</td><td>${g.empates}</td></tr>`;
+    }).join('') + `<tr><td>🧠 Memória</td><td>${mem.julia || 0}</td><td>${mem.livia || 0}</td><td>${mem.empates || 0}</td></tr>`;
+    cards.push(`<div class="pg-card duel"><h3>⚔️ Duelos</h3><table class="pg-table"><tr><th>Jogo</th><th>👸</th><th>🧚</th><th>🤝</th></tr>${duelRows}</table></div>`);
+
+    box.innerHTML = cards.join('');
+}
 
 // inicializar controle de volume se presente
 document.addEventListener('DOMContentLoaded', function(){
