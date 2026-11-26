@@ -656,3 +656,11 @@ body {
     .explain { font-size: 0.98rem; }
     .game-header h1 { font-size: 1.15rem; }
 }
+
+/* Tela baixa: tela inicial compacta */
+@media (max-height: 700px) {
+    .start-content { padding: 18px !important; }
+    .start-content h2 { margin: 0 0 4px !important; }
+    .start-content > p { margin-bottom: 8px !important; }
+    .start-content .letters-preview { display: none; }
+}

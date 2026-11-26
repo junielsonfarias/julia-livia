@@ -699,3 +699,15 @@ body {
         font-size: 0.65rem;
     }
 }
+
+/* Telas baixas (celular / tablet deitado): tudo menor para caber sem rolar */
+@media (max-height: 760px) {
+    .game-header { padding: 8px 14px; }
+    .game-area { padding: 10px; }
+    .game-content { padding: 14px; }
+    .question-area { margin-bottom: 10px; }
+    .question-text { font-size: 1.3rem; margin-bottom: 8px; }
+    .sound-btn { padding: 10px 24px; font-size: 1.05rem; }
+    .sound-text { margin-top: 6px; font-size: 1.5rem; min-height: 0; }
+    .animals-grid { gap: 10px; margin-bottom: 8px; max-width: 420px; margin-left: auto; margin-right: auto; }
+}

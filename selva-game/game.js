@@ -1,0 +1,357 @@
+// ==========================================
+// Aventura na Selva - jogo de tabuleiro (2 a 4 jogadores)
+// Julia, Livia e convidados atravessam a selva ate o Templo Dourado.
+// Dado 3D animado a cada jogada, casas com surpresas e desafios
+// (perguntas do nivel de cada jogador).
+// ==========================================
+
+const CELLS = 36;            // 0 = saida, 35 = Templo Dourado
+const COLS = 6;
+const EVENTS = {
+    3: 'cipo', 5: 'desafio', 7: 'macaco', 9: 'elefante', 11: 'desafio', 13: 'areia',
+    15: 'cocos', 17: 'desafio', 19: 'jacare', 21: 'tesouro', 23: 'macaco', 25: 'desafio',
+    27: 'cipo', 29: 'areia', 31: 'jacare', 33: 'desafio'
+};
+const EVENT_INFO = {
+    desafio: { emoji: '🗿', title: 'Desafio da Estátua!', text: 'A estátua da selva quer te perguntar: acerte e avance, erre e vai voltar!' },
+    macaco: { emoji: '🐒', title: 'Macacos travessos!', text: 'Macacos fazem bagunça sem parar: três casas para trás você vai voltar!' },
+    cipo: { emoji: '🌿', title: 'Balançou no cipó!', text: 'Pegue o cipó e balance com coragem: quatro casas à frente nessa viagem!' },
+    elefante: { emoji: '🐘', title: 'Carona do elefante!', text: 'O elefante passou e te deu carona: avance três casas, sua campeona!' },
+    areia: { emoji: '🌀', title: 'Areia movediça!', text: 'Areia movediça, devagar, devagarinho: fique uma rodada parada no caminho!' },
+    cocos: { emoji: '🥥', title: 'Chuva de cocos!', text: 'Chuva de cocos caiu lá do céu: os outros voltam duas casas, que escarcéu!' },
+    jacare: { emoji: '🐊', title: 'Rio dos jacarés!', text: 'Os jacarés guardam o rio da floresta: responda certinho para seguir a festa!' },
+    tesouro: { emoji: '💎', title: 'Um tesouro!', text: 'Achou um tesouro escondido no chão: jogue de novo, que emoção!' }
+};
+const GUEST_EMOJIS = ['🦁', '🐯', '🐵', '🦊', '🐸', '🐼', '🐨', '🦄'];
+const GUEST_COLORS = ['#e67e22', '#16a085', '#2980b9', '#c0392b'];
+const MAX_PLAYERS = 4;
+
+const state = {
+    setup: [],          // jogadores escolhidos na preparacao
+    players: [],        // { id, name, emoji, color, level, pos, skip }
+    turn: 0,
+    busy: false,
+    over: false
+};
+
+// ---------- Utilidades ----------
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function goBack() {
+    if (window.parent !== window) {
+        try { if (window.parent.closeGameModal) { window.parent.closeGameModal(); return; } } catch (e) {}
+    }
+    if (window.history.length > 1) window.history.back();
+    else window.location.href = '../index.html';
+}
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+}
+function goSetup() {
+    renderSetup();
+    document.getElementById('score-line').innerHTML = Duelo.scoreText('selva');
+    showScreen('setup-screen');
+}
+function speakIntro() {
+    KidsAudio.speak('Aventura na Selva! Cada um joga o dado na sua vez e anda pela trilha. ' +
+        'Cuidado com as surpresas: macacos, areia movediça e jacarés. Na estátua mágica, responda a pergunta para avançar. ' +
+        'Quem chegar primeiro ao Templo Dourado vence!', { rate: 0.92 });
+}
+
+// ---------- Preparacao (jogadores e convidados) ----------
+const SETUP_KEY = 'selva_jogadores_v1';
+
+function defaultSetup() {
+    const P = Duelo.PLAYERS;
+    return [
+        { id: 'julia', name: P.julia.name, emoji: P.julia.emoji, color: P.julia.color, level: Duelo.getLevel('julia'), on: true, fixed: true },
+        { id: 'livia', name: P.livia.name, emoji: P.livia.emoji, color: P.livia.color, level: Duelo.getLevel('livia'), on: true, fixed: true }
+    ];
+}
+
+function loadSetup() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(SETUP_KEY));
+        if (Array.isArray(saved) && saved.length >= 2) {
+            // niveis da Julia e da Livia vem sempre da escolha compartilhada dos duelos
+            saved.forEach(p => { if (p.fixed) p.level = Duelo.getLevel(p.id); });
+            return saved;
+        }
+    } catch (e) {}
+    return defaultSetup();
+}
+function saveSetup() { try { localStorage.setItem(SETUP_KEY, JSON.stringify(state.setup)); } catch (e) {} }
+
+function renderSetup() {
+    const box = document.getElementById('player-setup');
+    box.innerHTML = '';
+    state.setup.forEach((p, i) => {
+        const row = document.createElement('div');
+        row.className = 'setup-row' + (p.on ? '' : ' off');
+        row.style.setProperty('--pc', p.color);
+        row.innerHTML = `
+            <button class="setup-toggle" type="button" aria-pressed="${p.on}" title="${p.on ? 'Vai jogar' : 'Não vai jogar'}">${p.on ? '✅' : '⬜'}</button>
+            ${p.fixed ? `<span class="setup-emoji">${p.emoji}</span><span class="setup-name">${esc(p.name)}</span>`
+                      : `<button class="setup-emoji pick" type="button" title="Trocar bichinho">${p.emoji}</button>
+                         <input class="setup-name-input" type="text" maxlength="12" value="${esc(p.name)}" aria-label="Nome do convidado">`}
+            <select class="setup-level" aria-label="Nível de ${esc(p.name)}">
+                ${Object.entries(Duelo.LEVELS).map(([k, v]) => `<option value="${k}" ${p.level === k ? 'selected' : ''}>${v}</option>`).join('')}
+            </select>
+            ${p.fixed ? '' : '<button class="setup-remove" type="button" title="Remover convidado">✕</button>'}`;
+        row.querySelector('.setup-toggle').onclick = () => { p.on = !p.on; saveSetup(); renderSetup(); KidsAudio.play('select'); };
+        row.querySelector('.setup-level').onchange = e => {
+            p.level = e.target.value;
+            if (p.fixed) Duelo.setLevel(p.id, p.level);
+            saveSetup();
+        };
+        const pickBtn = row.querySelector('.pick');
+        if (pickBtn) pickBtn.onclick = () => {
+            const used = state.setup.map(x => x.emoji);
+            const next = GUEST_EMOJIS.find((e, k) => k > GUEST_EMOJIS.indexOf(p.emoji) && !used.includes(e)) ||
+                         GUEST_EMOJIS.find(e => !used.includes(e)) || p.emoji;
+            p.emoji = next; saveSetup(); renderSetup(); KidsAudio.play('flip');
+        };
+        const input = row.querySelector('.setup-name-input');
+        if (input) input.oninput = () => { p.name = input.value.trim() || 'Convidado'; saveSetup(); };
+        const rm = row.querySelector('.setup-remove');
+        if (rm) rm.onclick = () => { state.setup.splice(i, 1); saveSetup(); renderSetup(); };
+        box.appendChild(row);
+    });
+    const count = state.setup.filter(p => p.on).length;
+    document.getElementById('add-guest').hidden = state.setup.length >= MAX_PLAYERS;
+    const start = document.getElementById('start-btn');
+    start.disabled = count < 2;
+    start.textContent = count < 2 ? 'Escolha pelo menos 2 jogadores' : `Começar a aventura com ${count} 🌴`;
+}
+
+function addGuest() {
+    if (state.setup.length >= MAX_PLAYERS) return;
+    const used = state.setup.map(p => p.emoji);
+    const n = state.setup.filter(p => !p.fixed).length;
+    state.setup.push({
+        id: 'convidado' + Date.now(), name: 'Convidado ' + (n + 1),
+        emoji: GUEST_EMOJIS.find(e => !used.includes(e)) || '🙂',
+        color: GUEST_COLORS[n % GUEST_COLORS.length], level: 'medio', on: true, fixed: false
+    });
+    saveSetup();
+    renderSetup();
+    KidsAudio.play('select');
+    const inputs = document.querySelectorAll('.setup-name-input');
+    if (inputs.length) { inputs[inputs.length - 1].focus(); inputs[inputs.length - 1].select(); }
+}
+
+// ---------- Tabuleiro ----------
+function cellGrid(i) {
+    const row = Math.floor(i / COLS);
+    const col = row % 2 === 0 ? i % COLS : COLS - 1 - (i % COLS);
+    return { row, col };
+}
+
+function renderBoard() {
+    const board = document.getElementById('board');
+    let html = '';
+    for (let i = 0; i < CELLS; i++) {
+        const { row, col } = cellGrid(i);
+        const ev = EVENTS[i];
+        const label = i === 0 ? '🚩' : i === CELLS - 1 ? '🛕' : ev ? EVENT_INFO[ev].emoji : i;
+        const here = state.players.filter(p => p.pos === i);
+        const pawns = here.map((p, k) => `<span class="pawn" style="--pc:${p.color};--k:${k}" title="${esc(p.name)}">${p.emoji}</span>`).join('');
+        html += `<div class="cell ${ev || ''} ${i === 0 ? 'start' : ''} ${i === CELLS - 1 ? 'finish' : ''}" style="grid-row:${row + 1};grid-column:${col + 1}">
+            <span class="cell-label">${label}</span><span class="pawns n${here.length}">${pawns}</span></div>`;
+    }
+    board.innerHTML = html;
+    renderRanking();
+}
+
+function renderRanking() {
+    const cur = state.players[state.turn];
+    document.getElementById('ranking').innerHTML = state.players.map(p => `
+        <div class="rank-row ${p === cur ? 'current' : ''}" style="--pc:${p.color}">
+            <span class="rank-emoji">${p.emoji}</span><span class="rank-name">${esc(p.name)}${p.skip ? ' 🌀' : ''}</span>
+            <span class="rank-pos">casa ${p.pos}</span></div>`).join('');
+}
+
+// ---------- Fluxo do jogo ----------
+function startGame() {
+    const chosen = state.setup.filter(p => p.on);
+    if (chosen.length < 2) return;
+    state.players = chosen.map(p => ({ id: p.id, name: p.name, emoji: p.emoji, color: p.color, level: p.level, pos: 0, skip: false }));
+    // Alterna entre Julia e Livia quem comeca; convidados entram na sequencia
+    const starter = Duelo.nextStarter('selva');
+    const idx = state.players.findIndex(p => p.id === starter);
+    state.turn = idx >= 0 ? idx : 0;
+    state.over = false;
+    state.busy = false;
+    renderBoard();
+    showScreen('game-screen');
+    KidsAudio.play('start');
+    beginTurn();
+}
+
+function beginTurn() {
+    if (state.over) return;
+    const p = state.players[state.turn];
+    renderRanking();
+    const who = document.getElementById('turn-who');
+    who.innerHTML = `<span class="who-emoji">${p.emoji}</span> Vez de <b>${esc(p.name)}</b>`;
+    document.getElementById('turn-card').style.setProperty('--pc', p.color);
+    const btn = document.getElementById('roll-btn');
+    if (p.skip) {
+        p.skip = false;
+        btn.disabled = true;
+        setMsg(`🌀 ${esc(p.name)} ainda está na areia movediça e perde esta vez.`);
+        KidsAudio.speak(`${p.name} ainda está presa na areia movediça!`, { rate: 0.95 });
+        setTimeout(nextTurn, 2600);
+        return;
+    }
+    btn.disabled = false;
+    setMsg('Toque em <b>Jogar o dado</b>!');
+    KidsAudio.play('turn');
+    KidsAudio.speak(`Vez de ${p.name}!`, { rate: 0.95 });
+}
+
+function setMsg(html) { document.getElementById('turn-msg').innerHTML = html; }
+
+async function rollTurn() {
+    if (state.busy || state.over) return;
+    state.busy = true;
+    const btn = document.getElementById('roll-btn');
+    btn.disabled = true;
+    const p = state.players[state.turn];
+    const n = await Dado.roll({ name: p.name, emoji: p.emoji, theme: 'selva' });
+    setMsg(`${p.emoji} tirou <b>${n}</b>!`);
+    await move(p, n);
+    if (state.over) return;
+    const again = await landOn(p);
+    state.busy = false;
+    if (state.over) return;
+    if (again) { setMsg(`💎 ${esc(p.name)} joga de novo!`); beginTurn(); }
+    else nextTurn();
+}
+
+async function move(p, steps) {
+    const dir = steps > 0 ? 1 : -1;
+    for (let s = 0; s < Math.abs(steps); s++) {
+        const next = p.pos + dir;
+        if (next < 0 || next > CELLS - 1) break;
+        p.pos = next;
+        renderBoard();
+        KidsAudio.play('click');
+        await sleep(240);
+        if (p.pos === CELLS - 1) { finish(p); return; }
+    }
+}
+
+// Mostra a tela do evento e espera o "Continuar" (ou a resposta da pergunta)
+function showEvent(ev, extra) {
+    return new Promise(resolve => {
+        const info = EVENT_INFO[ev];
+        const ov = document.getElementById('event-overlay');
+        const card = document.getElementById('event-card');
+        document.getElementById('event-emoji').textContent = info.emoji;
+        document.getElementById('event-title').textContent = info.title;
+        document.getElementById('event-text').textContent = info.text;
+        card.className = 'event-card ev-' + ev;
+        const qBox = document.getElementById('event-question');
+        const ok = document.getElementById('event-ok');
+        qBox.hidden = true;
+        ok.hidden = false;
+        ov.hidden = false;
+        KidsAudio.play(['macaco', 'areia', 'cocos'].includes(ev) ? 'wrong' : 'star');
+        KidsAudio.speak(info.title + ' ' + info.text, { rate: 0.95 });
+        if (extra && extra.question) {
+            ok.hidden = true;
+            const p = extra.player;
+            const q = DueloPerguntas.generate(p.level);
+            qBox.hidden = false;
+            qBox.style.setProperty('--pc', p.color);
+            DueloPerguntas.render(qBox, q, correct => {
+                KidsAudio.play(correct ? 'correct' : 'wrong');
+                DueloPerguntas.feedback(qBox, correct ? '✅ Acertou!' : `❌ ${q.explain || 'Não foi dessa vez.'}`, correct ? 'good' : 'bad');
+                if (p.level !== 'dificil') KidsAudio.speak(correct ? 'Acertou!' : 'Não foi dessa vez!', { interrupt: false });
+                setTimeout(() => { ov.hidden = true; resolve(correct); }, correct ? 1300 : 2600);
+            }, { hearButton: p.level !== 'dificil' });
+            if (p.level !== 'dificil') setTimeout(() => KidsAudio.speak(q.speak, { rate: 0.85, interrupt: false }), 200);
+        } else {
+            ok.onclick = () => { ov.hidden = true; resolve(true); };
+        }
+    });
+}
+
+// Resolve a casa onde caiu. Devolve true se joga de novo.
+async function landOn(p) {
+    const ev = EVENTS[p.pos];
+    if (!ev) return false;
+    await sleep(250);
+    if (ev === 'desafio' || ev === 'jacare') {
+        const correct = await showEvent(ev, { question: true, player: p });
+        if (ev === 'desafio') {
+            if (correct) { setMsg(`🗿 ${esc(p.name)} acertou e avança 2!`); await move(p, 2); }
+            else { setMsg(`🗿 ${esc(p.name)} errou e volta 2.`); await move(p, -2); }
+        } else {
+            if (correct) setMsg(`🐊 ${esc(p.name)} atravessou o rio!`);
+            else { setMsg(`🐊 Os jacarés assustaram ${esc(p.name)}: volta 4.`); await move(p, -4); }
+        }
+        return false;
+    }
+    await showEvent(ev);
+    if (ev === 'macaco') await move(p, -3);
+    else if (ev === 'cipo') await move(p, 4);
+    else if (ev === 'elefante') await move(p, 3);
+    else if (ev === 'areia') { p.skip = true; renderRanking(); }
+    else if (ev === 'cocos') {
+        state.players.filter(o => o !== p).forEach(o => { o.pos = Math.max(0, o.pos - 2); });
+        renderBoard();
+    } else if (ev === 'tesouro') return true;
+    return false;
+}
+
+function nextTurn() {
+    if (state.over) return;
+    state.turn = (state.turn + 1) % state.players.length;
+    beginTurn();
+}
+
+function finish(winner) {
+    state.over = true;
+    state.busy = false;
+    document.getElementById('event-overlay').hidden = true;
+    const key = (winner.id === 'julia' || winner.id === 'livia') ? winner.id : 'convidado';
+    Duelo.recordResult('selva', key);
+    const sorted = state.players.slice().sort((a, b) => b.pos - a.pos);
+    document.getElementById('winner-emoji').textContent = winner.emoji;
+    document.getElementById('winner-title').textContent = `${winner.name} chegou ao Templo Dourado! 🏆`;
+    document.getElementById('winner-msg').textContent = 'Que aventura! A selva inteira está comemorando!';
+    document.getElementById('final-ranking').innerHTML = sorted.map((p, i) =>
+        `<div class="final-row" style="--pc:${p.color}"><b>${['🥇', '🥈', '🥉', '🏅'][i]}</b> ${p.emoji} ${esc(p.name)} <span>casa ${p.pos}</span></div>`).join('');
+    document.getElementById('score-line-end').innerHTML = Duelo.scoreText('selva');
+    setTimeout(() => {
+        showScreen('result-screen');
+        KidsAudio.play('win');
+        KidsAudio.speak(`${winner.name} venceu a Aventura na Selva!`);
+        confetti();
+    }, 600);
+}
+
+function confetti() {
+    const items = ['🎉', '🌺', '🍃', '⭐', '🦋', '💎'];
+    for (let i = 0; i < 30; i++) {
+        const c = document.createElement('span');
+        c.className = 'confetti';
+        c.textContent = items[i % items.length];
+        c.style.left = Math.random() * 100 + 'vw';
+        c.style.animationDuration = (2 + Math.random() * 2) + 's';
+        c.style.animationDelay = (Math.random() * 0.8) + 's';
+        document.body.appendChild(c);
+        setTimeout(() => c.remove(), 5000);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    state.setup = loadSetup();
+    renderSetup();
+    document.getElementById('score-line').innerHTML = Duelo.scoreText('selva');
+});

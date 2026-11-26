@@ -39,13 +39,16 @@
     function recordResult(game, winner) {
         const all = loadJSON(SCORE_KEY, { total: { julia: 0, livia: 0, empates: 0 }, jogos: {} });
         const g = all.jogos[game] || (all.jogos[game] = { julia: 0, livia: 0, empates: 0 });
-        const key = winner === 'julia' || winner === 'livia' ? winner : 'empates';
-        g[key]++; all.total[key]++;
+        // julia / livia / 'empate' / qualquer outro nome = convidado
+        const key = winner === 'julia' || winner === 'livia' ? winner : (winner === 'empate' || !winner ? 'empates' : 'convidados');
+        g[key] = (g[key] || 0) + 1; all.total[key] = (all.total[key] || 0) + 1;
         saveJSON(SCORE_KEY, all);
     }
     function scoreText(game) {
         const s = getScore(game);
-        return `🏆 Vitórias — 👸 Julia: <b>${s.julia}</b> · 🧚 Livia: <b>${s.livia}</b>` + (s.empates ? ` · 🤝 Empates: <b>${s.empates}</b>` : '');
+        return `🏆 Vitórias — 👸 Julia: <b>${s.julia}</b> · 🧚 Livia: <b>${s.livia}</b>` +
+            (s.convidados ? ` · 🙂 Convidados: <b>${s.convidados}</b>` : '') +
+            (s.empates ? ` · 🤝 Empates: <b>${s.empates}</b>` : '');
     }
 
     // Quem comeca alterna a cada partida

@@ -23,3 +23,16 @@ body.graficos { background: linear-gradient(135deg, #00b894 0%, #0984e3 100%); }
     .picto-row { grid-template-columns: 82px 1fr; }
     .picto-icons { font-size: 1.3rem; letter-spacing: 2px; }
 }
+
+/* Tablet/computador deitado: grafico a esquerda e pergunta a direita (sem rolar) */
+@media (min-width: 900px) and (orientation: landscape) {
+    #game-screen .panel.left {
+        display: grid; grid-template-columns: 1.15fr 1fr; column-gap: 20px; align-items: start;
+        grid-template-areas: "badge q" "title q" "chart q";
+    }
+    #game-screen .badge-row { grid-area: badge; }
+    #game-screen .chart-title { grid-area: title; }
+    #game-screen .chart { grid-area: chart; margin-bottom: 0; }
+    #game-screen .question-box { grid-area: q; }
+    #game-screen .screen, .screen.active#game-screen { max-width: 1100px; }
+}

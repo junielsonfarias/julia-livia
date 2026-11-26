@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detetive das Questões - Mundo de Julia & Livia</title>
     <base href="/interpretacao-game/">
-    <link rel="stylesheet" href="styles.css?v=c45b93a7">
+    <link rel="stylesheet" href="styles.css?v=cdeb4c4f">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -45,8 +45,8 @@
                         </button>
                     </div>
 
-                    <div class="method">
-                        <h3>🔎 O método do detetive</h3>
+                    <details class="method" id="method-box" open>
+                        <summary><h3>🔎 O método do detetive</h3></summary>
                         <ol>
                             <li><b>Leia tudo</b> até o fim, com calma.</li>
                             <li>Descubra <b>o que a pergunta quer saber</b>.</li>
@@ -54,7 +54,7 @@
                             <li>Fique de olho nas <mark>palavras-chave</mark>: NÃO, INCORRETA, cada, metade, sobrou, a mais...</li>
                             <li>Responda e <b>confira se faz sentido</b>.</li>
                         </ol>
-                    </div>
+                    </details>
 
                     <label class="toggle"><input type="checkbox" id="opt-keywords" checked> 🖍️ Marcar as palavras-chave</label>
                     <button class="link-btn" onclick="showReport()">📊 Ver meu progresso</button>
@@ -140,8 +140,9 @@
         </main>
     </div>
 
-    <script src="../shared/kids-audio.js?v=884d58e9"></script>
+    <script src="../shared/kids-audio.js?v=9ae1984f"></script>
     <script src="data.js?v=a2880166"></script>
-    <script src="game.js?v=5a8206e7"></script>
+    <script src="game.js?v=b827c1db"></script>
+    <script src="../shared/fit-screen.js?v=14ec2899"></script>
 </body>
 </html>

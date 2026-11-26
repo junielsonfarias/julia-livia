@@ -120,16 +120,10 @@ async function rollDice() {
     btn.disabled = true;
     const dice = document.getElementById('dice');
     const faces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
-    let n = 1;
-    for (let i = 0; i < 10; i++) {
-        n = Math.floor(Math.random() * 6) + 1;
-        dice.textContent = faces[n - 1];
-        dice.classList.remove('spin'); void dice.offsetWidth; dice.classList.add('spin');
-        KidsAudio.play('tick');
-        await wait(70 + i * 15);
-    }
-    KidsAudio.speak(String(n));
-    await wait(400);
+    const p = Duelo.PLAYERS[state.turn];
+    // Tela animada do dado (3D, em tela cheia)
+    const n = await Dado.roll({ name: p.name, emoji: p.emoji, theme: 'trilha' });
+    dice.textContent = faces[n - 1];
     await move(state.turn, n);
     if (state.over) return;
 

@@ -55,6 +55,7 @@ function openSection(section) {
             break;
         case 'progress':
             renderProgress();
+            updateStorageInfo();
             showScreen('progress-section');
             break;
     }
@@ -88,7 +89,8 @@ function playGame(gameId) {
         'dinheiro': 'dinheiro-game/index.html',
         'trilha': 'trilha-game/index.html',
         'relampago': 'relampago-game/index.html',
-        'velha': 'velha-game/index.html'
+        'velha': 'velha-game/index.html',
+        'selva': 'selva-game/index.html'
     };
 
     const route = gameRoutes[gameId];
@@ -103,29 +105,55 @@ function playGame(gameId) {
 }
 
 // Modal de jogos inline (usa iframe)
-function openGameModal(src) {
-    // cria som de clique
-    playSound('click');
-    let modal = document.getElementById('game-modal');
-    if (!modal) return window.location.href = src; // fallback
-    const iframe = document.getElementById('game-iframe');
-    iframe.src = src;
-    modal.classList.remove('hidden');
-    modal.setAttribute('aria-hidden', 'false');
+// Troca a pagina do iframe SEM criar entradas no historico do navegador
+function setGameFrame(iframe, url) {
+    try { iframe.contentWindow.location.replace(url); }
+    catch (e) { iframe.src = url; }
 }
 
-function closeGameModal() {
+function openGameModal(src) {
+    playSound('click');
+    const modal = document.getElementById('game-modal');
+    if (!modal) return window.location.href = src; // fallback
+    const iframe = document.getElementById('game-iframe');
+    setGameFrame(iframe, new URL(src, location.href).href);
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+    // Botao/gesto "voltar" do celular fecha o jogo (e nao o app inteiro)
+    try { history.pushState({ gameModal: true }, ''); } catch (e) {}
+    setTimeout(() => { try { iframe.focus(); } catch (e) {} }, 300);
+}
+
+function isGameModalOpen() {
+    const modal = document.getElementById('game-modal');
+    return modal && !modal.classList.contains('hidden');
+}
+
+// Fecha de verdade (sem mexer no historico)
+function hideGameModal() {
+    const modal = document.getElementById('game-modal');
+    if (!modal || modal.classList.contains('hidden')) return;
     playSound('click');
     setTimeout(updateDuelTotal, 50);
-    let modal = document.getElementById('game-modal');
-    if (!modal) return;
     const iframe = document.getElementById('game-iframe');
-    // Para a voz do jogo e descarrega o iframe (para audio e timers)
+    // Para a voz do jogo e descarrega o iframe (para audio, microfone e timers)
     try { if ('speechSynthesis' in window) speechSynthesis.cancel(); } catch (e) {}
-    iframe.src = '';
+    setGameFrame(iframe, 'about:blank');
     modal.classList.add('hidden');
     modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
 }
+
+// Chamado pelo botao "Voltar" de cada jogo, pelo X e pela tecla Esc
+function closeGameModal() {
+    if (!isGameModalOpen()) return;
+    if (history.state && history.state.gameModal) history.back();   // o popstate fecha
+    else hideGameModal();
+}
+
+window.addEventListener('popstate', () => { if (isGameModalOpen()) hideGameModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isGameModalOpen()) closeGameModal(); });
 
 // Sistema de audio simples
 function setAudioVolume(v){
@@ -543,7 +571,7 @@ function renderProgress() {
     // Duelos
     const d = readJSON('duelos_placar_v1', { total: { julia: 0, livia: 0, empates: 0 }, jogos: {} });
     const mem = readJSON('memoria_duelos_v1', { julia: 0, livia: 0, empates: 0 });
-    const gameNames = { trilha: '🎲 Trilha do Saber', relampago: '⚡ Duelo Relâmpago', velha: '⭕ Jogo da Velha' };
+    const gameNames = { selva: '🌴 Aventura na Selva', trilha: '🎲 Trilha do Saber', relampago: '⚡ Duelo Relâmpago', velha: '⭕ Jogo da Velha' };
     const duelRows = Object.entries(gameNames).map(([k, n]) => {
         const g = (d.jogos || {})[k] || { julia: 0, livia: 0, empates: 0 };
         return `<tr><td>${n}</td><td>${g.julia}</td><td>${g.livia}</td><td>${g.empates}</td></tr>`;
@@ -552,6 +580,126 @@ function renderProgress() {
 
     box.innerHTML = cards.join('');
 }
+
+// ==========================================
+// DADOS NO APARELHO + SEM INTERNET
+// Tudo (recordes, progresso, memorias, fotos) fica SO neste aparelho.
+// - Pede ao navegador armazenamento permanente (para nao apagar os dados)
+// - Backup em arquivo para trocar de aparelho sem perder nada
+// - Aviso quando estiver sem internet (os jogos continuam funcionando)
+// ==========================================
+async function requestPersistentStorage() {
+    try {
+        if (navigator.storage && navigator.storage.persist && !(await navigator.storage.persisted())) {
+            await navigator.storage.persist();
+        }
+    } catch (e) { /* navegador sem suporte */ }
+    updateStorageInfo();
+}
+
+async function updateStorageInfo() {
+    const el = document.getElementById('storage-info');
+    if (!el) return;
+    try {
+        const persisted = navigator.storage && navigator.storage.persisted ? await navigator.storage.persisted() : false;
+        const est = navigator.storage && navigator.storage.estimate ? await navigator.storage.estimate() : null;
+        const mb = est ? (est.usage / 1048576).toFixed(1) : '?';
+        el.innerHTML = `💾 Tudo fica salvo <b>só neste aparelho</b> (${mb} MB usados). ` +
+            (persisted ? '🔒 Armazenamento protegido: o navegador não apaga sozinho.'
+                       : '⚠️ O navegador pode apagar os dados se faltar espaço. Instale o app e faça backups.');
+    } catch (e) { el.textContent = '💾 Tudo fica salvo só neste aparelho.'; }
+}
+
+function blobToDataURL(blob) {
+    return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.onerror = () => reject(r.error);
+        r.readAsDataURL(blob);
+    });
+}
+
+async function exportBackup() {
+    const includePhotos = document.getElementById('backup-photos') ? document.getElementById('backup-photos').checked : true;
+    const data = { app: 'mundo-julia-livia', versao: 1, criadoEm: new Date().toISOString(), localStorage: {}, imagens: [] };
+    for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        data.localStorage[k] = localStorage.getItem(k);
+    }
+    if (includePhotos) {
+        for (const kind of Object.keys(GALLERIES)) {
+            let items = [];
+            try { items = await mediaList(kind); } catch (e) {}
+            for (const it of items) {
+                data.imagens.push({ kind, name: it.name, date: it.date, data: await blobToDataURL(it.blob) });
+            }
+        }
+    }
+    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `backup-julia-livia-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    showToast(`💾 Backup criado${includePhotos ? ` (com ${data.imagens.length} imagens)` : ''}! Guarde o arquivo em local seguro.`);
+}
+
+async function importBackup(file) {
+    if (!file) return;
+    let data;
+    try { data = JSON.parse(await file.text()); } catch (e) { showToast('⚠️ Arquivo inválido.'); return; }
+    if (!data || data.app !== 'mundo-julia-livia') { showToast('⚠️ Este arquivo não é um backup do Mundo de Julia & Livia.'); return; }
+    const when = data.criadoEm ? new Date(data.criadoEm).toLocaleDateString('pt-BR') : '?';
+    confirmInPage(`Restaurar o backup de ${when}? Os recordes e o progresso deste aparelho serão substituídos.`, async () => {
+        try {
+            Object.entries(data.localStorage || {}).forEach(([k, v]) => localStorage.setItem(k, v));
+            // Imagens: adiciona as que ainda nao existem (mesmo nome e data)
+            let added = 0;
+            for (const img of (data.imagens || [])) {
+                if (!GALLERIES[img.kind] || !img.data) continue;
+                let existing = [];
+                try { existing = await mediaList(img.kind); } catch (e) {}
+                if (existing.some(x => x.name === img.name && x.date === img.date)) continue;
+                const blob = await (await fetch(img.data)).blob();
+                await mediaAdd({ kind: img.kind, name: img.name, blob, date: img.date || new Date().toISOString() });
+                added++;
+            }
+            showToast(`✅ Backup restaurado${added ? ` (+${added} imagens)` : ''}!`);
+            updateAges(); updateDuelTotal(); renderMemories(); renderProgress(); updateStorageInfo();
+            Object.keys(GALLERIES).forEach(renderGallery);
+        } catch (e) {
+            showToast('⚠️ Não foi possível restaurar tudo. O aparelho pode estar sem espaço.');
+        }
+    });
+}
+
+function updateOnlineBanner() {
+    let b = document.getElementById('offline-banner');
+    if (navigator.onLine) { if (b) b.remove(); return; }
+    if (!b) {
+        b = document.createElement('div');
+        b.id = 'offline-banner';
+        b.className = 'offline-banner';
+        b.textContent = '📴 Sem internet — os jogos continuam funcionando!';
+        document.body.appendChild(b);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    requestPersistentStorage();
+    updateOnlineBanner();
+    window.addEventListener('online', updateOnlineBanner);
+    window.addEventListener('offline', updateOnlineBanner);
+    const exp = document.getElementById('backup-export');
+    const imp = document.getElementById('backup-import');
+    const file = document.getElementById('backup-file');
+    if (exp) exp.addEventListener('click', exportBackup);
+    if (imp && file) {
+        imp.addEventListener('click', () => file.click());
+        file.addEventListener('change', () => { importBackup(file.files[0]); file.value = ''; });
+    }
+});
 
 // inicializar controle de volume se presente
 document.addEventListener('DOMContentLoaded', function(){

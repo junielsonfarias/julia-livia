@@ -1184,46 +1184,20 @@ body {
 .menu-card:nth-child(5) { animation-delay: 0.5s; }
 .menu-card:nth-child(6) { animation-delay: 0.6s; }
 
-/* Modal de jogo inline */
+/* Modal de jogo: o jogo ocupa a TELA INTEIRA em qualquer aparelho.
+   Cada jogo tem seu proprio botao "Voltar"; Esc e o "voltar" do celular tambem fecham. */
 #game-modal.hidden { display: none; }
-#game-modal { position: fixed; inset: 0; z-index: 100000; display:flex; align-items:center; justify-content:center; }
-.modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
-.modal-content { position: relative; width: min(1100px, 95%); max-height: 90vh; background: white; padding: 18px; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); overflow: auto; z-index: 2; }
-.modal-close { position: absolute; top: 12px; right: 12px; background: #fff; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 16px; z-index: 10; }
-.modal-content iframe { width: 100%; height: 70vh; border: none; border-radius: 8px }
-
-/* Modal responsivo para mobile */
-@media (max-width: 768px) {
-    .modal-content {
-        width: 100%;
-        height: 100%;
-        max-height: 100vh;
-        border-radius: 0;
-        padding: 10px;
-        padding-top: 50px;
-    }
-
-    .modal-content iframe {
-        height: calc(100vh - 70px);
-        border-radius: 0;
-    }
-
-    .modal-close {
-        top: 8px;
-        right: 8px;
-        background: #e91e63;
-        color: white;
-        padding: 10px 15px;
-        font-size: 18px;
-        font-weight: bold;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+#game-modal { position: fixed; inset: 0; z-index: 100000; display: flex; background: #000; }
+#game-modal .modal-backdrop { display: none; }
+#game-modal .modal-content {
+    position: relative; width: 100vw; height: 100vh; height: 100dvh; max-height: none;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    background: #fff; border-radius: 0; box-shadow: none; overflow: hidden;
 }
+#game-modal .modal-content iframe { display: block; width: 100%; height: 100%; border: 0; border-radius: 0; }
+/* O X fica escondido: todos os jogos tem "Voltar" (evita cobrir o placar do jogo) */
+#game-modal .modal-close { display: none; }
+body.modal-open { overflow: hidden; }
 
 /* Games container responsivo */
 @media (max-width: 900px) {
@@ -1578,3 +1552,17 @@ body.is-app { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-ar
 .pg-fill.high { background: #00b894; }
 .pg-fill.mid { background: #fdcb6e; }
 .pg-fill.low { background: #e17055; }
+
+/* Dados no aparelho / backup / sem internet */
+.backup-box { margin-top: 20px; background: #fff; border-radius: 20px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.12); border-top: 6px solid #0984e3; }
+.backup-box h3 { font-family: 'Fredoka One', cursive; color: #333; margin-bottom: 8px; }
+.storage-info { background: #f1f8ff; border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; color: #2d3436; }
+.backup-help { color: #666; margin-bottom: 10px; line-height: 1.5; }
+.backup-check { display: inline-flex; gap: 8px; align-items: center; font-weight: 700; color: #555; margin-bottom: 12px; cursor: pointer; }
+.backup-check input { width: 20px; height: 20px; }
+.backup-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+.backup-buttons button { border: none; border-radius: 14px; padding: 12px 18px; font-weight: 800; font-size: 1rem; cursor: pointer; background: linear-gradient(135deg, #00b894, #0984e3); color: #fff; }
+.backup-buttons button + button { background: #dfe6e9; color: #2d3436; }
+.offline-banner { position: fixed; left: 50%; top: calc(8px + env(safe-area-inset-top)); transform: translateX(-50%); background: #2d3436; color: #fff; padding: 8px 16px; border-radius: 20px; font-weight: 800; font-size: .95rem; z-index: 99990; box-shadow: 0 6px 20px rgba(0,0,0,.25); white-space: nowrap; }
+.selva-thumb { background: linear-gradient(160deg, #134e2a 0%, #2e7d32 55%, #81c784 100%); }
+.selva-icon { font-size: 72px; animation: rotate 3s ease-in-out infinite; }

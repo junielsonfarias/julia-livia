@@ -216,3 +216,26 @@ button.mini-word { cursor: pointer; background: #ffeaa7; }
     .act.listen { padding: 18px 14px; }
     .back-btn { padding: 9px 12px; }
 }
+
+.mic-install { display: block; margin: 6px auto 0; font-size: 1rem; }
+.mic-install[hidden] { display: none; }
+
+/* Tela inicial mais compacta: cabe sem rolar no tablet e quase sem rolar no celular */
+#start-screen .panel { padding: 18px 18px 14px; }
+#start-screen .big-icon { font-size: 2.8rem; animation: none; line-height: 1; }
+#start-screen h2 { font-size: 1.9rem; margin: 2px 0 4px; }
+#start-screen .lead { font-size: 1.02rem; margin-bottom: 6px; }
+#start-screen h3 { margin: 10px 0 6px; font-size: 1.05rem; }
+#start-screen .chip { padding: 7px 14px; font-size: 1rem; }
+#start-screen .mode-btn { padding: 10px 8px; gap: 3px; }
+#start-screen .mode-sample { font-size: 1.25rem; }
+#start-screen .mode-name { font-size: 1.15rem; }
+#start-screen .options { margin-top: 10px; padding: 6px 14px; }
+#start-screen .link-btn { margin-top: 8px; }
+@media (min-width: 640px) {
+    #start-screen .mode-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-height: 700px) {
+    #start-screen .big-icon { display: none; }
+    #start-screen .lead br { display: none; }
+}

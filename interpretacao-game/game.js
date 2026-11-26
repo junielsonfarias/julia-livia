@@ -574,6 +574,9 @@ function resetReport() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Tela baixa (celular): o metodo comeca fechado para a tela caber sem rolar
+    const mb = document.getElementById('method-box');
+    if (mb && window.innerHeight < 760) mb.open = false;
     const kw = document.getElementById('opt-keywords');
     try { const v = localStorage.getItem('detetive_kw'); if (v !== null) kw.checked = v === '1'; } catch (e) {}
     kw.addEventListener('change', () => { try { localStorage.setItem('detetive_kw', kw.checked ? '1' : '0'); } catch (e) {} });

@@ -152,3 +152,22 @@ mark, mark.kw { background: #ffeaa7; color: #2d3436; padding: 0 3px; border-radi
     .problem-text, .text-body { font-size: 1.1rem; }
     .panel { padding: 20px 16px; }
 }
+
+.method summary { cursor: pointer; list-style: none; }
+.method summary::-webkit-details-marker { display: none; }
+.method summary h3 { display: inline; }
+.method summary::after { content: ' ▾'; color: #1e3799; font-weight: 800; }
+.method:not([open]) summary::after { content: ' ▸ (toque para ver)'; font-size: .9rem; }
+.method ol { margin-top: 8px; }
+
+/* Celular / tela baixa: tela inicial compacta para caber sem rolar */
+@media (max-height: 760px) {
+    #start-screen .big-icon { display: none; }
+    #start-screen .panel h2 { font-size: 1.7rem; margin-top: 0; }
+    #start-screen .lead { font-size: 1rem; margin-bottom: 10px; }
+    #start-screen .mode-grid { gap: 8px; margin: 6px 0 10px; }
+    #start-screen .mode-btn { padding: 10px; flex-direction: row; gap: 10px; justify-content: flex-start; text-align: left; }
+    #start-screen .mode-icon { font-size: 1.8rem; }
+    #start-screen .mode-desc { display: none; }
+    #start-screen .method { padding: 8px 14px; margin-bottom: 8px; }
+}

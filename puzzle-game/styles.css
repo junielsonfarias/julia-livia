@@ -692,3 +692,11 @@ body {
     transform: translateY(3px);
     box-shadow: 0 2px 0 #0767b1;
 }
+
+/* Temas numa grade compacta: a tela inicial cabe sem encolher demais */
+.puzzle-options { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; }
+.puzzle-option { aspect-ratio: auto; min-height: 84px; font-size: 2.4rem; border-radius: 16px; }
+@media (max-width: 420px) {
+    .puzzle-options { grid-template-columns: repeat(3, 1fr); }
+    .puzzle-option { min-height: 72px; font-size: 2rem; }
+}

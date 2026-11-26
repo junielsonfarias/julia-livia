@@ -767,3 +767,22 @@ body {
     transform: translateY(3px);
     box-shadow: 0 2px 0 #0767b1;
 }
+
+/* Telas baixas (celular / tablet deitado): tudo menor para caber sem rolar */
+@media (max-height: 760px) {
+    .game-header { padding: 8px 14px; }
+    .game-area { padding: 10px; }
+    .game-content, .question-area { margin-bottom: 10px; }
+    .game-content { padding: 14px; }
+    .question-text { font-size: 1.4rem; margin-bottom: 8px; }
+    .target-display { min-height: 70px; }
+    .options-area { gap: 10px !important; margin-top: 10px; }
+    .option-btn { min-height: 0 !important; padding: 10px !important; }
+    .feedback { min-height: 0; margin-top: 6px; }
+}
+
+/* Telas baixas: opcoes em 3 colunas e mais baixas (a forma continua grande o bastante) */
+@media (max-height: 820px) {
+    .options-area { grid-template-columns: repeat(3, 1fr) !important; gap: 10px !important; }
+    .option-btn { aspect-ratio: auto !important; min-height: 86px !important; }
+}

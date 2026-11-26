@@ -1,0 +1,71 @@
+/* ==========================================
+   Dado 3D animado em tela cheia (compartilhado)
+   ========================================== */
+.dado-overlay {
+    position: fixed; inset: 0; z-index: 9000; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 22px; overflow: hidden;
+    background: radial-gradient(circle at 50% 40%, rgba(46, 125, 50, .92), rgba(10, 40, 15, .97));
+    animation: dadoFadeIn .25s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.dado-overlay.theme-trilha { background: radial-gradient(circle at 50% 40%, rgba(108, 92, 231, .92), rgba(30, 20, 70, .97)); }
+.dado-overlay.hide { animation: dadoFadeOut .3s ease forwards; }
+@keyframes dadoFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dadoFadeOut { to { opacity: 0; } }
+
+.dado-who {
+    font-family: 'Fredoka One', cursive; font-size: clamp(1.6rem, 6vw, 2.6rem); color: #fff;
+    text-shadow: 0 4px 14px rgba(0,0,0,.4); display: flex; align-items: center; gap: 12px;
+    animation: dadoPop .4s ease;
+}
+.dado-who .dado-emoji { font-size: 1.4em; animation: dadoBounce 0.6s ease infinite; }
+
+.dado-stage { perspective: 900px; width: 150px; height: 150px; }
+.dado-cube {
+    width: 150px; height: 150px; position: relative; transform-style: preserve-3d;
+    transform: rotateX(-25deg) rotateY(25deg);
+}
+.dado-cube.rolling { transition: transform 1.6s cubic-bezier(.17, .67, .2, 1); }
+.dado-face {
+    position: absolute; inset: 0; border-radius: 22px; background: linear-gradient(145deg, #ffffff, #e9e9e9);
+    box-shadow: inset 0 0 18px rgba(0,0,0,.18); display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+    padding: 18px; backface-visibility: hidden; border: 2px solid #ddd;
+}
+.dado-face i { width: 26px; height: 26px; border-radius: 50%; background: #2d3436; align-self: center; justify-self: center; box-shadow: inset 0 3px 4px rgba(0,0,0,.5); }
+.dado-face.f1 { transform: translateZ(75px); }
+.dado-face.f6 { transform: rotateY(180deg) translateZ(75px); }
+.dado-face.f3 { transform: rotateY(90deg) translateZ(75px); }
+.dado-face.f4 { transform: rotateY(-90deg) translateZ(75px); }
+.dado-face.f5 { transform: rotateX(90deg) translateZ(75px); }
+.dado-face.f2 { transform: rotateX(-90deg) translateZ(75px); }
+.dado-face.f1 i { background: #d63031; }
+
+.dado-shadow { width: 130px; height: 22px; border-radius: 50%; background: rgba(0,0,0,.35); filter: blur(6px); margin-top: -10px; animation: dadoShadow .5s ease infinite alternate; }
+
+.dado-result {
+    font-family: 'Fredoka One', cursive; font-size: clamp(3rem, 14vw, 6rem); color: #ffeaa7; min-height: 1.2em;
+    text-shadow: 0 6px 20px rgba(0,0,0,.45);
+}
+.dado-result.show { animation: dadoPop .45s cubic-bezier(.3, 1.6, .5, 1); }
+.dado-hint { color: rgba(255,255,255,.85); font-weight: 800; font-size: 1.1rem; min-height: 1.4em; }
+
+/* Folhas / estrelas caindo */
+.dado-leaf { position: absolute; top: -60px; font-size: 2rem; animation: dadoFall linear forwards; pointer-events: none; }
+@keyframes dadoFall { to { transform: translateY(115vh) rotate(540deg); } }
+@keyframes dadoPop { 0% { transform: scale(.2); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes dadoBounce { 50% { transform: translateY(-10px); } }
+@keyframes dadoShadow { from { transform: scale(.85); opacity: .6; } to { transform: scale(1.05); opacity: .9; } }
+
+@media (max-height: 520px) {
+    .dado-stage, .dado-cube { width: 110px; height: 110px; }
+    .dado-face { padding: 12px; }
+    .dado-face i { width: 19px; height: 19px; }
+    .dado-face.f1 { transform: translateZ(55px); } .dado-face.f6 { transform: rotateY(180deg) translateZ(55px); }
+    .dado-face.f3 { transform: rotateY(90deg) translateZ(55px); } .dado-face.f4 { transform: rotateY(-90deg) translateZ(55px); }
+    .dado-face.f5 { transform: rotateX(90deg) translateZ(55px); } .dado-face.f2 { transform: rotateX(-90deg) translateZ(55px); }
+    .dado-overlay { gap: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .dado-cube.rolling { transition-duration: .4s; }
+    .dado-leaf { display: none; }
+}

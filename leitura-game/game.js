@@ -12,6 +12,54 @@ const RECORDS_KEY = 'leitura_recordes_v1';
 const SYL_COLORS = ['#e74c3c', '#2980b9', '#27ae60', '#8e44ad', '#e67e22'];
 const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+// ---------- Reconhecimento de voz NO APARELHO ----------
+// Chrome recente consegue reconhecer a fala sem internet ("processLocally").
+// E mais rapido (nao vai ate o servidor) e funciona offline.
+// Estados: 'available' (pronto), 'downloadable'/'downloading' (precisa baixar), 'unavailable'/'unsupported'.
+let localSpeech = 'unsupported';
+
+async function checkLocalSpeech() {
+    if (!SpeechRec) return 'unsupported';
+    try {
+        if (typeof SpeechRec.available === 'function') {
+            return await SpeechRec.available({ langs: ['pt-BR'], processLocally: true });
+        }
+        if (typeof SpeechRec.availableOnDevice === 'function') {
+            return await SpeechRec.availableOnDevice('pt-BR');
+        }
+    } catch (e) { /* navegador sem suporte */ }
+    return 'unsupported';
+}
+
+async function installLocalSpeech() {
+    const btn = document.getElementById('mic-install');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Baixando a voz em português...'; }
+    let ok = false;
+    try {
+        if (typeof SpeechRec.install === 'function') ok = await SpeechRec.install({ langs: ['pt-BR'], processLocally: true });
+        else if (typeof SpeechRec.installOnDevice === 'function') ok = await SpeechRec.installOnDevice('pt-BR');
+    } catch (e) { ok = false; }
+    localSpeech = await checkLocalSpeech();
+    updateMicNote();
+    if (!ok && localSpeech !== 'available' && btn) { btn.disabled = false; btn.textContent = '⬇️ Tentar baixar de novo'; }
+}
+
+function updateMicNote() {
+    const note = document.getElementById('mic-note');
+    const btn = document.getElementById('mic-install');
+    if (!note || !SpeechRec) return;
+    if (localSpeech === 'available') {
+        note.textContent = '🎤 Voz em português instalada no aparelho: o microfone funciona sem internet e responde mais rápido.';
+        if (btn) btn.hidden = true;
+    } else if (localSpeech === 'downloadable' || localSpeech === 'downloading') {
+        note.textContent = '🎤 Agora o microfone usa a internet. Baixe a voz em português para funcionar sem internet e mais rápido:';
+        if (btn) { btn.hidden = false; btn.disabled = localSpeech === 'downloading'; btn.textContent = localSpeech === 'downloading' ? '⏳ Baixando...' : '⬇️ Baixar voz para usar sem internet'; }
+    } else {
+        note.textContent = '🎤 O microfone precisa de internet neste aparelho (usa o serviço de voz do Google).';
+        if (btn) btn.hidden = true;
+    }
+}
+
 const state = {
     mode: 2,
     reader: 'Livia',
@@ -244,7 +292,7 @@ function correctWord() {
     document.getElementById('word-card').classList.add('good');
     if (state.check === 'mic') setHeard('✅ Leu certinho!', 'good');
     floatPoint();
-    setTimeout(() => { state.locked = false; if (state.running) nextWord(); }, state.check === 'mic' ? 650 : 350);
+    setTimeout(() => { state.locked = false; if (state.running) nextWord(); }, state.check === 'mic' ? 300 : 350);
 }
 
 // Microfone ouviu outra palavra: avisa e deixa tentar de novo (ou pular)
@@ -410,6 +458,20 @@ function startMic() {
         rec.continuous = true;
         rec.interimResults = true;
         rec.maxAlternatives = 5;
+        if (localSpeech === 'available') {
+            try {
+                if ('processLocally' in rec) rec.processLocally = true;
+                else if ('mode' in rec) rec.mode = 'ondevice-only';
+            } catch (e) { /* segue pela internet */ }
+        }
+        // Pistas: as palavras deste modo ficam "mais provaveis" para o reconhecedor
+        // (so no modo do aparelho: pelo servidor as pistas podem nao ser aceitas)
+        if (localSpeech === 'available' && window.SpeechRecognitionPhrase && 'phrases' in rec) {
+            try {
+                rec.phrases = getPalavras(state.mode).slice(0, 120)
+                    .map(w => new SpeechRecognitionPhrase(w.word.toLowerCase(), 4.0));
+            } catch (e) { /* sem suporte a pistas */ }
+        }
 
         rec.onstart = () => {
             state.consumedIndex = -1;
@@ -445,12 +507,19 @@ function startMic() {
                 status.textContent = '🎤 Microfone bloqueado. Usando o botão ✓ no lugar.';
                 setCheck('manual', false);
             } else if (e.error === 'network') {
-                status.textContent = '🎤 Sem internet para reconhecer a voz. Use o botão ✓.';
+                status.textContent = localSpeech === 'downloadable'
+                    ? '🎤 Sem internet. Na tela inicial, baixe a voz para usar o microfone offline. Use o botão ✓.'
+                    : '🎤 Sem internet para reconhecer a voz. Use o botão ✓.';
                 setCheck('manual', false);
             } else if (e.error === 'audio-capture') {
                 // Sem microfone: sem isto o onend religaria sem parar
                 status.textContent = '🎤 Não achei o microfone. Use o botão ✓.';
                 setCheck('manual', false);
+            }
+            else if (e.error === 'phrases-not-supported' || e.error === 'language-not-supported') {
+                // Recomeca sem os recursos extras (pistas / reconhecimento no aparelho)
+                localSpeech = 'unsupported';
+                setTimeout(() => { if (state.check === 'mic' && (state.running || state.timeLeft > 0)) startMic(); }, 150);
             }
             // 'no-speech' e 'aborted' sao normais: o onend religa
         };
@@ -495,7 +564,10 @@ document.addEventListener('DOMContentLoaded', () => {
         note.textContent = '🎤 Este navegador não reconhece voz. Para o microfone conferir sozinho, abra no Google Chrome.';
         state.check = 'manual';
     } else {
-        note.textContent = '🎤 O microfone precisa de internet (o Chrome usa o serviço de voz do Google).';
+        note.textContent = '🎤 Verificando o microfone...';
+        checkLocalSpeech().then(st => { localSpeech = st; updateMicNote(); });
+        const ib = document.getElementById('mic-install');
+        if (ib) ib.addEventListener('click', installLocalSpeech);
         try { const c = localStorage.getItem('leitura_check'); if (c) state.check = c; } catch (e) {}
     }
     setCheck(state.check);

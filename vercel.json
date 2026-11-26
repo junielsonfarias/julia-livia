@@ -165,6 +165,10 @@
     {
       "source": "/velha",
       "destination": "/velha-game"
+    },
+    {
+      "source": "/selva",
+      "destination": "/selva-game"
     }
   ]
 }

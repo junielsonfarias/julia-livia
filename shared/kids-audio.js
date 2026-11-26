@@ -133,5 +133,11 @@
     window.addEventListener('pagehide', stopSpeaking);
     window.addEventListener('beforeunload', stopSpeaking);
 
+    // Dentro da janela de jogo da pagina principal: Esc fecha o jogo
+    window.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape' || window.parent === window) return;
+        try { if (window.parent.closeGameModal) window.parent.closeGameModal(); } catch (err) {}
+    });
+
     window.KidsAudio = { play, speak, getVolume, stop: stopSpeaking };
 })();

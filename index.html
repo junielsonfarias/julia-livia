@@ -15,7 +15,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Julia & Livia">
-    <link rel="stylesheet" href="main-styles.css?v=50c1b99c">
+    <link rel="stylesheet" href="main-styles.css?v=f390a3fb">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -147,6 +147,22 @@
         <p class="duel-total" id="duel-total"></p>
 
         <div class="games-container">
+            <div class="game-card selva-card" data-for="todas" data-duel="1" onclick="playGame('selva')">
+                <div class="game-thumbnail selva-thumb">
+                    <span class="selva-icon">🌴</span>
+                </div>
+                <div class="game-info">
+                    <h3>Aventura na Selva</h3>
+                    <p>Tabuleiro com dado 3D e surpresas na selva! Até 4 jogadores, com convidados.</p>
+                    <div class="game-tags">
+                        <span class="tag duel-tag">⚔️ Duelo</span>
+                        <span class="tag">2 a 4 jogadores</span>
+                        <span class="tag new-tag">Novo!</span>
+                    </div>
+                </div>
+                <button class="play-btn">JOGAR</button>
+            </div>
+
             <div class="game-card trilha-card" data-for="todas" data-duel="1" onclick="playGame('trilha')">
                 <div class="game-thumbnail trilha-thumb">
                     <span class="trilha-icon">🎲</span>
@@ -664,6 +680,18 @@
         <div class="progress-container">
             <p class="progress-note">Resumo do que a Julia e a Livia jogaram neste aparelho. As habilidades com menos acertos aparecem primeiro: é por elas que vale treinar.</p>
             <div class="progress-grid" id="progress-content"></div>
+
+            <div class="backup-box">
+                <h3>💾 Dados e backup</h3>
+                <p class="storage-info" id="storage-info"></p>
+                <p class="backup-help">Os recordes, o progresso, as memórias e as fotos ficam guardados <b>somente neste aparelho</b> — nada vai para a internet. Para trocar de aparelho ou não perder nada, salve um backup de vez em quando.</p>
+                <label class="backup-check"><input type="checkbox" id="backup-photos" checked> Incluir fotos e desenhos no backup</label>
+                <div class="backup-buttons">
+                    <button type="button" id="backup-export">💾 Salvar backup</button>
+                    <button type="button" id="backup-import">📂 Restaurar backup</button>
+                    <input type="file" id="backup-file" accept="application/json,.json" hidden>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -711,14 +739,14 @@
         </div>
     </div>
 
-    <script src="main-script.js?v=6de2d6ca"></script>
+    <script src="main-script.js?v=69d9326e"></script>
 
     <!-- Modal para carregar jogos inline (iframe) -->
     <div id="game-modal" class="game-modal hidden" aria-hidden="true">
         <div class="modal-backdrop" onclick="closeGameModal()"></div>
         <div class="modal-content" role="dialog" aria-modal="true">
             <button class="modal-close" onclick="closeGameModal()" aria-label="Fechar jogo">✕</button>
-            <iframe id="game-iframe" src="" frameborder="0" title="Jogo" allow="autoplay; clipboard-write; microphone"></iframe>
+            <iframe id="game-iframe" src="" frameborder="0" title="Jogo" allow="autoplay; clipboard-write; microphone; fullscreen"></iframe>
         </div>
     </div>
 </body>
