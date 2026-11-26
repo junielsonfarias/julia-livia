@@ -5,18 +5,26 @@
 // (tipo de questao muito comum na OBMEP e no SAEB).
 // ==========================================
 
+// qual: como perguntar "qual item" | uq: unidade usada nas perguntas | v / vp: verbo no singular / plural
+// (antes as perguntas saiam como "Quantos dias teve Janeiro?" — resposta 8, mas janeiro tem 31 dias!)
 const TEMAS = [
-    { titulo: 'Fruta preferida da turma do 4º ano', col: 'Fruta', unidade: 'votos', unidade1: 'voto',
+    { titulo: 'Fruta preferida da turma do 4º ano', col: 'Fruta', unidade: 'votos',
+      qual: 'Qual fruta', uq: 'votos', v: 'teve', vp: 'tiveram',
       itens: [['🍎', 'Maçã'], ['🍌', 'Banana'], ['🍇', 'Uva'], ['🍓', 'Morango'], ['🍉', 'Melancia']] },
-    { titulo: 'Esporte preferido dos alunos', col: 'Esporte', unidade: 'alunos', unidade1: 'aluno',
+    { titulo: 'Esporte preferido dos alunos', col: 'Esporte', unidade: 'votos',
+      qual: 'Qual esporte', uq: 'votos', v: 'teve', vp: 'tiveram',
       itens: [['⚽', 'Futebol'], ['🏐', 'Vôlei'], ['🏊', 'Natação'], ['🏀', 'Basquete'], ['🤸', 'Ginástica']] },
-    { titulo: 'Livros lidos no mês', col: 'Aluno(a)', unidade: 'livros', unidade1: 'livro',
+    { titulo: 'Livros lidos no mês', col: 'Aluno(a)', unidade: 'livros',
+      qual: 'Quem', uq: 'livros', v: 'leu', vp: 'leram',
       itens: [['👧', 'Julia'], ['👦', 'Pedro'], ['👩', 'Ana'], ['🧒', 'Caio'], ['👱‍♀️', 'Bia']] },
-    { titulo: 'Animal de estimação dos alunos', col: 'Animal', unidade: 'alunos', unidade1: 'aluno',
+    { titulo: 'Animal de estimação preferido', col: 'Animal', unidade: 'votos',
+      qual: 'Qual animal', uq: 'votos', v: 'teve', vp: 'tiveram',
       itens: [['🐶', 'Cachorro'], ['🐱', 'Gato'], ['🐟', 'Peixe'], ['🐦', 'Pássaro'], ['🐹', 'Hamster']] },
-    { titulo: 'Dias de chuva em cada mês', col: 'Mês', unidade: 'dias', unidade1: 'dia',
+    { titulo: 'Dias de chuva em cada mês', col: 'Mês', unidade: 'dias de chuva',
+      qual: 'Qual mês', uq: 'dias de chuva', v: 'teve', vp: 'tiveram',
       itens: [['🌧️', 'Janeiro'], ['🌧️', 'Fevereiro'], ['🌧️', 'Março'], ['🌧️', 'Abril'], ['🌧️', 'Maio']] },
-    { titulo: 'Sorvetes vendidos no fim de semana', col: 'Sabor', unidade: 'sorvetes', unidade1: 'sorvete',
+    { titulo: 'Sabor de sorvete preferido da turma', col: 'Sabor', unidade: 'votos',
+      qual: 'Qual sabor', uq: 'votos', v: 'teve', vp: 'tiveram',
       itens: [['🍫', 'Chocolate'], ['🍓', 'Morango'], ['🥥', 'Coco'], ['🍋', 'Limão'], ['🍦', 'Creme']] }
 ];
 
@@ -63,46 +71,47 @@ function makeChart(tipo) {
 
 // ---------- Perguntas ----------
 function makeQuestion(chart, used) {
-    const d = chart.dados, u = chart.tema.unidade;
+    const d = chart.dados, T = chart.tema, u = T.uq;
+    const onde = { barras: 'no gráfico', pictograma: 'no pictograma', tabela: 'na tabela' }[chart.tipo];
     const byVal = d.slice().sort((a, b) => b.valor - a.valor);
     const total = d.reduce((s, x) => s + x.valor, 0);
     const tipos = shuffle(['maior', 'menor', 'valor', 'diferenca', 'total', 'juntos', 'dobro', 'falta']).filter(t => !used.has(t));
     for (const t of tipos) {
         let q;
         if (t === 'maior') {
-            q = { q: `Qual teve MAIS ${u}?`, ok: byVal[0].nome, wrong: d.filter(x => x !== byVal[0]).map(x => x.nome),
-                  why: `A maior barra (ou o maior número) é de ${byVal[0].nome}, com ${byVal[0].valor} ${u}.` };
+            q = { q: `${T.qual} ${T.v} MAIS ${u}?`, ok: byVal[0].nome, wrong: d.filter(x => x !== byVal[0]).map(x => x.nome),
+                  why: `O maior valor ${onde} é de ${byVal[0].nome}, com ${byVal[0].valor} ${u}.` };
         } else if (t === 'menor') {
             const m = byVal[byVal.length - 1];
-            q = { q: `Qual teve MENOS ${u}?`, ok: m.nome, wrong: d.filter(x => x !== m).map(x => x.nome),
-                  why: `O menor valor é de ${m.nome}: ${m.valor} ${u}.` };
+            q = { q: `${T.qual} ${T.v} MENOS ${u}?`, ok: m.nome, wrong: d.filter(x => x !== m).map(x => x.nome),
+                  why: `O menor valor ${onde} é de ${m.nome}: ${m.valor} ${u}.` };
         } else if (t === 'valor') {
             const x = pick(d);
-            q = { q: `Quantos ${u} teve ${x.nome}?`, ok: x.valor, wrong: [x.valor + chart.step, x.valor - chart.step, x.valor + 1],
+            q = { q: `Quantos ${u} ${x.nome} ${T.v}?`, ok: x.valor, wrong: [x.valor + chart.step, x.valor - chart.step, x.valor + 1],
                   why: chart.tipo === 'pictograma'
                       ? `${x.nome} tem ${x.valor / chart.step} figuras, e cada figura vale ${chart.step}: ${x.valor / chart.step} × ${chart.step} = ${x.valor}.`
                       : `Siga o topo da barra de ${x.nome} até a escala: ${x.valor}.` };
         } else if (t === 'diferenca') {
             const [a, b] = shuffle(d).slice(0, 2).sort((p, r) => r.valor - p.valor);
-            q = { q: `Quantos ${u} ${a.nome} teve A MAIS que ${b.nome}?`, ok: a.valor - b.valor, wrong: [a.valor + b.valor, a.valor, b.valor],
+            q = { q: `Quantos ${u} ${a.nome} ${T.v} A MAIS que ${b.nome}?`, ok: a.valor - b.valor, wrong: [a.valor + b.valor, a.valor, b.valor],
                   why: `“A mais que” pede a diferença: ${a.valor} − ${b.valor} = ${a.valor - b.valor}.` };
         } else if (t === 'total') {
-            q = { q: `Qual é o TOTAL de ${u} no gráfico?`, ok: total, wrong: [total - byVal[0].valor, total + chart.step, total - chart.step],
+            q = { q: `Qual é o TOTAL de ${u} ${onde}?`, ok: total, wrong: [total - byVal[0].valor, total + chart.step, total - chart.step],
                   why: `Some todos: ${d.map(x => x.valor).join(' + ')} = ${total}.` };
         } else if (t === 'juntos') {
             const [a, b] = shuffle(d).slice(0, 2);
-            q = { q: `Quantos ${u} ${a.nome} e ${b.nome} têm JUNTOS?`, ok: a.valor + b.valor, wrong: [Math.abs(a.valor - b.valor), a.valor + b.valor + chart.step, a.valor + b.valor - chart.step],
+            q = { q: `Quantos ${u} ${a.nome} e ${b.nome} ${T.vp} JUNTOS?`, ok: a.valor + b.valor, wrong: [Math.abs(a.valor - b.valor), a.valor + b.valor + chart.step, a.valor + b.valor - chart.step],
                   why: `“Juntos” = somar: ${a.valor} + ${b.valor} = ${a.valor + b.valor}.` };
         } else if (t === 'dobro') {
             const pair = [];
             d.forEach(a => d.forEach(b => { if (a !== b && a.valor === 2 * b.valor) pair.push([a, b]); }));
             if (!pair.length) continue;
             const [a, b] = pick(pair);
-            q = { q: `Qual teve o DOBRO de ${u} de ${b.nome}?`, ok: a.nome, wrong: d.filter(x => x !== a && x !== b).map(x => x.nome).concat([b.nome]),
+            q = { q: `${T.qual} ${T.v} o DOBRO de ${u} de ${b.nome}?`, ok: a.nome, wrong: d.filter(x => x !== a && x !== b).map(x => x.nome).concat([b.nome]),
                   why: `${b.nome} teve ${b.valor}. O dobro é ${b.valor} × 2 = ${a.valor}, que é o valor de ${a.nome}.` };
         } else if (t === 'falta') {
             const [a, b] = shuffle(d).slice(0, 2).sort((p, r) => p.valor - r.valor);
-            q = { q: `Quantos ${u} FALTAM para ${a.nome} chegar ao mesmo valor de ${b.nome}?`, ok: b.valor - a.valor, wrong: [a.valor + b.valor, b.valor, a.valor],
+            q = { q: `Quantos ${u} FALTAM para ${a.nome} chegar ao mesmo número de ${b.nome}?`, ok: b.valor - a.valor, wrong: [a.valor + b.valor, b.valor, a.valor],
                   why: `“Quanto falta” = subtração: ${b.valor} − ${a.valor} = ${b.valor - a.valor}.` };
         }
         if (!q) continue;

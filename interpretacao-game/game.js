@@ -33,7 +33,9 @@ const state = {
     // matematica
     problem: null, step: 0, tries: 0, tokens: [], selected: new Set(),
     // portugues
-    text: null, qi: 0, phase: 'answer', proveTries: 0
+    text: null, qi: 0, phase: 'answer', proveTries: 0, lastWrongProve: -1,
+    gen: 0,               // muda a cada item: timeouts de um item antigo sao ignorados
+    lastCheck: ''         // selecao da ultima conferencia errada (evita gastar 2 tentativas com toque duplo)
 };
 
 // ---------- Utilidades ----------
@@ -46,9 +48,16 @@ function goBack() {
 }
 
 function showScreen(id) {
+    if (id === 'start-screen' || id === 'report-screen') state.gen++;   // cancela timeouts pendentes
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// setTimeout que so executa se o jogador ainda estiver no mesmo item
+function later(fn, ms) {
+    const g = state.gen;
+    setTimeout(() => { if (g === state.gen) fn(); }, ms);
 }
 
 function shuffle(arr) {
@@ -169,10 +178,12 @@ function plainProblem(texto) {
 }
 
 function startProblem(p) {
+    state.gen++;
     state.problem = p;
     state.tokens = parseProblem(p.texto);
     state.selected = new Set();
     state.step = 0;
+    state.lastCheck = '';
     document.getElementById('math-theme').textContent = '🔢 ' + p.tema;
     document.getElementById('math-next').hidden = true;
     showScreen('math-screen');
@@ -180,31 +191,47 @@ function startProblem(p) {
     renderStep();
 }
 
+// Posicao (no texto puro, sem chaves) onde comeca a pergunta = ultima frase terminada em "?".
+// Calculada sobre os pedacos de TEXTO (e nao sobre o innerHTML), para nunca cortar uma tag ao meio.
+function questionStart(parts) {
+    const plain = parts.map(p => p.value).join('');
+    const t = plain.trimEnd();
+    if (!t.endsWith('?')) return -1;
+    const body = t.slice(0, -1);
+    const cut = Math.max(body.lastIndexOf('. '), body.lastIndexOf('! '), body.lastIndexOf('? '));
+    return cut >= 0 ? cut + 2 : 0;
+}
+
 function renderProblemText() {
     const box = document.getElementById('problem-text');
     const step = state.step;
+    // Depois do passo 1, sublinha a pergunta (ultima frase com "?")
+    const qs = step >= 1 ? questionStart(state.tokens) : -1;
+    let offset = 0, opened = false;
+    const open = () => { opened = true; return '<span class="the-question">'; };
     const html = state.tokens.map(part => {
-        if (part.type === 'text') return highlight(part.value);
+        const start = offset;
+        offset += part.value.length;
+        if (part.type === 'text') {
+            if (qs >= 0 && !opened && qs >= start && qs < offset) {
+                const cut = qs - start;
+                return highlight(part.value.slice(0, cut)) + open() + highlight(part.value.slice(cut));
+            }
+            return highlight(part.value);
+        }
         let cls = 'num';
         if (step === 1) cls += ' pick' + (state.selected.has(part.id) ? ' selected' : '');
         if (step > 1) cls += part.needed ? ' needed' : ' trap';
         const attr = step === 1 ? ` role="button" tabindex="0" data-id="${part.id}"` : '';
-        return `<span class="${cls}"${attr}>${esc(part.value)}</span>`;
-    }).join('');
-
-    // Depois do passo 1, sublinha a pergunta (ultima frase com "?")
+        const pre = (qs >= 0 && !opened && qs <= start) ? open() : '';
+        return `${pre}<span class="${cls}"${attr}>${esc(part.value)}</span>`;
+    }).join('') + (opened ? '</span>' : '');
     box.innerHTML = html;
-    if (step >= 1) {
-        const full = box.innerHTML;
-        const qStart = Math.max(full.lastIndexOf('. '), full.lastIndexOf('! '));
-        if (full.trim().endsWith('?') && qStart > 0) {
-            box.innerHTML = full.slice(0, qStart + 2) + '<span class="the-question">' + full.slice(qStart + 2) + '</span>';
-        }
-    }
 
     if (step === 1) {
         box.querySelectorAll('.pick').forEach(el => {
             const toggle = () => {
+                if (state.locked || state.step !== 1) return;
                 const id = Number(el.dataset.id);
                 if (state.selected.has(id)) state.selected.delete(id); else state.selected.add(id);
                 el.classList.toggle('selected');
@@ -219,6 +246,7 @@ function renderProblemText() {
 function renderStep() {
     const s = MATH_STEPS[state.step];
     state.tries = 0;
+    state.locked = false;
     document.querySelectorAll('#stepper .step').forEach((el, i) => {
         el.classList.toggle('current', i === state.step);
         el.classList.toggle('done', i < state.step);
@@ -254,7 +282,7 @@ function answerMath(btn, ok) {
         addPoints(state.tries === 1 ? 5 : 2);
         KidsAudio.play('correct');
         setFeedback('math-feedback', state.tries === 1 ? '✅ Isso mesmo!' : '✅ Agora sim!', 'good');
-        setTimeout(advanceMathStep, 900);
+        later(advanceMathStep, 900);
     } else {
         btn.classList.add('wrong');
         btn.disabled = true;
@@ -267,7 +295,7 @@ function answerMath(btn, ok) {
             if (correctBtn) correctBtn.classList.add('correct', 'revealed');
             lockOptions('math-options');
             setFeedback('math-feedback', `A resposta certa está em verde. 💡 ${esc(s.hint || state.problem.dica)}`, 'bad');
-            setTimeout(advanceMathStep, 2600);
+            later(advanceMathStep, 2600);
         } else {
             setFeedback('math-feedback', `🤔 Ainda não. ${esc(s.hint)}`, 'bad');
         }
@@ -280,15 +308,27 @@ function checkData() {
     const needed = tokens.filter(t => t.needed).map(t => t.id);
     const traps = tokens.filter(t => !t.needed && state.selected.has(t.id));
     const missing = needed.filter(id => !state.selected.has(id));
+    if (state.locked) return;
+    // Nada marcado, ou a mesma selecao que ja foi conferida (toque duplo): nao gasta tentativa
+    const sig = [...state.selected].sort((a, b) => a - b).join(',');
+    if (!state.selected.size) {
+        setFeedback('math-feedback', '👆 Toque primeiro nos números que você vai usar.', 'bad');
+        return;
+    }
+    if (sig === state.lastCheck) {
+        setFeedback('math-feedback', '✋ Mude sua escolha antes de conferir de novo.', 'bad');
+        return;
+    }
     state.tries++;
 
     if (traps.length === 0 && missing.length === 0) {
+        state.locked = true;
         record(s.skill, state.tries === 1);
         addPoints(state.tries === 1 ? 5 : 2);
         KidsAudio.play('correct');
         setFeedback('math-feedback', '✅ Ótimo! Você separou só o que importa.', 'good');
         document.getElementById('check-data-btn').hidden = true;
-        setTimeout(advanceMathStep, 1000);
+        later(advanceMathStep, 1000);
         return;
     }
 
@@ -297,7 +337,9 @@ function checkData() {
     if (traps.length) msg += `🪤 Pegadinha! “${esc(traps[0].value)}” não ajuda a responder a pergunta. `;
     if (missing.length) msg += `🔍 Falta marcar ${missing.length === 1 ? 'um número importante' : missing.length + ' números importantes'}. `;
 
+    state.lastCheck = sig;
     if (state.tries >= 2) {
+        state.locked = true;
         record(s.skill, false);
         state.selected = new Set(needed);
         document.getElementById('check-data-btn').hidden = true;
@@ -305,7 +347,7 @@ function checkData() {
         state.step = 2; // mostra o resultado no texto
         renderProblemText();
         state.step = 1;
-        setTimeout(advanceMathStep, 2800);
+        later(advanceMathStep, 2800);
     } else {
         setFeedback('math-feedback', msg + 'Tente de novo!', 'bad');
         shake(document.getElementById('problem-text'));
@@ -346,16 +388,21 @@ function startTextQuestion(t, qi) {
     state.phase = 'answer';
     state.tries = 0;
     state.proveTries = 0;
+    state.lastWrongProve = -1;
+    state.gen++;
     const q = t.perguntas[qi];
 
-    if (isNewText || !document.getElementById('text-screen').classList.contains('active')) {
+    const redraw = isNewText || !document.getElementById('text-screen').classList.contains('active');
+    if (redraw) {
         document.getElementById('text-genre').textContent = '📖 ' + t.genero;
         document.getElementById('text-title').textContent = t.titulo;
         const body = document.getElementById('text-body');
         const isVerse = t.genero === 'Poema';
+        // Generos "em linhas" (bilhete, e-mail, regra, tirinha...) ficam uma frase por linha
+        const byLine = isVerse || /Bilhete|E-mail|Regra|Tirinha|Convite|Receita/.test(t.genero);
         body.classList.toggle('verse', isVerse);
         body.innerHTML = t.frases.map((f, i) =>
-            `<span class="sentence" data-i="${i}">${esc(f)}</span>`).join(isVerse ? '<br>' : ' ');
+            `<span class="sentence" data-i="${i}">${esc(f)}</span>`).join(byLine ? '<br>' : ' ');
         body.querySelectorAll('.sentence').forEach(el => el.addEventListener('click', () => proveSentence(el)));
         showScreen('text-screen');
     }
@@ -367,7 +414,8 @@ function startTextQuestion(t, qi) {
     document.getElementById('show-options-btn').hidden = false;
     document.getElementById('text-next').hidden = true;
     setFeedback('text-feedback', '');
-    document.querySelector('.question-box').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Texto novo: showScreen ja levou ao topo (para ler o texto primeiro). Mesma historia: vai para a pergunta.
+    if (!redraw) document.querySelector('.question-box').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function revealOptions() {
@@ -429,6 +477,7 @@ function proveSentence(el) {
     if (state.phase !== 'prove') return;
     const q = state.text.perguntas[state.qi];
     const i = Number(el.dataset.i);
+    if (i === state.lastWrongProve) return;   // toque duplo na mesma frase errada nao gasta a 2ª chance
     state.proveTries++;
     if (i === q.prova) {
         el.classList.add('evidence');
@@ -437,6 +486,7 @@ function proveSentence(el) {
         KidsAudio.play('star');
         finishTextQuestion(true, true);
     } else {
+        state.lastWrongProve = i;
         el.classList.add('wrong-evidence');
         shake(el);
         KidsAudio.play('wrong');

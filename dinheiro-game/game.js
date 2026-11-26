@@ -10,11 +10,12 @@ const MOEDAS = [100, 50, 25, 10, 5];
 const DINHEIRO = [...NOTAS, ...MOEDAS];
 const ROUNDS = 8;
 
+// [emoji, nome, preco minimo, preco maximo (centavos), artigo]
 const PRODUTOS = [
-    ['🍎', 'Maçã', 75, 250], ['🧃', 'Suco', 250, 600], ['📒', 'Caderno', 800, 2200], ['✏️', 'Lápis', 125, 400],
-    ['🧸', 'Ursinho', 1500, 4500], ['⚽', 'Bola', 1800, 4800], ['🍫', 'Chocolate', 350, 900], ['🎨', 'Tinta guache', 600, 1600],
-    ['🍞', 'Pão', 50, 150], ['🥛', 'Leite', 400, 750], ['🍦', 'Sorvete', 500, 1200], ['📚', 'Livro', 2000, 4500],
-    ['🪀', 'Ioiô', 600, 1500], ['🖍️', 'Giz de cera', 450, 1100], ['🍌', 'Banana', 100, 400], ['🧁', 'Bolinho', 300, 800]
+    ['🍎', 'Maçã', 75, 250, 'a'], ['🧃', 'Suco', 250, 600, 'o'], ['📒', 'Caderno', 800, 2200, 'o'], ['✏️', 'Lápis', 125, 400, 'o'],
+    ['🧸', 'Ursinho', 1500, 4500, 'o'], ['⚽', 'Bola', 1800, 4800, 'a'], ['🍫', 'Chocolate', 350, 900, 'o'], ['🎨', 'Tinta guache', 600, 1600, 'a'],
+    ['🍞', 'Pão', 50, 150, 'o'], ['🥛', 'Leite', 400, 750, 'o'], ['🍦', 'Sorvete', 500, 1200, 'o'], ['📚', 'Livro', 2000, 4500, 'o'],
+    ['🪀', 'Ioiô', 600, 1500, 'o'], ['🖍️', 'Giz de cera', 450, 1100, 'o'], ['🍌', 'Banana', 100, 400, 'a'], ['🧁', 'Bolinho', 300, 800, 'o']
 ];
 
 const state = { mode: 'misturado', round: 0, items: [], current: null, tray: [], hits: 0, score: 0, tries: 0, locked: false };
@@ -54,7 +55,9 @@ function minPieces(value) {
 
 function moneyHTML(v, extra) {
     const cls = isNota(v) ? `money nota n${v}` : `money moeda m${v}`;
-    return `<span class="${cls}" ${extra || ''}>${isNota(v) ? brl(v).replace(',00', '') : (v === 100 ? 'R$ 1' : v + '¢')}</span>`;
+    // Moedas de centavos mostram o numero e "centavos" embaixo, como na moeda de verdade
+    const label = isNota(v) ? brl(v).replace(',00', '') : (v === 100 ? 'R$ 1' : `${v}<small>centavos</small>`);
+    return `<span class="${cls}" ${extra || ''}>${label}</span>`;
 }
 
 // Completa ate 4 alternativas diferentes (valores positivos proximos da resposta)
@@ -151,7 +154,7 @@ function showRound() {
         scene.innerHTML = `<div class="shop-item big"><span class="prod-emoji">${it.prod[0]}</span><span class="prod-name">${it.prod[1]}</span><span class="price-tag">${brl(it.total)}</span></div>
             <p class="task">Livia tem este dinheiro na carteira:</p>
             <div class="wallet-show">${it.carteira.map(v => moneyHTML(v)).join('')}</div>
-            <p class="task"><b>Quanto <mark class="kw">falta</mark> para ela comprar o ${it.prod[1].toLowerCase()}?</b></p>`;
+            <p class="task"><b>Quanto <mark class="kw">falta</mark> para ela comprar ${it.prod[4]} ${it.prod[1].toLowerCase()}?</b></p>`;
         renderOptions(it);
     }
 }
@@ -210,6 +213,11 @@ function payNow() {
     const it = state.current;
     const sum = state.tray.reduce((s, v) => s + v, 0);
     const fb = document.getElementById('feedback');
+    if (sum === 0) {   // balcao vazio: nao conta como tentativa
+        fb.className = 'feedback bad';
+        fb.innerHTML = '👆 Primeiro toque nas notas e moedas para colocar o dinheiro no balcão.';
+        return;
+    }
     state.tries++;
     if (sum === it.total) {
         state.locked = true;

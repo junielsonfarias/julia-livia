@@ -33,4 +33,31 @@ body.olimpiada { background: linear-gradient(135deg, #f6b93b 0%, #e58e26 45%, #b
 .review-item p { margin: 4px 0; }
 .review-item .sol { color: #1e3799; }
 
-@media (max-width: 640px) { .strategies { grid-template-columns: 1fr; } }
+/* Simulado: navegacao entre questoes */
+.sim-bar { margin-top: 14px; border-top: 2px dashed #f5d9a0; padding-top: 12px; }
+.sim-bar[hidden] { display: none; }
+.sim-actions { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 8px; }
+.sim-actions .tool-btn { padding: 10px 6px; font-size: .95rem; }
+.flag-btn.on { background: #ffe0e0; border-color: #d63031; color: #a01616; }
+.sim-nav-title { margin: 12px 0 6px; font-weight: 800; color: #8a4b00; font-size: .95rem; }
+.sim-nav { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; }
+.nav-q {
+    position: relative; min-height: 38px; border-radius: 10px; border: 2px solid #dfe6e9; background: #fff;
+    font-weight: 800; font-size: 1rem; color: #636e72; cursor: pointer; font-family: 'Nunito', sans-serif;
+}
+.nav-q.answered { background: #4a69bd; border-color: #4a69bd; color: #fff; }
+.nav-q.flagged::after { content: '🚩'; position: absolute; top: -9px; right: -6px; font-size: .75rem; }
+.nav-q.current { box-shadow: 0 0 0 3px #f6b93b; }
+.sim-legend { margin-top: 10px; font-size: .85rem; color: #636e72; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.sim-legend .nav-q { display: inline-flex; align-items: center; justify-content: center; min-height: 24px; width: 26px; font-size: .8rem; cursor: default; }
+.submit-warn { margin-top: 10px; font-weight: 800; color: #b71540; text-align: center; }
+.submit-warn:empty { display: none; }
+.review-item svg { display: block; margin: 6px auto; max-width: 100%; height: auto; }
+.figure svg { max-width: 100%; height: auto; }
+
+@media (max-width: 640px) {
+    .strategies { grid-template-columns: 1fr; }
+    .sim-nav { grid-template-columns: repeat(5, 1fr); }
+    .sim-actions { grid-template-columns: 1fr 1fr; }
+    .sim-actions .flag-btn { grid-column: 1 / -1; grid-row: 1; }
+}

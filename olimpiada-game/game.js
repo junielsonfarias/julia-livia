@@ -2,6 +2,7 @@
 // Treino Olimpico - Julia (4º ano)
 // Treino: dica opcional + resolucao comentada apos cada questao.
 // Simulado: 10 questoes em ordem de dificuldade, 20 minutos, correcao no final.
+//           Como numa prova de verdade: pode pular, voltar, marcar "revisar depois" e entregar quando quiser.
 // ==========================================
 
 const STATS_KEY = 'olimpiada_stats_v1';
@@ -12,13 +13,18 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E'];
 const state = {
     mode: 'treino', topic: null,
     questions: [], index: 0, tries: 0, usedHint: false,
-    answers: [],        // simulado: { q, chosenText }
+    answers: [],        // simulado: { q, chosen } por indice
+    orders: [],         // simulado: ordem embaralhada das alternativas de cada questao (fica igual ao voltar)
+    flags: new Set(),   // simulado: questoes marcadas para revisar
+    running: false,     // simulado em andamento (evita entregar duas vezes: relogio + botao)
+    submitArmed: false, // 1º toque em "Entregar" com questoes em branco/marcadas pede confirmacao
     correct: 0, points: 0,
-    clock: null, timeLeft: SIM_SECONDS
+    clock: null, endAt: 0, timeLeft: SIM_SECONDS
 };
 
 function goBack() {
     stopClock();
+    state.running = false;
     if (window.parent !== window) {
         try { if (window.parent.closeGameModal) { window.parent.closeGameModal(); return; } } catch (e) {}
     }
@@ -34,6 +40,7 @@ function showScreen(id) {
 
 function goHome() {
     stopClock();
+    state.running = false;
     document.getElementById('progress-label').textContent = '';
     renderStart();
     showScreen('start-screen');
@@ -47,7 +54,7 @@ function shuffle(arr) {
     }
     return a;
 }
-const esc = s => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 function loadJSON(k, d) { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } }
 function saveJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
@@ -84,16 +91,20 @@ function startGame(mode, topic) {
     state.correct = 0;
     state.points = 0;
     state.answers = [];
+    state.flags = new Set();
+    state.submitArmed = false;
     const all = window.OLIMPIADA;
     const byLevel = n => shuffle(all.filter(q => q.nivel === n));
 
     if (mode === 'simulado') {
         state.questions = [...byLevel(1).slice(0, 3), ...byLevel(2).slice(0, 4), ...byLevel(3).slice(0, 3)];
-        state.timeLeft = SIM_SECONDS;
+        state.orders = state.questions.map(q => shuffle(q.op.map((text, i) => ({ text, ok: i === 0 }))));
+        state.running = true;
         startClock();
     } else {
         const pool = topic ? all.filter(q => q.tema === topic) : all;
         state.questions = shuffle(pool).slice(0, 8).sort((a, b) => a.nivel - b.nivel);
+        state.running = false;
         stopClock();
     }
     KidsAudio.play('start');
@@ -102,16 +113,19 @@ function startGame(mode, topic) {
 }
 
 // ---------- Relogio do simulado ----------
+// Conta pelo horario final (Date.now), e nao por "ticks": continua certo mesmo se o navegador
+// atrasar o setInterval com a aba em segundo plano.
 function startClock() {
     stopClock();
-    const el = document.getElementById('clock');
-    el.hidden = false;
+    state.endAt = Date.now() + SIM_SECONDS * 1000;
+    state.timeLeft = SIM_SECONDS;
+    document.getElementById('clock').hidden = false;
     renderClock();
     state.clock = setInterval(() => {
-        state.timeLeft--;
+        state.timeLeft = Math.max(0, Math.ceil((state.endAt - Date.now()) / 1000));
         renderClock();
-        if (state.timeLeft <= 0) { stopClock(); finishSimulado(true); }
-    }, 1000);
+        if (state.timeLeft <= 0) finishSimulado(true);
+    }, 500);
 }
 function stopClock() {
     if (state.clock) clearInterval(state.clock);
@@ -128,8 +142,10 @@ function renderClock() {
 // ---------- Questao ----------
 function showQuestion() {
     const q = state.questions[state.index];
+    const sim = state.mode === 'simulado';
     state.tries = 0;
     state.usedHint = false;
+    state.submitArmed = false;
     document.getElementById('progress-label').innerHTML = `Questão <strong>${state.index + 1}</strong>/${state.questions.length}`;
     document.getElementById('q-topic').textContent = '🧩 ' + q.tema;
     document.getElementById('q-level').textContent = '⭐'.repeat(q.nivel) + '☆'.repeat(3 - q.nivel);
@@ -137,25 +153,28 @@ function showQuestion() {
     document.getElementById('q-figure').innerHTML = q.figura || '';
     document.getElementById('q-feedback').innerHTML = '';
     document.getElementById('q-feedback').className = 'feedback';
-    document.getElementById('tools').hidden = state.mode === 'simulado';
+    document.getElementById('tools').hidden = sim;
     document.getElementById('hint-btn').disabled = false;
+    document.getElementById('sim-bar').hidden = !sim;
 
     const next = document.getElementById('q-next');
-    next.hidden = state.mode !== 'simulado';
-    next.disabled = state.mode === 'simulado';
-    next.textContent = state.index + 1 >= state.questions.length
-        ? (state.mode === 'simulado' ? 'Entregar a prova ✔' : 'Ver resultado 🏆') : 'Próxima ➜';
+    next.hidden = true;          // treino: aparece depois da resolucao; simulado usa a barra propria
+    next.disabled = false;
+    next.textContent = state.index + 1 >= state.questions.length ? 'Ver resultado 🏆' : 'Próxima ➜';
 
     const box = document.getElementById('q-options');
     box.innerHTML = '';
-    shuffle(q.op.map((text, i) => ({ text, ok: i === 0 }))).forEach((o, i) => {
+    const opts = sim ? state.orders[state.index] : shuffle(q.op.map((text, i) => ({ text, ok: i === 0 })));
+    const chosen = sim && state.answers[state.index] ? state.answers[state.index].chosen : null;
+    opts.forEach((o, i) => {
         const b = document.createElement('button');
-        b.className = 'option';
+        b.className = 'option' + (o.text === chosen ? ' chosen' : '');
         b.dataset.ok = o.ok ? '1' : '0';
         b.innerHTML = `<span class="letter">${LETTERS[i]}</span>${esc(o.text)}`;
-        b.onclick = () => state.mode === 'simulado' ? chooseSimulado(b, o.text) : answerTreino(b, o.ok);
+        b.onclick = () => sim ? chooseSimulado(b, o.text) : answerTreino(b, o.ok);
         box.appendChild(b);
     });
+    if (sim) renderSimBar();
 }
 
 function showHint() {
@@ -164,9 +183,10 @@ function showHint() {
     document.getElementById('hint-btn').disabled = true;
     const fb = document.getElementById('q-feedback');
     fb.className = 'feedback bad';
-    fb.innerHTML = `💡 <b>Dica (${esc(q.estrategia)}):</b> ${esc(q.dica)}`;
+    fb.innerHTML = hintHTML(q);
     KidsAudio.play('click');
 }
+const hintHTML = q => `💡 <b>Dica (${esc(q.estrategia)}):</b> ${esc(q.dica)}`;
 
 function answerTreino(btn, ok) {
     if (btn.disabled) return;
@@ -188,11 +208,15 @@ function answerTreino(btn, ok) {
         KidsAudio.play('wrong');
         if (state.tries >= 2) {
             record(q.tema, false);
-            document.querySelector('#q-options .option[data-ok="1"]').classList.add('correct', 'revealed');
+            const right = document.querySelector('#q-options .option[data-ok="1"]');
+            if (right) right.classList.add('correct', 'revealed');
             revealSolution('A resposta certa está em verde.');
         } else {
             fb.className = 'feedback bad';
-            fb.innerHTML = `🤔 Não é essa. ${state.usedHint ? 'Releia a dica e tente de novo!' : 'Pense de novo — se quiser, peça uma dica.'}`;
+            // Se ela ja pediu a dica, a dica continua visivel (antes era apagada por esta mensagem)
+            fb.innerHTML = state.usedHint
+                ? `🤔 Não é essa. Releia a dica e tente de novo!<br>${hintHTML(q)}`
+                : '🤔 Não é essa. Pense de novo — se quiser, peça uma dica.';
         }
     }
 }
@@ -209,20 +233,83 @@ function revealSolution(head) {
     next.disabled = false;
 }
 
+// Treino: proxima questao (botao q-next)
+function nextQuestion() {
+    if (state.mode === 'simulado') return;
+    const next = document.getElementById('q-next');
+    if (next.hidden) return;     // evita pular questao com toque duplo
+    next.hidden = true;
+    state.index++;
+    if (state.index >= state.questions.length) return finishTreino();
+    showQuestion();
+}
+
+// ---------- Simulado: navegacao como numa prova ----------
 function chooseSimulado(btn, text) {
+    if (!state.running) return;
     document.querySelectorAll('#q-options .option').forEach(b => b.classList.remove('chosen'));
     btn.classList.add('chosen');
     state.answers[state.index] = { q: state.questions[state.index], chosen: text };
-    document.getElementById('q-next').disabled = false;
+    state.submitArmed = false;
+    renderSimBar();
     KidsAudio.play('click');
 }
 
-function nextQuestion() {
-    state.index++;
-    if (state.index >= state.questions.length) {
-        return state.mode === 'simulado' ? finishSimulado(false) : finishTreino();
-    }
+function gotoQuestion(i) {
+    if (!state.running || i < 0 || i >= state.questions.length) return;
+    state.index = i;
     showQuestion();
+    KidsAudio.play('click');
+}
+
+function toggleFlag() {
+    if (!state.running) return;
+    if (state.flags.has(state.index)) state.flags.delete(state.index); else state.flags.add(state.index);
+    state.submitArmed = false;
+    renderSimBar();
+    KidsAudio.play('click');
+}
+
+function renderSimBar() {
+    const n = state.questions.length;
+    document.getElementById('sim-nav').innerHTML = state.questions.map((_, i) => {
+        const cls = ['nav-q'];
+        if (state.answers[i]) cls.push('answered');
+        if (state.flags.has(i)) cls.push('flagged');
+        if (i === state.index) cls.push('current');
+        const label = `Questão ${i + 1}${state.answers[i] ? ', respondida' : ', em branco'}${state.flags.has(i) ? ', marcada para revisar' : ''}`;
+        return `<button class="${cls.join(' ')}" onclick="gotoQuestion(${i})" aria-label="${label}">${i + 1}</button>`;
+    }).join('');
+    const flagged = state.flags.has(state.index);
+    const flagBtn = document.getElementById('flag-btn');
+    flagBtn.textContent = flagged ? '🚩 Marcada (tirar)' : '🏳️ Revisar depois';
+    flagBtn.classList.toggle('on', flagged);
+    document.getElementById('prev-btn').disabled = state.index === 0;
+    document.getElementById('next-q-btn').disabled = state.index === n - 1;
+
+    const blank = state.questions.filter((_, i) => !state.answers[i]).length;
+    const submit = document.getElementById('submit-btn');
+    const warn = document.getElementById('submit-warn');
+    if (state.submitArmed) {
+        submit.textContent = 'Sim, entregar agora ✔';
+        warn.textContent = [blank ? `${blank} em branco` : '', state.flags.size ? `${state.flags.size} marcada(s) para revisar` : '']
+            .filter(Boolean).join(' e ') + '. Tem certeza?';
+    } else {
+        submit.textContent = 'Entregar a prova ✔';
+        warn.textContent = blank ? `Respondidas: ${n - blank} de ${n}` : 'Todas respondidas! Revise se quiser e entregue.';
+    }
+}
+
+function submitSimulado() {
+    if (!state.running) return;
+    const blank = state.questions.some((_, i) => !state.answers[i]);
+    if ((blank || state.flags.size) && !state.submitArmed) {
+        state.submitArmed = true;
+        renderSimBar();
+        KidsAudio.play('click');
+        return;
+    }
+    finishSimulado(false);
 }
 
 // ---------- Resultados ----------
@@ -242,6 +329,8 @@ function finishTreino() {
 }
 
 function finishSimulado(timeUp) {
+    if (!state.running) return;      // ja entregue (ex.: relogio zerou no mesmo instante do toque)
+    state.running = false;
     stopClock();
     let score = 0;
     const review = state.questions.map((q, i) => {
@@ -251,7 +340,7 @@ function finishSimulado(timeUp) {
         record(q.tema, ok);
         return `<div class="review-item ${ok ? 'ok' : 'bad'}">
             <p><b>${i + 1}. ${esc(q.tema)}</b> ${'⭐'.repeat(q.nivel)} — ${ok ? '✅ Acertou' : a ? '❌ Você marcou: ' + esc(a.chosen) : '⚪ Em branco'}</p>
-            ${ok ? '' : `<p>${esc(q.q)}</p><p><b>Resposta:</b> ${esc(q.op[0])}</p><p class="sol">📝 ${esc(q.sol)}</p>`}
+            ${ok ? '' : `<p>${esc(q.q)}</p>${q.figura || ''}<p><b>Resposta:</b> ${esc(q.op[0])}</p><p class="sol">📝 ${esc(q.sol)}</p>`}
         </div>`;
     }).join('');
 
@@ -259,15 +348,18 @@ function finishSimulado(timeUp) {
     const isRecord = !rec || score > rec.score;
     if (isRecord) saveJSON(RECORD_KEY, { score, date: new Date().toISOString() });
 
+    const used = SIM_SECONDS - state.timeLeft;
     document.getElementById('final-score').textContent = `${score}/10`;
     document.getElementById('final-label').textContent = 'acertos no simulado';
     document.getElementById('result-icon').textContent = score >= 8 ? '🥇' : score >= 6 ? '🥈' : score >= 4 ? '🥉' : '📚';
     document.getElementById('result-title').textContent = timeUp ? '⏰ Tempo esgotado!' : 'Prova entregue!';
     document.getElementById('result-msg').textContent =
         (isRecord && score > 0 ? '🏆 Novo recorde! ' : '') +
+        (timeUp ? '' : `Tempo usado: ${Math.floor(used / 60)} min ${used % 60} s. `) +
         'Leia a resolução das questões que você errou: é assim que se aprende para a olimpíada.';
     document.getElementById('review').innerHTML = review;
     document.getElementById('progress-label').textContent = '';
+    document.getElementById('sim-bar').hidden = true;
     showScreen('result-screen');
     KidsAudio.play(score >= 6 ? 'win' : 'star');
 }
@@ -282,7 +374,8 @@ function showStrategies() {
 function showReport() {
     const stats = loadJSON(STATS_KEY, {});
     const box = document.getElementById('report');
-    const entries = Object.entries(stats).sort((a, b) => a[1].ok / a[1].total - b[1].ok / b[1].total);
+    const entries = Object.entries(stats).filter(([, s]) => s.total > 0)
+        .sort((a, b) => a[1].ok / a[1].total - b[1].ok / b[1].total);
     box.innerHTML = entries.length ? entries.map(([t, s]) => {
         const pct = Math.round(100 * s.ok / s.total);
         const cls = pct >= 80 ? 'high' : pct >= 50 ? 'mid' : 'low';

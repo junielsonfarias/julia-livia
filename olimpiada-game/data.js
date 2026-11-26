@@ -10,10 +10,23 @@ const GRADE_3X3 = `<svg viewBox="0 0 96 96" width="120" height="120" aria-label=
   ${[0, 1, 2].map(r => [0, 1, 2].map(c => `<rect x="${3 + c * 30}" y="${3 + r * 30}" width="30" height="30"/>`).join('')).join('')}
   </g></svg>`;
 
-const PALITOS = `<svg viewBox="0 0 140 50" width="210" height="75" aria-label="Tres quadrados de palitos enfileirados">
+const PALITOS = `<svg viewBox="0 0 140 50" width="210" height="75" aria-label="Três quadrados de palitos enfileirados">
   <g stroke="#e17055" stroke-width="5" stroke-linecap="round">
   ${[0, 1, 2].map(i => `<line x1="${10 + i * 40}" y1="5" x2="${50 + i * 40}" y2="5"/><line x1="${10 + i * 40}" y1="45" x2="${50 + i * 40}" y2="45"/>`).join('')}
   ${[0, 1, 2, 3].map(i => `<line x1="${10 + i * 40}" y1="5" x2="${10 + i * 40}" y2="45"/>`).join('')}
+  </g></svg>`;
+
+// Triangulo com dois segmentos saindo do vertice de cima ate a base
+const TRIANGULOS = `<svg viewBox="0 0 160 120" width="200" height="150" aria-label="Triângulo grande dividido por dois segmentos que saem do vértice de cima até a base">
+  <g fill="none" stroke="#1e3799" stroke-width="2.5" stroke-linejoin="round">
+  <polygon points="80,8 8,112 152,112" fill="#eef3ff"/>
+  <line x1="80" y1="8" x2="58" y2="112"/><line x1="80" y1="8" x2="108" y2="112"/>
+  </g></svg>`;
+
+// Faixa com 3 quadrados lado a lado
+const FAIXA_1X3 = `<svg viewBox="0 0 186 66" width="186" height="66" aria-label="Faixa formada por 3 quadrados lado a lado">
+  <g fill="#eef3ff" stroke="#1e3799" stroke-width="2">
+  ${[0, 1, 2].map(c => `<rect x="${3 + c * 60}" y="3" width="60" height="60"/>`).join('')}
   </g></svg>`;
 
 window.OLIMPIADA = [
@@ -148,7 +161,121 @@ window.OLIMPIADA = [
       q: 'Um relógio digital mostra 09:59. Um minuto depois, quantos dos 4 algarismos do visor terão mudado?',
       op: ['4', '1', '2', '3', '0'],
       dica: 'Escreva o horário de um minuto depois e compare algarismo por algarismo.',
-      sol: 'Um minuto depois o visor mostra 10:00. Compare: 0→1, 9→0, 5→0, 9→0. Todos os 4 mudaram!' }
+      sol: 'Um minuto depois o visor mostra 10:00. Compare: 0→1, 9→0, 5→0, 9→0. Todos os 4 mudaram!' },
+
+    // ---------- Novas questoes (originais) ----------
+    // Nivel 1
+    { nivel: 1, tema: 'Medidas e tempo', estrategia: 'Procurar o padrão',
+      q: 'Hoje é quarta-feira, dia 10. Que dia da semana será o dia 24 deste mesmo mês?',
+      op: ['Quarta-feira', 'Quinta-feira', 'Terça-feira', 'Sexta-feira', 'Domingo'],
+      dica: 'Quantos dias faltam do dia 10 até o dia 24? Esse número é múltiplo de 7?',
+      sol: 'Do dia 10 ao dia 24 passam 24 − 10 = 14 dias, que são exatamente 2 semanas. Depois de semanas completas, o dia da semana se repete: quarta-feira (10 → 17 → 24).' },
+    { nivel: 1, tema: 'Lógica', estrategia: 'Fazer um desenho',
+      q: 'Três amigas compararam suas alturas. Lia é mais alta que Mia, e Mia é mais alta que Bia. Quem é a mais baixa das três?',
+      op: ['Bia', 'Lia', 'Mia', 'Lia e Bia têm a mesma altura', 'Não dá para saber'],
+      dica: 'Desenhe as três em fila, da mais alta para a mais baixa.',
+      sol: 'Lia > Mia e Mia > Bia. Em ordem: Lia (mais alta), Mia, Bia (mais baixa). Resposta: Bia.' },
+    { nivel: 1, tema: 'Números', estrategia: 'Testar as alternativas',
+      q: 'Qual é o maior número de dois algarismos que é múltiplo de 7?',
+      op: ['98', '99', '97', '91', '77'],
+      dica: 'Comece pelo 99 e vá descendo: qual é o primeiro que está na tabuada do 7?',
+      sol: '99 ÷ 7 = 14 e sobra 1, então 99 não serve. 98 = 7 × 14 é múltiplo de 7. Resposta: 98.' },
+    { nivel: 1, tema: 'Frações', estrategia: 'Fazer um desenho',
+      q: 'Uma pizza foi cortada em 8 pedaços iguais. Pedro comeu 1/4 da pizza. Quantos pedaços ele comeu?',
+      op: ['2', '4', '1', '3', '6'],
+      dica: 'Divida os 8 pedaços em 4 grupos iguais. Quantos pedaços há em cada grupo?',
+      sol: '1/4 da pizza = 8 ÷ 4 = 2 pedaços.' },
+    { nivel: 1, tema: 'Geometria', estrategia: 'Fazer um desenho',
+      q: 'Um quadrado tem perímetro de 20 cm. Quanto mede cada lado desse quadrado?',
+      op: ['5 cm', '4 cm', '10 cm', '20 cm', '80 cm'],
+      dica: 'O quadrado tem 4 lados iguais, e o perímetro é a soma dos 4 lados.',
+      sol: '4 lados iguais somam 20 cm: 20 ÷ 4 = 5 cm.' },
+    { nivel: 1, tema: 'Padrões', estrategia: 'Procurar o padrão',
+      q: 'A sequência ▲ ● ■ ▲ ● ■ ▲ ● ■ ... continua sempre do mesmo jeito. Qual figura está na 20ª posição?',
+      op: ['●', '▲', '■', '★', '◆'],
+      dica: 'O grupo ▲ ● ■ tem 3 figuras e se repete. As posições 3, 6, 9, ... são sempre ■.',
+      sol: 'As posições múltiplas de 3 são ■. 18 = 3 × 6, então a 18ª é ■, a 19ª é ▲ e a 20ª é ●.' },
+    { nivel: 1, tema: 'Dinheiro', estrategia: 'Usar a divisão',
+      q: 'Cada sorvete custa R$ 3,00. Com R$ 20,00, quantos sorvetes posso comprar, no máximo, e quanto sobra?',
+      op: ['6 sorvetes e sobram R$ 2,00', '7 sorvetes e não sobra nada', '6 sorvetes e sobra R$ 1,00', '5 sorvetes e sobram R$ 3,00', '3 sorvetes e sobram R$ 2,00'],
+      dica: 'Quantas vezes o 3 cabe no 20? Use a tabuada do 3.',
+      sol: '6 × 3 = 18 e 7 × 3 = 21 (passa de 20). Então são 6 sorvetes, e sobram 20 − 18 = R$ 2,00.' },
+
+    // Nivel 2
+    { nivel: 2, tema: 'Dinheiro', estrategia: 'Testar as alternativas',
+      q: 'Uma caneta custa R$ 3,00 a mais que um lápis. Juntos, os dois custam R$ 5,00. Quanto custa o lápis?',
+      op: ['R$ 1,00', 'R$ 2,00', 'R$ 1,50', 'R$ 3,00', 'R$ 0,50'],
+      dica: 'Cuidado com a resposta “rápida” (R$ 2,00)! Teste: se o lápis custasse R$ 2,00, quanto custaria a caneta? E os dois juntos?',
+      sol: 'Se o lápis custa R$ 1,00, a caneta custa 1 + 3 = R$ 4,00, e juntos: 1 + 4 = R$ 5,00 ✔. (Com o lápis a R$ 2,00, a caneta custaria R$ 5,00 e juntos dariam R$ 7,00.)' },
+    { nivel: 2, tema: 'Geometria', estrategia: 'Contar por tamanhos',
+      figura: TRIANGULOS,
+      q: 'Quantos triângulos existem na figura, contando triângulos de todos os tamanhos?',
+      op: ['6', '3', '4', '5', '7'],
+      dica: 'Todo triângulo da figura tem o vértice de cima. Basta escolher dois pontos da base para fechar o triângulo!',
+      sol: 'A base tem 4 pontos (as 2 pontas e 2 pontos no meio). Cada par de pontos da base forma um triângulo com o vértice de cima: 3 pequenos + 2 médios (dois pequenos juntos) + 1 grande = 6.' },
+    { nivel: 2, tema: 'Contagem', estrategia: 'Organizar em lista',
+      q: 'Quantos números de dois algarismos podem ser formados usando apenas os algarismos 1, 2 e 3 (podendo repetir algarismos)?',
+      op: ['9', '6', '3', '8', '27'],
+      dica: 'Liste os que começam com 1: 11, 12, 13. E os que começam com 2? E com 3?',
+      sol: '11, 12, 13 · 21, 22, 23 · 31, 32, 33. São 3 escolhas para a dezena e 3 para a unidade: 3 × 3 = 9.' },
+    { nivel: 2, tema: 'Geometria', estrategia: 'Contar por tamanhos',
+      figura: FAIXA_1X3,
+      q: 'Quantos retângulos existem na figura? (Os quadrados também são retângulos!)',
+      op: ['6', '3', '4', '5', '8'],
+      dica: 'Conte os retângulos formados por 1 quadradinho, depois por 2 quadradinhos juntos, depois por 3.',
+      sol: 'De 1 quadradinho: 3. De 2 quadradinhos vizinhos: 2. De 3 quadradinhos: 1. Total: 3 + 2 + 1 = 6.' },
+    { nivel: 2, tema: 'Medidas e tempo', estrategia: 'Contar por partes',
+      q: 'Ana dorme às 21h30 e acorda às 6h45 do dia seguinte. Quanto tempo ela dorme?',
+      op: ['9h15min', '8h15min', '9h45min', '15h15min', '8h45min'],
+      dica: 'Divida em partes: de 21h30 até a meia-noite e da meia-noite até 6h45.',
+      sol: 'De 21h30 até 24h00: 2h30min. De 0h00 até 6h45: 6h45min. Total: 2h30 + 6h45 = 8h75min = 9h15min.' },
+    { nivel: 2, tema: 'Geometria', estrategia: 'Fazer um desenho',
+      q: 'Julia olhou no espelho um relógio de ponteiros. No espelho, o relógio parecia marcar exatamente 3 horas. Que horas o relógio marcava de verdade?',
+      op: ['9 horas', '3 horas', '6 horas', '12 horas', '15 horas'],
+      dica: 'O espelho troca a direita pela esquerda. O ponteiro grande no 12 continua no 12. E o pequeno, que parece estar no 3?',
+      sol: 'O ponteiro dos minutos está no 12 (em cima) e não muda no espelho. O ponteiro das horas aparece no 3 (à direita); de verdade, ele está do lado esquerdo, no 9. São 9 horas.' },
+    { nivel: 2, tema: 'Lógica', estrategia: 'Testar as alternativas',
+      q: 'A soma das idades de Julia e Livia é 16 anos. Julia tem 4 anos a mais que Livia. Qual é a idade de Julia?',
+      op: ['10 anos', '12 anos', '8 anos', '6 anos', '11 anos'],
+      dica: 'Teste: se Julia tivesse 12, Livia teria 8. A soma daria 16? A diferença daria 4?',
+      sol: 'Tirando a diferença: 16 − 4 = 12, que são duas idades iguais à de Livia: 12 ÷ 2 = 6. Julia tem 6 + 4 = 10 anos. Conferindo: 10 + 6 = 16 ✔ e 10 − 6 = 4 ✔.' },
+
+    // Nivel 3
+    { nivel: 3, tema: 'Lógica', estrategia: 'Fazer uma tabela',
+      q: 'Uma lagarta quer subir um muro de 12 metros. Durante o dia, ela sobe 4 metros; à noite, enquanto dorme, escorrega 3 metros. Em que dia ela chega ao alto do muro?',
+      op: ['No 9º dia', 'No 12º dia', 'No 8º dia', 'No 4º dia', 'No 10º dia'],
+      dica: 'Cuidado: no dia em que ela chega ao alto, ela não escorrega mais! Faça uma tabela dia a dia.',
+      sol: 'A cada dia e noite completos ela avança só 1 metro. Ao amanhecer do 9º dia ela está a 8 metros. Nesse dia ela sobe 4 metros e chega a 12 metros: alcança o alto no 9º dia, antes de escorregar.' },
+    { nivel: 3, tema: 'Contagem', estrategia: 'Contar por casas',
+      q: 'Quantos números de 1 a 100 têm pelo menos um algarismo 5?',
+      op: ['19', '20', '10', '18', '11'],
+      dica: 'Conte os que têm 5 nas unidades (5, 15, 25, ...) e os que têm 5 nas dezenas (50 a 59). Algum foi contado duas vezes?',
+      sol: 'Com 5 nas unidades: 5, 15, 25, ..., 95 → 10 números. Com 5 nas dezenas: 50, 51, ..., 59 → 10 números. O 55 apareceu nas duas listas: 10 + 10 − 1 = 19.' },
+    { nivel: 3, tema: 'Lógica', estrategia: 'Pensar no pior caso',
+      q: 'Numa gaveta há 5 meias azuis, 4 pretas e 3 brancas, todas misturadas. No escuro, qual é o menor número de meias que preciso tirar para ter CERTEZA de pegar 2 meias pretas?',
+      op: ['10', '2', '4', '5', '12'],
+      dica: 'Imagine o maior azar possível: quais meias sairiam antes das pretas?',
+      sol: 'No pior caso, saem primeiro todas as que não são pretas: 5 azuis + 3 brancas = 8. Depois, as próximas 2 com certeza são pretas: 8 + 2 = 10.' },
+    { nivel: 3, tema: 'Geometria', estrategia: 'Usar partes iguais',
+      q: 'Um retângulo tem perímetro de 24 cm, e o comprimento é o dobro da largura. Qual é a área desse retângulo?',
+      op: ['32 cm²', '24 cm²', '36 cm²', '48 cm²', '16 cm²'],
+      dica: 'Meio perímetro (largura + comprimento) é 12 cm. Se a largura é 1 parte, o comprimento é 2 partes.',
+      sol: 'Largura + comprimento = 24 ÷ 2 = 12 cm. São 3 partes iguais (1 + 2): 12 ÷ 3 = 4. Largura 4 cm, comprimento 8 cm. Área = 8 × 4 = 32 cm².' },
+    { nivel: 3, tema: 'Números', estrategia: 'Pensar no valor posicional',
+      q: 'Usando cada um dos algarismos 1, 3, 5 e 7 uma única vez, formo dois números de dois algarismos. Qual é a MAIOR soma possível desses dois números?',
+      op: ['124', '128', '88', '150', '106'],
+      dica: 'Um algarismo na casa das dezenas vale 10 vezes mais. Quais algarismos devem ficar nas dezenas?',
+      sol: 'Os maiores (7 e 5) vão para as dezenas e os menores (3 e 1) para as unidades: 70 + 50 + 3 + 1 = 124. Por exemplo, 73 + 51 = 124 (ou 71 + 53 = 124).' },
+    { nivel: 3, tema: 'Medidas e tempo', estrategia: 'Procurar o padrão',
+      q: 'Em certo ano, o dia 1º de março foi uma segunda-feira. Que dia da semana foi o dia 1º de abril desse ano?',
+      op: ['Quinta-feira', 'Segunda-feira', 'Quarta-feira', 'Sexta-feira', 'Terça-feira'],
+      dica: 'Março tem 31 dias. Quantas semanas completas cabem em 31 dias, e quantos dias sobram?',
+      sol: 'Do dia 1º de março ao dia 1º de abril passam 31 dias. 31 = 4 × 7 + 3. Depois de 4 semanas é segunda-feira de novo; mais 3 dias: terça, quarta, quinta. Resposta: quinta-feira.' },
+    { nivel: 3, tema: 'Frações', estrategia: 'Fazer um desenho',
+      q: 'Julia leu 1/2 de um livro no sábado e 1/3 do mesmo livro no domingo. Ainda faltam 20 páginas para terminar. Quantas páginas tem o livro?',
+      op: ['120', '60', '100', '80', '150'],
+      dica: 'Desenhe o livro como uma barra dividida em 6 partes iguais. Quantas partes ela já leu? Quantas faltam?',
+      sol: '1/2 = 3/6 e 1/3 = 2/6. Ela leu 3/6 + 2/6 = 5/6 do livro. Falta 1/6, que são 20 páginas. O livro todo tem 6 × 20 = 120 páginas.' }
 ];
 
 window.ESTRATEGIAS = [

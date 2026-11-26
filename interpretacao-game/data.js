@@ -167,6 +167,110 @@ window.PROBLEMAS = [
         conta: ['4 × 6 = 24, depois 24 × 5', '4 + 6 + 5', '4 × 6 + 5'],
         resposta: ['120 chocolates', '15 chocolates', '29 chocolates'],
         dica: 'Primeiro descubra quantos chocolates tem UMA caixa (4 × 6 = 24). Depois multiplique pelo número de caixas (24 × 5 = 120).'
+    },
+    {
+        tema: 'Leia até o fim!',
+        texto: 'Uma loja vendeu {36} bonés e {~48} camisetas na segunda-feira. Na terça-feira, vendeu o triplo de bonés da segunda. Quantos bonés a loja vendeu na terça-feira?',
+        pede: ['Quantos bonés foram vendidos na terça-feira', 'Quantos bonés foram vendidos nos dois dias', 'Quantas camisetas foram vendidas', 'Quantos produtos foram vendidos na segunda-feira'],
+        conta: ['36 × 3', '36 + 48', '36 × 3 + 36'],
+        resposta: ['108 bonés', '84 bonés', '144 bonés'],
+        dica: '“Triplo” = multiplicar por 3. A pergunta é só sobre a TERÇA-FEIRA: não precisa somar com a segunda. As camisetas não entram na conta!'
+    },
+    {
+        tema: 'Duas etapas',
+        texto: 'Lucas tinha {R$ 100}. Ele comprou {3} camisetas de {R$ 25} cada uma. A loja abre às {~9} horas. Quanto dinheiro sobrou para Lucas?',
+        pede: ['Quanto dinheiro sobrou para Lucas', 'Quanto Lucas gastou', 'Quanto custa uma camiseta', 'A que horas a loja abre'],
+        conta: ['3 × 25 = 75, depois 100 − 75', '100 − 25', '3 × 25'],
+        resposta: ['R$ 25', 'R$ 75', 'R$ 97'],
+        dica: 'Primeiro descubra quanto ele gastou: 3 camisetas de R$ 25 → 3 × 25 = 75. Depois veja quanto sobrou: 100 − 75 = 25.'
+    },
+    {
+        tema: 'Leia até o fim!',
+        texto: 'Vovó fez {45} biscoitos e quer colocar {6} biscoitos em cada saquinho. Ela tem {~10} netos. Quantos biscoitos vão sobrar fora dos saquinhos?',
+        pede: ['Quantos biscoitos vão sobrar fora dos saquinhos', 'Quantos saquinhos ela consegue encher', 'Quantos biscoitos cada neto vai ganhar', 'Quantos biscoitos ela fez'],
+        conta: ['45 ÷ 6 = 7 e olhar o resto', '45 − 6', '45 ÷ 10'],
+        resposta: ['3 biscoitos', '7 biscoitos', '39 biscoitos'],
+        dica: '45 ÷ 6 = 7 saquinhos (7 × 6 = 42) e sobram 45 − 42 = 3 biscoitos. A pergunta é o que SOBRA (o resto), não quantos saquinhos!'
+    },
+    {
+        tema: 'Horas',
+        texto: 'Uma viagem de ônibus começou às {8h40} e terminou às {11h15}. O ônibus tinha {~44} lugares. Quanto tempo durou a viagem?',
+        pede: ['Quanto tempo durou a viagem', 'A que horas a viagem terminou', 'Quantos lugares o ônibus tinha', 'A que horas a viagem começou'],
+        conta: ['11h15 − 8h40', '11h15 + 8h40', '11 − 8'],
+        resposta: ['2h35min', '3h25min', '3h'],
+        dica: 'Conte por partes: de 8h40 até 9h00 são 20 min; de 9h00 até 11h00 são 2 h; de 11h00 até 11h15 são 15 min. Total: 2 h e 35 min.'
+    },
+    {
+        tema: 'Fração de quantidade',
+        texto: 'Uma turma tem {32} alunos. Foram ao passeio {3/4} da turma. O ônibus saiu às {~7h}. Quantos alunos NÃO foram ao passeio?',
+        pede: ['Quantos alunos não foram ao passeio', 'Quantos alunos foram ao passeio', 'Quantos alunos a turma tem', 'A hora em que o ônibus saiu'],
+        conta: ['32 ÷ 4 × 3 = 24, depois 32 − 24', '32 ÷ 4 × 3', '32 − 3'],
+        resposta: ['8 alunos', '24 alunos', '29 alunos'],
+        dica: '1/4 de 32 = 8, então 3/4 de 32 = 24 alunos foram. Mas a pergunta tem um NÃO: quem não foi é 32 − 24 = 8 (que é o 1/4 que sobrou).'
+    },
+    {
+        tema: 'Duas etapas',
+        texto: 'Rafael tem {85} figurinhas. Sofia tem {27} figurinhas a menos que Rafael. Quantas figurinhas os dois têm juntos?',
+        pede: ['Quantas figurinhas os dois têm juntos', 'Quantas figurinhas Sofia tem', 'Quantas figurinhas Rafael tem', 'Quantas figurinhas Sofia tem a menos'],
+        conta: ['85 − 27 = 58, depois 85 + 58', '85 + 27', '85 − 27'],
+        resposta: ['143 figurinhas', '112 figurinhas', '58 figurinhas'],
+        dica: 'Primeiro descubra quanto Sofia tem: “a menos” → 85 − 27 = 58. Depois junte as duas coleções: 85 + 58 = 143. Parar no 58 é responder só metade!'
+    },
+    {
+        tema: 'Perímetro',
+        texto: 'Seu Jorge quer cercar uma horta retangular de {8} metros de comprimento e {5} metros de largura. Ele tem {~2} cachorros. Quantos metros de cerca ele vai precisar?',
+        pede: ['Quantos metros de cerca são necessários', 'Qual é o tamanho da horta por dentro', 'Quantos cachorros Seu Jorge tem', 'Qual é o comprimento da horta'],
+        conta: ['8 + 5 + 8 + 5', '8 × 5', '8 + 5'],
+        resposta: ['26 metros', '40 metros', '13 metros'],
+        dica: 'A cerca dá a VOLTA inteira na horta: são 4 lados (dois de 8 m e dois de 5 m). 8 + 5 + 8 + 5 = 26 metros. Isso é o perímetro!'
+    },
+    {
+        tema: 'Três etapas',
+        texto: 'No lanche, Julia comprou {2} pastéis de {R$ 6} cada um e um suco de {R$ 5}. Ela pagou com uma nota de {R$ 20}. Quanto ela recebeu de troco?',
+        pede: ['Quanto Julia recebeu de troco', 'Quanto Julia gastou no lanche', 'Quanto custa um pastel', 'Quanto custa o suco'],
+        conta: ['2 × 6 + 5 = 17, depois 20 − 17', '20 − 6 − 5', '2 × 6 + 5'],
+        resposta: ['R$ 3', 'R$ 9', 'R$ 17'],
+        dica: 'São DOIS pastéis: 2 × 6 = 12. Com o suco: 12 + 5 = 17. Troco: 20 − 17 = 3. Quem esquece o “2” acha R$ 9.'
+    },
+    {
+        tema: 'Divisão',
+        texto: 'Uma escola vai levar {96} alunos ao museu. Cada ônibus leva {32} alunos, e o aluguel de cada ônibus custa {~R$ 150}. Quantos ônibus a escola precisa?',
+        pede: ['Quantos ônibus são necessários', 'Quanto custa alugar um ônibus', 'Quantos alunos cabem em um ônibus', 'Quanto a escola vai gastar'],
+        conta: ['96 ÷ 32', '96 × 32', '96 − 32'],
+        resposta: ['3 ônibus', '64 ônibus', '4 ônibus'],
+        dica: '“Quantas vezes o 32 cabe no 96?” → divisão: 32 × 3 = 96. O preço do aluguel não é perguntado!'
+    },
+    {
+        tema: 'Leia até o fim!',
+        texto: 'Hoje Laura tem {9} anos e o irmão dela tem {4} anos. Quantos anos Laura terá quando o irmão tiver {10} anos?',
+        pede: ['A idade de Laura quando o irmão tiver 10 anos', 'A idade do irmão daqui a 10 anos', 'A idade de Laura hoje', 'A diferença de idade entre os irmãos'],
+        conta: ['10 − 4 = 6 anos vão passar, depois 9 + 6', '9 + 10', '10 − 4'],
+        resposta: ['15 anos', '19 anos', '6 anos'],
+        dica: 'Para o irmão ir de 4 para 10 anos, passam 6 anos. Laura também fica 6 anos mais velha: 9 + 6 = 15. (A diferença entre os dois é sempre 5 anos!)'
+    },
+    {
+        tema: 'Leia até o fim!',
+        texto: 'Um álbum tem {12} páginas, e em cada página cabem {9} figurinhas. Tiago já colou {~50} figurinhas. Quantas figurinhas cabem no álbum completo?',
+        pede: ['Quantas figurinhas cabem no álbum inteiro', 'Quantas figurinhas faltam colar', 'Quantas figurinhas Tiago já colou', 'Quantas páginas tem o álbum'],
+        conta: ['12 × 9', '12 × 9 − 50', '12 + 9'],
+        resposta: ['108 figurinhas', '58 figurinhas', '21 figurinhas'],
+        dica: 'A pergunta NÃO é quantas faltam! Ela quer saber quantas cabem no álbum todo: 12 páginas × 9 figurinhas = 108. As 50 já coladas não entram na conta.'
+    },
+    {
+        tema: 'Medidas',
+        texto: 'Mariana, de {~8} anos, tem uma fita de {3 metros}. Ela corta pedaços de {50 cm} para enfeitar presentes. Quantos pedaços ela consegue cortar?',
+        pede: ['Quantos pedaços de fita ela consegue cortar', 'Quantos anos Mariana tem', 'Qual é o tamanho de cada pedaço', 'Quantos metros tem a fita'],
+        conta: ['300 ÷ 50', '3 × 50', '50 ÷ 3'],
+        resposta: ['6 pedaços', '150 pedaços', '15 pedaços'],
+        dica: 'Use a mesma unidade: 1 metro = 100 cm, então 3 metros = 300 cm. Depois: 300 ÷ 50 = 6 pedaços.'
+    },
+    {
+        tema: 'Duas etapas',
+        texto: 'Em um estacionamento de {~3} andares há {14} carros e {9} motos. Quantas rodas há ao todo nesses veículos?',
+        pede: ['O total de rodas dos carros e das motos', 'O total de veículos', 'Quantos andares tem o estacionamento', 'Quantas rodas têm só os carros'],
+        conta: ['14 × 4 + 9 × 2', '14 + 9', '(14 + 9) × 4'],
+        resposta: ['74 rodas', '23 rodas', '92 rodas'],
+        dica: 'Cada carro tem 4 rodas e cada moto tem 2: 14 × 4 = 56 e 9 × 2 = 18. Ao todo: 56 + 18 = 74. A pergunta é sobre RODAS, não sobre veículos!'
     }
 ];
 
@@ -320,7 +424,7 @@ window.TEXTOS = [
         perguntas: [
             { tipo: 'Finalidade do texto', q: 'Qual é o objetivo desse texto?',
               op: ['Convidar para uma festa de aniversário', 'Contar como foi uma festa', 'Ensinar a fazer uma fantasia', 'Vender unicórnios'],
-              prova: 0, dica: 'Convites chamam alguém para um evento e informam dia, hora e local.' },
+              prova: 1, dica: 'Convites chamam alguém para um evento e informam dia, hora e local. A frase “Venha comemorar os 6 anos da Livia” mostra que é uma festa de aniversário.' },
             { tipo: 'Localizar informação', q: 'Até quando os convidados devem confirmar presença?',
               op: ['Até o dia 20', 'No dia 23', 'Até as 19h', 'Não precisa confirmar'],
               prova: 6, dica: 'Cuidado para não confundir com a data da festa (23). Procure “confirme”.' },
@@ -381,6 +485,110 @@ window.TEXTOS = [
             { tipo: 'Localizar informação', q: 'Quem é Dona Rosa?',
               op: ['A vizinha da padaria', 'A avó das crianças', 'A dona do cachorro', 'A professora'],
               prova: 3, dica: 'Depois do nome dela, o texto explica quem ela é.' }
+        ]
+    },
+    {
+        titulo: 'Nina e o guarda-chuva',
+        genero: 'Tirinha (contada em palavras)',
+        frases: [
+            'Quadro 1: Nina olha pela janela. O sol está brilhando, mas lá longe aparecem nuvens escuras.',
+            'Quadro 2: A mãe diz: — Leve o guarda-chuva, filha!',
+            'Nina responde: — Não precisa, mãe. Está fazendo sol!',
+            'Quadro 3: No caminho para a escola, começa um temporal.',
+            'Quadro 4: Nina chega à escola encharcada, pingando da cabeça aos pés, e pensa: “Da próxima vez, vou ouvir a mamãe.”'
+        ],
+        perguntas: [
+            { tipo: 'Inferência', q: 'Por que a mãe pediu para Nina levar o guarda-chuva?',
+              op: ['Porque viu nuvens escuras e achou que ia chover', 'Porque o guarda-chuva era novo', 'Porque Nina gosta de guarda-chuvas', 'Porque estava fazendo muito sol'],
+              prova: 0, dica: 'A mãe não explica o motivo, mas o primeiro quadro dá a pista: havia nuvens escuras chegando.' },
+            { tipo: 'Sentido da palavra', q: 'No último quadro, a palavra ENCHARCADA quer dizer:',
+              op: ['Muito molhada', 'Muito cansada', 'Atrasada', 'Assustada'],
+              prova: 4, dica: 'Releia a frase toda: “pingando da cabeça aos pés”. Depois de um temporal sem guarda-chuva, como Nina ficou?' },
+            { tipo: 'Localizar informação', q: 'Onde Nina estava quando começou o temporal?',
+              op: ['No caminho para a escola', 'Em casa, olhando pela janela', 'Dentro da sala de aula', 'No parque'],
+              prova: 3, dica: 'Procure o quadro em que aparece a palavra “temporal”.' },
+            { tipo: 'Finalidade do texto', q: 'Qual é a principal finalidade de uma tirinha como essa?',
+              op: ['Contar uma pequena história, com humor', 'Ensinar a fabricar um guarda-chuva', 'Dar a previsão do tempo da cidade', 'Vender guarda-chuvas'],
+              prova: null, dica: 'Tirinhas contam uma historinha curta, em poucos quadros, quase sempre com uma surpresa ou humor no final.' }
+        ]
+    },
+    {
+        titulo: 'Jogo da Memória dos Números',
+        genero: 'Regra de jogo',
+        frases: [
+            'Objetivo: formar o maior número de pares de cartas.',
+            'Participantes: de 2 a 4 jogadores.',
+            'Material: 20 cartas, que formam 10 pares.',
+            'Como jogar: embaralhe as cartas e coloque todas viradas para baixo sobre a mesa.',
+            'Na sua vez, desvire duas cartas. Se elas formarem um par, fique com as duas e jogue de novo.',
+            'Se as cartas forem diferentes, vire-as para baixo outra vez e passe a vez para o próximo jogador.',
+            'Vence quem tiver mais pares quando as cartas da mesa acabarem.'
+        ],
+        perguntas: [
+            { tipo: 'Localizar informação', q: 'Quantos jogadores podem participar desse jogo?',
+              op: ['De 2 a 4', 'Apenas 2', '10', '20'],
+              prova: 1, dica: 'Procure a parte da regra que fala dos “participantes”. Cuidado com os outros números (10 e 20 são de cartas).' },
+            { tipo: 'Inferência', q: 'Numa partida com 2 jogadores, Ana terminou com 6 pares. Quantos pares o outro jogador formou?',
+              op: ['4 pares', '6 pares', '14 pares', '10 pares'],
+              prova: 2, dica: 'O texto não diz isso diretamente. Mas o jogo tem 10 pares no total: se Ana ficou com 6, sobraram 10 − 6 = 4.' },
+            { tipo: 'Sentido da expressão', q: 'Na regra, a expressão “passe a vez” quer dizer:',
+              op: ['Deixe o próximo jogador jogar', 'Pule por cima das cartas', 'Ganhe o jogo', 'Jogue duas vezes seguidas'],
+              prova: 5, dica: 'Releia a frase: depois de errar, você “passa a vez para o próximo jogador”. Quem joga agora?' },
+            { tipo: 'Finalidade do texto', q: 'Para que serve esse texto?',
+              op: ['Explicar como se joga um jogo', 'Contar a história de um jogador', 'Fazer propaganda de uma loja de brinquedos', 'Dar uma notícia'],
+              prova: null, dica: 'Regras de jogo têm objetivo, material e passos: elas ensinam a jogar.' }
+        ]
+    },
+    {
+        titulo: 'Uma novidade para a vovó',
+        genero: 'E-mail',
+        frases: [
+            'Para: vovo.lurdes@exemplo.com.br',
+            'Assunto: Saudades e uma novidade!',
+            'Oi, vovó! Tudo bem por aí?',
+            'Estou escrevendo para contar que fui escolhida para representar a minha turma na Olimpíada de Matemática da escola.',
+            'A prova será no dia 15 de outubro, e estou estudando um pouquinho todos os dias.',
+            'Será que a senhora pode vir assistir à entrega das medalhas?',
+            'Um beijo enorme da sua neta, Julia.'
+        ],
+        perguntas: [
+            { tipo: 'Finalidade do texto', q: 'Por que Julia escreveu esse e-mail?',
+              op: ['Para contar uma novidade e convidar a avó', 'Para pedir um presente de aniversário', 'Para reclamar da escola', 'Para ensinar matemática à avó'],
+              prova: null, dica: 'Veja o assunto (“uma novidade”) e a pergunta que Julia faz no final: ela convida a avó para a entrega das medalhas.' },
+            { tipo: 'Localizar informação', q: 'Quando será a prova da olimpíada?',
+              op: ['No dia 15 de outubro', 'Todos os dias', 'No dia da entrega das medalhas', 'Amanhã'],
+              prova: 4, dica: 'Procure uma data no texto. “Todos os dias” é quando Julia estuda, não o dia da prova!' },
+            { tipo: 'Sentido da palavra', q: 'No e-mail, a palavra REPRESENTAR quer dizer:',
+              op: ['Participar em nome da turma', 'Fazer um desenho da turma', 'Sair da turma', 'Escolher a turma'],
+              prova: 3, dica: 'Julia foi escolhida para ir à olimpíada no lugar de toda a turma, em nome dela.' },
+            { tipo: 'Inferência', q: 'Pelo e-mail, dá para perceber que Julia está:',
+              op: ['Orgulhosa e animada', 'Triste e com medo', 'Brava com a avó', 'Com sono'],
+              prova: null, dica: 'O texto não diz o sentimento com todas as letras. Junte as pistas: “uma novidade!”, ela foi escolhida, está estudando todo dia e quer a avó na entrega das medalhas.' }
+        ]
+    },
+    {
+        titulo: 'Você sabia? O beija-flor',
+        genero: 'Curiosidade (texto informativo)',
+        frases: [
+            'Os beija-flores estão entre as menores aves do Brasil: algumas espécies pesam menos que uma moeda.',
+            'Eles batem as asas tão depressa, dezenas de vezes por segundo, que quase não conseguimos vê-las.',
+            'Por isso, conseguem fazer algo que quase nenhuma outra ave faz: ficar parados no ar e até voar para trás.',
+            'Para ter tanta energia, precisam se alimentar muitas vezes ao dia, principalmente do néctar das flores.',
+            'Ao visitar uma flor atrás da outra, o beija-flor leva o pólen de uma planta para outra e ajuda a formar novos frutos e sementes.'
+        ],
+        perguntas: [
+            { tipo: 'Localizar informação', q: 'Segundo o texto, qual é o principal alimento do beija-flor?',
+              op: ['O néctar das flores', 'Sementes', 'Pequenos peixes', 'Folhas'],
+              prova: 3, dica: 'Procure a frase que fala de alimentação. A palavra “principalmente” é uma pista.' },
+            { tipo: 'Sentido da palavra', q: 'Na frase “Eles batem as asas tão depressa”, a palavra DEPRESSA significa:',
+              op: ['Rápido', 'Devagar', 'Com força', 'Com cuidado'],
+              prova: 1, dica: 'Se as asas batem dezenas de vezes por segundo e quase não dá para vê-las, elas se movem rápido ou devagar?' },
+            { tipo: 'Inferência', q: 'Se todas as flores de um jardim desaparecessem, o que provavelmente aconteceria com os beija-flores de lá?',
+              op: ['Teriam dificuldade para se alimentar', 'Voariam ainda mais rápido', 'Ficariam maiores', 'Nada mudaria para eles'],
+              prova: 3, dica: 'O texto não fala disso diretamente. Mas, se o principal alimento vem das flores, o que acontece sem elas?' },
+            { tipo: 'Finalidade do texto', q: 'Qual é a finalidade desse texto?',
+              op: ['Informar curiosidades sobre o beija-flor', 'Contar uma história inventada', 'Ensinar a construir um ninho', 'Convidar para um passeio'],
+              prova: null, dica: 'O título “Você sabia?” já mostra: o texto traz informações e curiosidades reais sobre um animal.' }
         ]
     }
 ];

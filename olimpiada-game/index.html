@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Treino Olimpico - Mundo de Julia & Livia</title>
+    <title>Treino Olímpico - Mundo de Julia & Livia</title>
     <base href="/olimpiada-game/">
     <link rel="stylesheet" href="../interpretacao-game/styles.css">
     <link rel="stylesheet" href="styles.css">
@@ -64,6 +64,18 @@
                     <div class="problem-text" id="q-text"></div>
                     <div class="figure" id="q-figure"></div>
                     <div class="options" id="q-options"></div>
+                    <div class="sim-bar" id="sim-bar" hidden>
+                        <div class="sim-actions">
+                            <button class="tool-btn" id="prev-btn" onclick="gotoQuestion(state.index - 1)">◀ Anterior</button>
+                            <button class="tool-btn flag-btn" id="flag-btn" onclick="toggleFlag()">🏳️ Revisar depois</button>
+                            <button class="tool-btn" id="next-q-btn" onclick="gotoQuestion(state.index + 1)">Próxima ▶</button>
+                        </div>
+                        <p class="sim-nav-title">Ir para a questão:</p>
+                        <div class="sim-nav" id="sim-nav"></div>
+                        <p class="sim-legend"><span class="nav-q answered">1</span> respondida <span class="nav-q">2</span> em branco <span class="nav-q flagged">3</span> revisar depois</p>
+                        <p class="submit-warn" id="submit-warn"></p>
+                        <button class="next-btn" id="submit-btn" onclick="submitSimulado()">Entregar a prova ✔</button>
+                    </div>
                     <div class="tools" id="tools">
                         <button class="tool-btn" id="hint-btn" onclick="showHint()">💡 Quero uma dica</button>
                     </div>
