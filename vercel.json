@@ -68,103 +68,103 @@
   "rewrites": [
     {
       "source": "/big-hero",
-      "destination": "/big-hero-game/index.html"
+      "destination": "/big-hero-game"
     },
     {
       "source": "/tabuada",
-      "destination": "/tabuada-game/index.html"
+      "destination": "/tabuada-game"
     },
     {
       "source": "/memoria",
-      "destination": "/memoria-game/index.html"
+      "destination": "/memoria-game"
     },
     {
       "source": "/cores-formas",
-      "destination": "/cores-formas-game/index.html"
+      "destination": "/cores-formas-game"
     },
     {
       "source": "/sequencia",
-      "destination": "/sequencia-game/index.html"
+      "destination": "/sequencia-game"
     },
     {
       "source": "/quiz",
-      "destination": "/quiz-game/index.html"
+      "destination": "/quiz-game"
     },
     {
       "source": "/desenhar",
-      "destination": "/desenhar-game/index.html"
+      "destination": "/desenhar-game"
     },
     {
       "source": "/contar",
-      "destination": "/contar-game/index.html"
+      "destination": "/contar-game"
     },
     {
       "source": "/animais",
-      "destination": "/animais-game/index.html"
+      "destination": "/animais-game"
     },
     {
       "source": "/puzzle",
-      "destination": "/puzzle-game/index.html"
+      "destination": "/puzzle-game"
     },
     {
       "source": "/emocoes",
-      "destination": "/emocoes-game/index.html"
+      "destination": "/emocoes-game"
     },
     {
       "source": "/fracoes",
-      "destination": "/fracoes-game/index.html"
+      "destination": "/fracoes-game"
     },
     {
       "source": "/ortografia",
-      "destination": "/ortografia-game/index.html"
+      "destination": "/ortografia-game"
     },
     {
       "source": "/corpo",
-      "destination": "/corpo-game/index.html"
+      "destination": "/corpo-game"
     },
     {
       "source": "/leitura",
-      "destination": "/leitura-game/index.html"
+      "destination": "/leitura-game"
     },
     {
       "source": "/silabas",
-      "destination": "/silabas-game/index.html"
+      "destination": "/silabas-game"
     },
     {
       "source": "/interpretacao",
-      "destination": "/interpretacao-game/index.html"
+      "destination": "/interpretacao-game"
     },
     {
       "source": "/olimpiada",
-      "destination": "/olimpiada-game/index.html"
+      "destination": "/olimpiada-game"
     },
     {
       "source": "/letras",
-      "destination": "/letras-game/index.html"
+      "destination": "/letras-game"
     },
     {
       "source": "/rimas",
-      "destination": "/rimas-game/index.html"
+      "destination": "/rimas-game"
     },
     {
       "source": "/graficos",
-      "destination": "/graficos-game/index.html"
+      "destination": "/graficos-game"
     },
     {
       "source": "/dinheiro",
-      "destination": "/dinheiro-game/index.html"
+      "destination": "/dinheiro-game"
     },
     {
       "source": "/trilha",
-      "destination": "/trilha-game/index.html"
+      "destination": "/trilha-game"
     },
     {
       "source": "/relampago",
-      "destination": "/relampago-game/index.html"
+      "destination": "/relampago-game"
     },
     {
       "source": "/velha",
-      "destination": "/velha-game/index.html"
+      "destination": "/velha-game"
     }
   ]
 }
