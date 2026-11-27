@@ -197,7 +197,9 @@ function setupSoundQuestion() {
     });
 
     // Tocar som automaticamente apos um pequeno delay
-    setTimeout(playAnimalSound, 500);
+    // (so se a pergunta ainda e a mesma e nao foi respondida: senao cortaria o elogio)
+    const animal = gameState.currentAnimal;
+    setTimeout(() => { if (gameState.currentAnimal === animal && !gameState.locked) playAnimalSound(); }, 500);
 }
 
 // Configurar pergunta de habitat

@@ -792,3 +792,26 @@ body {
     .duel-board { gap: 6px; }
     .player-panel { padding: 6px 8px; gap: 6px; }
 }
+
+/* TABLET em pe: os 3 niveis lado a lado (a tela inicial nao fica comprida demais) */
+@media (min-width: 700px) and (orientation: portrait) {
+    .difficulty-select { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .difficulty-select h3 { grid-column: 1 / -1; }
+    .level-btn { flex-direction: column; gap: 4px; padding: 14px 10px; }
+    .level-btn:hover { transform: translateY(-4px); }
+    .level-desc { margin-left: 0; }
+}
+
+/* TABLET deitado: tela inicial em 2 colunas (apresentacao + modo | tema + nivel) */
+@media (min-width: 900px) and (orientation: landscape) {
+    #start-screen { max-width: 1100px; }
+    .start-content {
+        display: grid; grid-template-columns: 1fr 1.25fr; gap: 34px;
+        align-items: center; padding: 30px 36px;
+    }
+    .start-intro .mode-section { margin-bottom: 0; }
+    .start-options .theme-section { margin-bottom: 18px; }
+    .start-options .difficulty-select { margin-top: 0; gap: 10px; }
+    .start-options .level-btn { padding: 12px 22px; }
+    .start-options .level-btn:hover { transform: translateX(6px); }
+}

@@ -18,6 +18,7 @@ body {
     display: none;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;   /* tablet/celular: altura visivel de verdade (sem a barra do navegador) */
     position: absolute;
     top: 0;
     left: 0;
@@ -872,10 +873,13 @@ body {
     border-color: #9B59B6;
 }
 
+/* fixed: dentro de .mobile-controls (preso embaixo, sem altura) o "top" jogava o botao para fora da tela.
+   Fica abaixo do HUD, no canto direito. */
 .pause-mobile-btn {
-    position: absolute !important;
-    top: 10px;
+    position: fixed !important;
+    top: 70px;
     right: 20px;
+    pointer-events: auto;
     bottom: auto !important;
     width: 50px;
     height: 50px;
@@ -893,8 +897,9 @@ body {
         display: block;
     }
 
+    /* o desenho do canvas usa a janela inteira (resizeCanvas); com 80px a menos ele ficava achatado */
     #gameCanvas {
-        height: calc(100vh - 80px) !important;
+        height: 100% !important;
     }
 
     .game-hud {
@@ -1401,4 +1406,20 @@ body.game-playing .back-to-portal {
         opacity: 0;
         transform: translateX(-50%) translateY(-20px);
     }
+}
+
+/* Tablet deitado: resultado/game over nao cabiam na altura (body sem rolagem cortava os botoes) */
+@media (orientation: landscape) and (max-height: 900px) {
+    .result-container, .gameover-container { padding: 24px 36px; max-width: 640px; max-height: 100dvh; overflow-y: auto; }
+    .result-container h2, .gameover-container h2 { font-size: 2rem; margin-bottom: 14px; }
+    .result-stats { grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+    .gameover-container .result-stats { grid-template-columns: 1fr; }
+    .stat-item { padding: 12px 8px; }
+    .stars-display { margin-bottom: 14px; }
+    .result-buttons { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+}
+
+/* Toque: botoes pequenos (VOLTAR, velocidade, dificuldade) com pelo menos 48px de altura */
+@media (hover: none) and (pointer: coarse), (max-width: 1024px) {
+    .menu-btn.small, .speed-btn, .difficulty-btn { min-height: 48px; }
 }

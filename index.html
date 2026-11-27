@@ -15,7 +15,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Julia & Livia">
-    <link rel="stylesheet" href="main-styles.css?v=68dfdfeb">
+    <link rel="stylesheet" href="main-styles.css?v=549baece">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -147,6 +147,52 @@
         <p class="duel-total" id="duel-total"></p>
 
         <div class="games-container">
+            <div class="game-card unicornio-card" data-for="todas" onclick="playGame('unicornio-corrida')">
+                <div class="game-thumbnail unicornio-thumb">
+                    <span class="unicornio-icon">🦄💨</span>
+                </div>
+                <div class="game-info">
+                    <h3>Corrida de Unicórnio</h3>
+                    <p>Galope pela estrada do arco-íris, pule as nuvens e chegue primeiro ao castelo!</p>
+                    <div class="game-tags">
+                        <span class="tag">Unicórnio</span>
+                        <span class="tag new-tag">Novo!</span>
+                    </div>
+                </div>
+                <button class="play-btn">JOGAR</button>
+            </div>
+
+            <div class="game-card unicornio-card" data-for="todas" onclick="playGame('unicornio-pintura')">
+                <div class="game-thumbnail unicornio-thumb pintura">
+                    <span class="unicornio-icon">🦄🎨</span>
+                </div>
+                <div class="game-info">
+                    <h3>Pintura de Unicórnio</h3>
+                    <p>Pinte unicórnios e arco-íris com cores mágicas, brilho e adesivos!</p>
+                    <div class="game-tags">
+                        <span class="tag">Unicórnio</span>
+                        <span class="tag new-tag">Novo!</span>
+                    </div>
+                </div>
+                <button class="play-btn">JOGAR</button>
+            </div>
+
+            <div class="game-card unicornio-card" data-for="todas" onclick="playGame('unicornio-arcoiris')">
+                <div class="game-thumbnail unicornio-thumb arcoiris">
+                    <span class="unicornio-icon">🌈🦄</span>
+                </div>
+                <div class="game-info">
+                    <h3>Arco-íris Mágico</h3>
+                    <p>Ajude o unicórnio a montar o arco-íris, cor por cor, na ordem certa!</p>
+                    <div class="game-tags">
+                        <span class="tag">Unicórnio</span>
+                        <span class="tag">Cores</span>
+                        <span class="tag new-tag">Novo!</span>
+                    </div>
+                </div>
+                <button class="play-btn">JOGAR</button>
+            </div>
+
             <div class="game-card selva-card" data-for="todas" data-duel="1" onclick="playGame('selva')">
                 <div class="game-thumbnail selva-thumb">
                     <span class="selva-icon">🌴</span>
@@ -739,7 +785,7 @@
         </div>
     </div>
 
-    <script src="main-script.js?v=5b447e24"></script>
+    <script src="main-script.js?v=8eb4420d"></script>
 
     <!-- Modal para carregar jogos inline (iframe) -->
     <div id="game-modal" class="game-modal hidden" aria-hidden="true">

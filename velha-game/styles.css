@@ -3,15 +3,18 @@ body { background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%); }
 .hint { text-align: center; color: #fff; font-weight: 800; margin-bottom: 8px; text-shadow: 0 2px 6px rgba(0,0,0,.2); }
 
 .ttt {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 420px; margin: 0 auto;
+    /* tamanho pela altura livre (a tela do jogo nao usa o aumento do fit-screen: com ele o tabuleiro
+       mudava de tamanho no meio da partida e a janela da pergunta ficava enorme) */
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0 auto;
+    width: min(100%, calc(100vh - 250px), 640px); min-width: 260px; container-type: inline-size;
     background: var(--pc, #6c5ce7); padding: 10px; border-radius: 24px; box-shadow: 0 12px 30px rgba(0,0,0,.25); transition: background .3s;
 }
 .ttt-cell {
-    aspect-ratio: 1; border: none; border-radius: 16px; background: #fff; font-size: clamp(2.6rem, 14vw, 4.2rem);
+    aspect-ratio: 1; border: none; border-radius: 16px; background: #fff; font-size: clamp(2.6rem, 17cqw, 7rem);
     cursor: pointer; touch-action: manipulation; transition: transform .15s;
 }
 .ttt-cell:not(:disabled):hover { transform: scale(1.04); }
-.ttt-cell:disabled { cursor: default; }
+.ttt-cell:disabled { cursor: default; opacity: 1; color: inherit; }   /* sem o "apagado" do botao desativado (iPad/Chrome) */
 .ttt-cell.julia { background: #f3e5f5; }
 .ttt-cell.livia { background: #ffe4ee; }
 .ttt-cell.picked { box-shadow: inset 0 0 0 5px #fdcb6e; }
@@ -20,7 +23,7 @@ body { background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%); }
 
 .q-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 50; }
 .q-overlay[hidden] { display: none; }
-.q-overlay .question-card { width: 100%; max-width: 520px; animation: fadeIn .25s ease; }
+.q-overlay .question-card { width: 100%; max-width: 600px; max-height: calc(100vh - 32px); overflow-y: auto; animation: fadeIn .25s ease; }
 .intro-hear {
     display: inline-flex; align-items: center; gap: 6px; margin: 4px auto 10px;
     background: linear-gradient(135deg, #74b9ff, #0984e3); color: #fff; border: none;
@@ -28,7 +31,8 @@ body { background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%); }
     font-size: 1.15rem; cursor: pointer; box-shadow: 0 5px 0 rgba(0, 0, 0, .15); touch-action: manipulation;
 }
 .best3 { display: inline-flex; gap: 8px; align-items: center; font-weight: 800; color: #555; cursor: pointer; margin: 4px 0; }
-.best3 input { width: 22px; height: 22px; accent-color: #6c5ce7; }
+.best3 { min-height: 48px; padding: 4px 10px; }
+.best3 input { width: 28px; height: 28px; accent-color: #6c5ce7; }
 .series-line { text-align: center; color: #fff; font-family: 'Fredoka One', cursive; font-size: 1.1rem; margin-bottom: 4px; text-shadow: 0 2px 6px rgba(0,0,0,.25); }
 .series-line[hidden], .series-result[hidden] { display: none; }
 .series-result { font-family: 'Fredoka One', cursive; font-size: 1.25rem; color: #6c5ce7; margin: 6px 0; }

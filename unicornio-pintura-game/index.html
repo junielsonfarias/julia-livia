@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pintura de Unicórnio - Mundo de Julia & Livia</title>
+    <base href="/unicornio-pintura-game/">
+    <link rel="stylesheet" href="styles.css?v=59183941">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1>🦄 Pintura de Unicórnio</h1>
+            <div class="header-spacer"></div>
+        </header>
+
+        <main class="game-area">
+            <!-- ESCOLHER DESENHO -->
+            <section id="start-screen" class="screen active">
+                <div class="panel">
+                    <div class="big-icon">🦄🌈</div>
+                    <h2>Pintura de Unicórnio</h2>
+                    <p class="lead">Escolha um desenho, toque numa <b>cor</b> e depois toque no <b>desenho</b> para pintar!</p>
+                    <button class="intro-hear" type="button" onclick="speakIntro()">🔊 Ouvir como joga</button>
+                    <div class="pic-grid" id="pic-grid"></div>
+                </div>
+            </section>
+
+            <!-- PINTAR -->
+            <section id="color-screen" class="screen">
+                <div class="paper" id="paper"></div>
+                <div class="side">
+                    <div class="palette" id="palette"></div>
+                    <div class="palette stickers hidden" id="stickers"></div>
+                    <div class="tools">
+                        <button class="tool" type="button" id="btn-undo" onclick="undo()"><span class="ti">↩️</span><span class="tl">Desfazer</span></button>
+                        <button class="tool" type="button" id="btn-clear" onclick="clearAll()"><span class="ti">🧽</span><span class="tl">Apagar tudo</span></button>
+                        <button class="tool magic" type="button" id="btn-magic" onclick="magicPaint()"><span class="ti">🪄</span><span class="tl">Mágica</span></button>
+                        <button class="tool" type="button" id="btn-stickers" onclick="toggleStickers()"><span class="ti">⭐</span><span class="tl">Adesivos</span></button>
+                        <button class="tool" type="button" id="btn-save" onclick="savePNG()"><span class="ti">💾</span><span class="tl">Salvar</span></button>
+                        <button class="tool" type="button" onclick="backToChooser()"><span class="ti">🖼️</span><span class="tl">Desenhos</span></button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div class="confetti" id="confetti" aria-hidden="true"></div>
+
+    <script src="../shared/kids-audio.js?v=da92b96a"></script>
+    <script src="game.js?v=1a7ec6a4"></script>
+    <script src="../shared/fit-screen.js?v=0f4dccb7"></script>
+</body>
+</html>

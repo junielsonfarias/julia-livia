@@ -151,34 +151,192 @@ function addGuest() {
 }
 
 // ---------- Tabuleiro ----------
+// Trilha em zigue-zague que SOBE da saida (embaixo) ate o Templo (no alto),
+// desenhada em SVG (caminho de terra, rio, atalhos em seta). As casas sao
+// pedras redondas por cima do caminho e os peoes deslizam de casa em casa.
+const VB = 600;                       // tamanho do desenho (viewBox)
+const PITCH = VB / COLS;              // distancia entre casas
+const RIVER_ROW = 3;                  // fileira que atravessa o rio (casas 18 a 23)
+// Atalhos desenhados: para onde cada casa leva
+const JUMPS = { cipo: 4, elefante: 3, macaco: -3 };
+const EVENT_EFFECT = {
+    desafio: 'Responda certo e avance duas casas.',
+    macaco: 'Volta três casas.',
+    cipo: 'Avança quatro casas.',
+    elefante: 'Avança três casas.',
+    areia: 'Fica uma rodada sem jogar.',
+    cocos: 'Os outros voltam duas casas.',
+    jacare: 'Responda certo para atravessar o rio.',
+    tesouro: 'Joga o dado de novo.'
+};
+let boardBuilt = false;
+
 function cellGrid(i) {
     const row = Math.floor(i / COLS);
     const col = row % 2 === 0 ? i % COLS : COLS - 1 - (i % COLS);
     return { row, col };
 }
 
-function renderBoard() {
-    const board = document.getElementById('board');
-    let html = '';
+// Centro da casa no desenho (fileira 0 embaixo)
+function cellXY(i) {
+    const { row, col } = cellGrid(i);
+    return { x: (col + 0.5) * PITCH, y: VB - (row + 0.5) * PITCH };
+}
+
+function trailPath() {
+    let d = '';
     for (let i = 0; i < CELLS; i++) {
-        const { row, col } = cellGrid(i);
-        const ev = EVENTS[i];
-        const label = i === 0 ? '🚩' : i === CELLS - 1 ? '🛕' : ev ? EVENT_INFO[ev].emoji : i;
-        const here = state.players.filter(p => p.pos === i);
-        const pawns = here.map((p, k) => `<span class="pawn" style="--pc:${p.color};--k:${k}" title="${esc(p.name)}">${p.emoji}</span>`).join('');
-        html += `<div class="cell ${ev || ''} ${i === 0 ? 'start' : ''} ${i === CELLS - 1 ? 'finish' : ''}" style="grid-row:${row + 1};grid-column:${col + 1}">
-            <span class="cell-label">${label}</span><span class="pawns n${here.length}">${pawns}</span></div>`;
+        const { x, y } = cellXY(i);
+        if (i === 0) { d += `M${x} ${y}`; continue; }
+        const prev = cellXY(i - 1);
+        if (prev.y !== y) {
+            // Curva na ponta da fileira (para fora, como uma estrada)
+            const out = prev.x > VB / 2 ? 46 : -46;
+            d += ` C${prev.x + out} ${prev.y} ${x + out} ${y} ${x} ${y}`;
+        } else d += ` L${x} ${y}`;
     }
-    board.innerHTML = html;
+    return d;
+}
+
+function jumpArrows() {
+    let s = '';
+    Object.entries(EVENTS).forEach(([cell, ev]) => {
+        if (!JUMPS[ev]) return;
+        const from = +cell, to = from + JUMPS[ev];
+        if (to < 0 || to >= CELLS) return;
+        const a = cellXY(from), b = cellXY(to);
+        const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        // Curva para o lado, para nao passar por cima das casas do meio
+        const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+        const bend = 38;
+        const cx = mx - dy / len * bend, cy = my + dx / len * bend;
+        const good = JUMPS[ev] > 0;
+        s += `<path class="jump ${good ? 'up' : 'down'}" d="M${a.x} ${a.y} Q${cx} ${cy} ${b.x} ${b.y}" marker-end="url(#${good ? 'arrow-up' : 'arrow-down'})"/>`;
+    });
+    return s;
+}
+
+// Enfeites da selva entre as fileiras (posicoes fixas, em % do tabuleiro)
+const DECOR = [
+    ['🌴', 1, 2, 2.2], ['🌴', 93, 50, 2], ['🌺', 48, 33.3, 1.2], ['🍄', 6, 83.3, 1.2], ['🦜', 86, 16.6, 1.4],
+    ['🌿', 30, 66.6, 1.3], ['🦋', 64, 66.6, 1.2], ['🌸', 72, 33.3, 1.1], ['🐍', 20, 33.3, 1.2], ['🌿', 94, 96, 1.3],
+    ['🐸', 40, 83.3, 1.1], ['🌴', 1, 50, 1.8]
+];
+
+function buildBoard() {
+    const board = document.getElementById('board');
+    const riverY = VB - (RIVER_ROW + 1) * PITCH;
+    const finish = cellXY(CELLS - 1);
+    const path = trailPath();
+    let cells = '';
+    for (let i = 0; i < CELLS; i++) {
+        const { x, y } = cellXY(i);
+        const ev = EVENTS[i];
+        const kind = i === 0 ? 'start' : i === CELLS - 1 ? 'finish' : ev || 'plain';
+        const label = i === 0 ? '🚩' : i === CELLS - 1 ? '🛕' : ev ? EVENT_INFO[ev].emoji : i;
+        const num = ev ? `<small class="cell-num">${i}</small>` : '';
+        cells += `<button type="button" class="cell ${kind}" data-cell="${i}" style="left:${x / VB * 100}%;top:${y / VB * 100}%" aria-label="Casa ${i}${ev ? ': ' + EVENT_INFO[ev].title : ''}"><span class="cell-label">${label}</span>${num}</button>`;
+    }
+    board.innerHTML = `
+        <svg class="trail" viewBox="0 0 ${VB} ${VB}" aria-hidden="true">
+            <defs>
+                <pattern id="waves" width="40" height="14" patternUnits="userSpaceOnUse">
+                    <path d="M0 7 Q10 0 20 7 T40 7" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2.5"/>
+                </pattern>
+                <marker id="arrow-up" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                    <path d="M0 0 L10 5 L0 10 z" fill="#d4ffb0"/></marker>
+                <marker id="arrow-down" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                    <path d="M0 0 L10 5 L0 10 z" fill="#ffc2ad"/></marker>
+                <radialGradient id="templeGlow"><stop offset="0" stop-color="#fff59d" stop-opacity=".95"/><stop offset="1" stop-color="#fff59d" stop-opacity="0"/></radialGradient>
+            </defs>
+            <rect class="river" x="-30" y="${riverY + 8}" width="${VB + 60}" height="${PITCH - 16}" rx="28"/>
+            <rect class="river-waves" x="-30" y="${riverY + 8}" width="${VB + 60}" height="${PITCH - 16}" fill="url(#waves)"/>
+            <circle class="temple-glow" cx="${finish.x}" cy="${finish.y}" r="${PITCH * 0.95}" fill="url(#templeGlow)"/>
+            <path class="trail-edge" d="${path}"/>
+            <path class="trail-dirt" d="${path}"/>
+            <path class="trail-dash" d="${path}"/>
+            ${jumpArrows()}
+        </svg>
+        <div class="decor" aria-hidden="true">${DECOR.map(([e, l, t, s]) => `<span style="left:${l}%;top:${t}%;font-size:${s}em">${e}</span>`).join('')}</div>
+        ${cells}
+        <div class="pawn-layer" id="pawn-layer"></div>`;
+    board.querySelectorAll('.cell').forEach(c => c.addEventListener('click', () => explainCell(+c.dataset.cell)));
+    boardBuilt = true;
+}
+
+// Tocar numa casa: a voz conta o que ela faz (para quem ainda nao le)
+function explainCell(i) {
+    const ev = EVENTS[i];
+    let text;
+    if (i === 0) text = 'Saída! Todos começam aqui.';
+    else if (i === CELLS - 1) text = 'Templo Dourado! Quem chegar aqui primeiro vence.';
+    else if (ev) text = `${EVENT_INFO[ev].title} ${EVENT_EFFECT[ev]}`;
+    else text = `Casa ${i}.`;
+    flashCell(i, 'peek');
+    KidsAudio.speak(text, { rate: 0.95 });
+}
+
+function flashCell(i, cls) {
+    const el = document.querySelector(`.cell[data-cell="${i}"]`);
+    if (!el) return;
+    el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls);
+    setTimeout(() => el.classList.remove(cls), 1200);
+}
+
+// Peoes: um elemento por jogador, que desliza ate a casa nova
+const PAWN_SPOTS = {
+    1: [[0, 0]],
+    2: [[-0.22, 0], [0.22, 0]],
+    3: [[-0.22, -0.18], [0.22, -0.18], [0, 0.2]],
+    4: [[-0.22, -0.2], [0.22, -0.2], [-0.22, 0.2], [0.22, 0.2]]
+};
+
+function updatePawns() {
+    const layer = document.getElementById('pawn-layer');
+    if (!layer) return;
+    const cur = state.players[state.turn];
+    // jogadores que nao estao nesta partida (nova partida com outros jogadores)
+    layer.querySelectorAll('.pawn').forEach(el => {
+        if (!state.players.some(p => p.id === el.dataset.pid)) el.remove();
+    });
+    state.players.forEach(p => {
+        let el = layer.querySelector(`[data-pid="${p.id}"]`);
+        if (!el) {
+            el = document.createElement('span');
+            el.className = 'pawn';
+            el.dataset.pid = p.id;
+            el.innerHTML = `<span class="pawn-body">${p.emoji}</span>`;
+            el.title = p.name;
+            el.style.setProperty('--pc', p.color);
+            layer.appendChild(el);
+        }
+        const here = state.players.filter(o => o.pos === p.pos);
+        const spot = PAWN_SPOTS[Math.min(4, here.length)][here.indexOf(p)] || [0, 0];
+        const { x, y } = cellXY(p.pos);
+        if (el.dataset.pos !== undefined && el.dataset.pos !== String(p.pos)) {
+            el.classList.remove('hop'); void el.offsetWidth; el.classList.add('hop');
+        }
+        el.dataset.pos = p.pos;
+        el.style.left = (x + spot[0] * PITCH) / VB * 100 + '%';
+        el.style.top = (y + spot[1] * PITCH) / VB * 100 + '%';
+        el.classList.toggle('small', here.length > 2);
+        el.classList.toggle('current', p === cur && !state.over);
+    });
+}
+
+function renderBoard() {
+    if (!boardBuilt || !document.getElementById('pawn-layer')) buildBoard();
     renderRanking();
 }
 
 function renderRanking() {
     const cur = state.players[state.turn];
+    updatePawns();
     document.getElementById('ranking').innerHTML = state.players.map(p => `
         <div class="rank-row ${p === cur ? 'current' : ''}" style="--pc:${p.color}">
             <span class="rank-emoji">${p.emoji}</span><span class="rank-name">${esc(p.name)}${p.skip ? ' 🌀' : ''}${p.shield ? ' 🛡️' : ''}${p.web ? ' 🕸️' : ''}${(p.statuses || []).map(st => ` <span class="badge-status" title="Desafio">${st.icon}${st.rounds}</span>`).join('')}</span>
-            <span class="rank-pos">casa ${p.pos}</span></div>`).join('');
+            <span class="rank-pos">casa ${p.pos}</span>
+            <span class="rank-bar"><i style="width:${Math.round(p.pos / (CELLS - 1) * 100)}%"></i></span></div>`).join('');
 }
 
 // ---------- Fluxo do jogo ----------
@@ -323,6 +481,7 @@ function showEvent(ev, extra) {
 
 // Resolve a casa onde caiu. Devolve true se joga de novo.
 async function landOn(p) {
+    flashCell(p.pos, 'landed');
     const ev = EVENTS[p.pos];
     if (!ev) return false;
     await sleep(250);

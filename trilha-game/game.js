@@ -60,6 +60,8 @@ function updateTurnUI() {
 }
 
 function startGame() {
+    // toque duplo em "Revanche": a 2a chamada nao reinicia (nem troca de novo quem comeca)
+    if (document.getElementById('game-screen').classList.contains('active') && !state.over) return;
     state.pos = { julia: 0, livia: 0 };
     state.turn = Duelo.nextStarter('trilha');
     state.over = false;

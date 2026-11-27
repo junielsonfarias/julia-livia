@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Treino Olímpico - Mundo de Julia & Livia</title>
     <base href="/olimpiada-game/">
-    <link rel="stylesheet" href="../interpretacao-game/styles.css?v=4f635a52">
-    <link rel="stylesheet" href="styles.css?v=d4f708f1">
+    <link rel="stylesheet" href="../interpretacao-game/styles.css?v=6fd0b4b7">
+    <link rel="stylesheet" href="styles.css?v=2869081a">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="olimpiada">
@@ -57,12 +57,15 @@
             <!-- QUESTAO -->
             <section id="question-screen" class="screen">
                 <div class="panel left">
+                    <div class="q-main">
                     <div class="badge-row">
                         <span class="badge" id="q-topic">Tema</span>
                         <span class="level" id="q-level"></span>
                     </div>
                     <div class="problem-text" id="q-text"></div>
                     <div class="figure" id="q-figure"></div>
+                    </div>
+                    <div class="q-side">
                     <div class="options" id="q-options"></div>
                     <div class="sim-bar" id="sim-bar" hidden>
                         <div class="sim-actions">
@@ -81,21 +84,24 @@
                     </div>
                     <div class="feedback" id="q-feedback"></div>
                     <button class="next-btn" id="q-next" onclick="nextQuestion()" hidden>Próxima ➜</button>
+                    </div>
                 </div>
             </section>
 
             <!-- RESULTADO -->
             <section id="result-screen" class="screen">
-                <div class="panel">
+                <div class="panel result-panel">
+                    <div class="result-main">
                     <div class="big-icon" id="result-icon">🏅</div>
                     <h2 id="result-title">Resultado</h2>
                     <div class="result-score"><span id="final-score">0</span><small id="final-label">acertos</small></div>
                     <p class="lead" id="result-msg"></p>
-                    <div class="review" id="review"></div>
                     <div class="btn-row">
                         <button class="big-btn primary" onclick="startGame(state.mode, state.topic)">Jogar de novo</button>
                         <button class="big-btn" onclick="goHome()">Menu</button>
                     </div>
+                    </div>
+                    <div class="review" id="review"></div>
                 </div>
             </section>
 
@@ -128,6 +134,6 @@
     <script src="../shared/kids-audio.js?v=da92b96a"></script>
     <script src="data.js?v=87763617"></script>
     <script src="game.js?v=62098494"></script>
-    <script src="../shared/fit-screen.js?v=1e8736b9"></script>
+    <script src="../shared/fit-screen.js?v=0f4dccb7"></script>
 </body>
 </html>

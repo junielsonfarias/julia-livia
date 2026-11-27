@@ -664,3 +664,37 @@ body {
     .start-content > p { margin-bottom: 8px !important; }
     .start-content .letters-preview { display: none; }
 }
+
+/* ==========================================
+   TABLET (em pe e deitado)
+   ========================================== */
+.play-again-btn, .menu-btn { min-height: 50px; }
+
+@media (min-width: 700px) and (orientation: portrait) {
+    .review { max-height: 30vh; }
+}
+
+@media (min-width: 900px) and (orientation: landscape) {
+    /* Inicio: apresentacao | lista de modos */
+    #start-screen { max-width: 1000px; }
+    .start-content {
+        display: grid; grid-template-columns: 1fr 1.15fr; gap: 36px;
+        align-items: center; padding: 28px 36px;
+    }
+    .start-intro p { margin-bottom: 0; }
+    .start-content .mode-select { gap: 9px; }
+    .start-content .mode-btn { padding: 9px 20px; }
+    .start-content .mode-btn:hover { transform: translateX(6px); }
+
+    /* Resultado: resumo | revisao dos erros */
+    #result-screen { max-width: 1040px; }
+    .result-content:has(.review:not(:empty)) {
+        display: grid; grid-template-columns: 1fr 1.25fr; gap: 28px;
+        align-items: center; padding: 28px 32px;
+    }
+    .result-content:has(.review:not(:empty)) .review { margin: 0; max-height: 64vh; }
+    .result-content:has(.review:not(:empty)) .result-icon { font-size: 4rem; margin-bottom: 6px; }
+    .result-content:has(.review:not(:empty)) .result-main p { margin-bottom: 16px; }
+    .result-content:has(.review:not(:empty)) .score-display { margin-bottom: 14px; }
+    .result-content:has(.review:not(:empty)) .stars-earned { margin: 10px 0 16px; }
+}

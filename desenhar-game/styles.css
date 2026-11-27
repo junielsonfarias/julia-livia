@@ -14,6 +14,7 @@ body {
 
 .game-container {
     height: 100vh;
+    height: 100dvh;   /* tablet/celular: sem ficar atras da barra do navegador */
     display: flex;
     flex-direction: column;
 }
@@ -179,6 +180,8 @@ body {
     background: #333;
     border-radius: 50%;
     display: block;
+    max-width: 80%;    /* o pincel maior nao vira oval dentro do botao */
+    max-height: 80%;
 }
 
 .brush-btn:hover {
@@ -400,6 +403,7 @@ body {
 
 .save-modal img {
     max-width: 300px;
+    max-height: 50vh;
     border-radius: 10px;
     margin-bottom: 15px;
     box-shadow: 0 5px 20px rgba(0,0,0,0.2);
@@ -411,7 +415,11 @@ body {
     justify-content: center;
 }
 
-.save-modal button {
+.save-modal button, .save-modal .download-btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    text-decoration: none;   /* "Baixar" e um link: mesmo visual do botao */
     padding: 12px 25px;
     border: none;
     border-radius: 25px;
@@ -492,4 +500,92 @@ body {
 .confirm-no {
     background: linear-gradient(135deg, #ef5350, #c62828);
     box-shadow: 0 6px 0 #8e1b1b;
+}
+
+/* ===== Tablet: botoes grandes para dedinhos ===== */
+@media (min-width: 700px) and (min-height: 600px) {
+    .back-btn {
+        min-height: 48px;
+        padding: 10px 20px;
+        font-size: 1rem;
+    }
+
+    .action-btn {
+        width: 52px;
+        height: 52px;
+        font-size: 1.5rem;
+    }
+
+    .color-btn {
+        width: 48px;
+        height: 48px;
+    }
+
+    .brush-btn, .tool-btn {
+        width: 56px;
+        height: 56px;
+        flex-shrink: 0;
+    }
+
+    .sticker-btn {
+        width: 52px;
+        height: 52px;
+        font-size: 1.7rem;
+    }
+
+    .tool-section h3 {
+        font-size: 1rem;
+    }
+}
+
+/* Tablet em pe: Pincel e Ferramentas lado a lado, cores numa linha inteira */
+@media (min-width: 700px) and (min-height: 600px) and (orientation: portrait) {
+    .toolbar {
+        gap: 12px 30px;
+        padding: 12px;
+    }
+
+    .tool-section:first-child {
+        width: 100%;
+    }
+}
+
+/* Tablet deitado: ferramentas numa coluna a direita, papel ocupa o resto */
+@media (min-width: 900px) and (min-height: 560px) and (orientation: landscape) {
+    .drawing-area {
+        flex-direction: row;
+    }
+
+    .toolbar {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        justify-content: space-evenly;
+        width: 300px;
+        flex-shrink: 0;
+        padding: 12px;
+        gap: 10px;
+        overflow-y: auto;
+    }
+
+    .color-palette {
+        display: grid;
+        grid-template-columns: repeat(5, 48px);
+        gap: 8px;
+    }
+
+    .stickers {
+        display: grid;
+        grid-template-columns: repeat(4, 52px);
+        gap: 8px;
+    }
+
+    .stickers-section {
+        display: flex;     /* cabe na coluna mesmo com a tela baixa */
+        width: auto;
+    }
+
+    .color-btn, .sticker-btn {
+        width: 48px;
+        height: 48px;
+    }
 }

@@ -124,6 +124,11 @@ let gameState = {
 };
 
 let lastPrompt = '';
+let nextTimer = null;   // proxima pergunta/vitoria agendada (cancelada ao sair ou reiniciar)
+
+function clearNextTimer() {
+    if (nextTimer) { clearTimeout(nextTimer); nextTimer = null; }
+}
 
 // Funcao para voltar
 function goBack() {
@@ -150,6 +155,7 @@ function showScreen(screenId) {
 
 // Ir para menu inicial
 function goToMenu() {
+    clearNextTimer();
     gameState.score = 0;
     gameState.questionsAnswered = 0;
     gameState.usedEmotions = [];
@@ -160,6 +166,7 @@ function goToMenu() {
 
 // Iniciar jogo
 function startGame(mode) {
+    clearNextTimer();
     gameState.mode = mode;
     gameState.score = 0;
     gameState.questionsAnswered = 0;
@@ -313,9 +320,9 @@ function checkAnswer(emotion) {
         updateProgress();
 
         if (gameState.questionsAnswered >= gameState.questionsPerLevel) {
-            setTimeout(showWinScreen, 2000);
+            nextTimer = setTimeout(showWinScreen, 2000);
         } else {
-            setTimeout(nextQuestion, 2000);
+            nextTimer = setTimeout(nextQuestion, 2000);
         }
     } else {
         playSound('wrong');
@@ -326,7 +333,7 @@ function checkAnswer(emotion) {
         feedbackEl.className = 'feedback wrong';
         speak(`${lead} ${em.name.toLowerCase()}! ${em.description}.`);
 
-        setTimeout(nextQuestion, 3500);
+        nextTimer = setTimeout(nextQuestion, 3500);
     }
 }
 

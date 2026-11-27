@@ -700,3 +700,46 @@ body {
     .puzzle-options { grid-template-columns: repeat(3, 1fr); }
     .puzzle-option { min-height: 72px; font-size: 2rem; }
 }
+
+/* Tablet deitado: tabuleiro quadrado a direita, dica e pecas a esquerda
+   (em coluna unica a tela ficava alta e era encolhida ate 60%) */
+@media (orientation: landscape) and (min-width: 900px) and (min-height: 560px) {
+    #game-screen {
+        max-width: 1040px;
+    }
+
+    .game-content {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "h b"
+            "t b";
+        grid-template-rows: auto 1fr;
+        gap: 20px;
+        align-items: start;
+    }
+
+    .puzzle-hint { grid-area: h; margin-bottom: 0; }
+
+    .pieces-tray {
+        grid-area: t;
+        align-content: flex-start;
+        align-self: stretch;
+    }
+
+    .puzzle-piece {
+        width: 68px;
+        height: 68px;
+        font-size: 2.2rem;
+    }
+
+    .puzzle-board {
+        grid-area: b;
+        width: min(560px, calc(100vh - 190px));
+        margin-bottom: 0;
+    }
+}
+
+/* 2x2 e 3x3: casas grandes, desenho maior */
+.puzzle-board:has(.puzzle-slot:nth-child(4):last-child) .puzzle-slot { font-size: 4.5rem; }
+.puzzle-board:has(.puzzle-slot:nth-child(9):last-child) .puzzle-slot { font-size: 3.2rem; }

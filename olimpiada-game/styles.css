@@ -61,3 +61,29 @@ body.olimpiada { background: linear-gradient(135deg, #f6b93b 0%, #e58e26 45%, #b
     .sim-actions { grid-template-columns: 1fr 1fr; }
     .sim-actions .flag-btn { grid-column: 1 / -1; grid-row: 1; }
 }
+
+/* ==========================================
+   TABLET: botoes maiores, revisao do simulado em caixa com rolagem
+   e questao em 2 colunas no tablet deitado
+   ========================================== */
+.tool-btn { min-height: 46px; }
+.nav-q { min-height: 44px; }
+.sim-legend .nav-q { min-height: 24px; }
+.review:not(:empty) { max-height: 46vh; overflow-y: auto; padding-right: 4px; }
+
+@media (min-width: 900px) and (orientation: landscape) {
+    #question-screen { max-width: 1120px; }
+    #question-screen .panel {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;
+    }
+    #question-screen .problem-text { margin-bottom: 12px; }
+    #question-screen .figure { margin: 0; }
+    #question-screen .options { margin-top: 0; }
+    #question-screen .sim-bar { margin-top: 12px; }
+
+    #result-screen { max-width: 1080px; }
+    .result-panel:has(.review:not(:empty)) {
+        display: grid; grid-template-columns: 1fr 1.35fr; gap: 26px; align-items: center;
+    }
+    .result-panel .review:not(:empty) { margin: 0; max-height: 66vh; }
+}

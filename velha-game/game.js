@@ -90,6 +90,8 @@ function seriesWinner() {
 }
 
 function startGame() {
+    // toque duplo em "Comecar"/"Revanche": a 2a chamada nao reinicia (nem troca de novo quem comeca)
+    if (document.getElementById('game-screen').classList.contains('active') && !state.over) return;
     state.gameId++;
     state.cells = Array(9).fill(null);
     state.turn = Duelo.nextStarter('velha');

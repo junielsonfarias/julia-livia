@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Educativo - Mundo de Julia & Livia</title>
     <base href="/quiz-game/">
-    <link rel="stylesheet" href="styles.css?v=9cebb36b">
+    <link rel="stylesheet" href="styles.css?v=de66e455">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -23,11 +23,13 @@
             <!-- Tela de Inicio -->
             <div id="start-screen" class="screen active">
                 <div class="start-content">
+                    <div class="start-intro">
                     <div class="game-icon">🎓</div>
                     <h2>Quiz Educativo!</h2>
                     <p>Leia cada pergunta com atenção: as <mark class="kw">palavras-chave</mark> mudam a resposta!</p>
 
                     <label class="no-timer"><input type="checkbox" id="opt-no-timer"> ⏱️ Jogar sem cronômetro (ler com calma)</label>
+                    </div>
 
                     <div class="category-select">
                         <h3>Escolha uma categoria:</h3>
@@ -81,6 +83,7 @@
             <!-- Tela de Resultado -->
             <div id="result-screen" class="screen">
                 <div class="result-content">
+                    <div class="result-main">
                     <div class="result-icon" id="result-icon">🏆</div>
                     <h2 id="result-title">Resultado</h2>
                     <p id="result-message">Você terminou o quiz!</p>
@@ -109,12 +112,13 @@
                         <span class="star">⭐</span>
                     </div>
 
-                    <div class="review" id="review"></div>
-
                     <div class="result-buttons">
                         <button class="play-again-btn" onclick="playAgain()">Jogar Novamente</button>
                         <button class="menu-btn" onclick="goToMenu()">Categorias</button>
                     </div>
+                    </div>
+
+                    <div class="review" id="review"></div>
                 </div>
             </div>
         </main>
@@ -122,6 +126,6 @@
 
     <script src="../shared/kids-audio.js?v=da92b96a"></script>
     <script src="game.js?v=6ed53d6f"></script>
-    <script src="../shared/fit-screen.js?v=1e8736b9"></script>
+    <script src="../shared/fit-screen.js?v=0f4dccb7"></script>
 </body>
 </html>

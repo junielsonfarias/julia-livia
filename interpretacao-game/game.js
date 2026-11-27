@@ -48,7 +48,10 @@ function goBack() {
 }
 
 function showScreen(id) {
-    if (id === 'start-screen' || id === 'report-screen') state.gen++;   // cancela timeouts pendentes
+    if (id === 'start-screen' || id === 'report-screen') {
+        state.gen++;   // cancela timeouts pendentes
+        if (KidsAudio.stop) KidsAudio.stop();
+    }
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -152,6 +155,7 @@ function showItem() {
 }
 
 function nextItem() {
+    if (KidsAudio.stop) KidsAudio.stop();   // para a leitura em voz alta do item anterior
     state.index++;
     showItem();
 }

@@ -594,3 +594,31 @@ body {
     transform: translateY(3px);
     box-shadow: 0 2px 0 #0767b1;
 }
+
+/* Tablet deitado: emocao a esquerda e opcoes a direita (a coluna unica ficava alta e era encolhida) */
+@media (orientation: landscape) and (min-width: 900px) {
+    #game-screen {
+        max-width: 980px;
+    }
+
+    .game-content {
+        display: grid;
+        grid-template-columns: 1fr 1.1fr;
+        grid-template-areas:
+            "q o"
+            "h o"
+            "d o"
+            "f f"
+            "p p";
+        grid-template-rows: auto auto 1fr auto auto;
+        column-gap: 25px;
+        align-items: center;
+    }
+
+    .question-text { grid-area: q; }
+    .hear-row { grid-area: h; }
+    .emotion-display { grid-area: d; margin-bottom: 0; }
+    .options-area { grid-area: o; margin-bottom: 15px; }
+    .feedback { grid-area: f; }
+    .progress-bar { grid-area: p; }
+}

@@ -83,6 +83,7 @@ const state = {
     micQuickEnds: 0,       // sessoes do microfone que terminaram logo apos comecar (evita religar sem parar)
     lastWrongAt: 0,
     prevWord: null,        // palavra anterior (fala atrasada dela nao conta como erro)
+    partial: null,         // { text, at }: comeco da palavra ja lido ("ca..."), espera o resto
     cdTimer: null,         // contagem 3-2-1 (cancelavel ao sair)
     cdDelay: null
 };
@@ -263,6 +264,7 @@ function nextWord() {
     if (state.deck.length === 0) state.deck = shuffle(getPalavras(state.mode));
     state.prevWord = state.current ? state.current.word : null;
     state.current = state.deck.pop();
+    state.partial = null;
     setHeard('', '');
     renderWord(state.current);
 }
@@ -450,59 +452,36 @@ function endGame() {
 // RECONHECIMENTO DE FALA
 // ==========================================
 
-// Distancia entre palavras (quantas letras trocar/inserir/apagar)
-function editDistance(a, b) {
-    const dp = Array.from({ length: a.length + 1 }, (_, i) => [i]);
-    for (let j = 1; j <= b.length; j++) dp[0][j] = j;
-    for (let i = 1; i <= a.length; i++) {
-        for (let j = 1; j <= b.length; j++) {
-            dp[i][j] = Math.min(
-                dp[i - 1][j] + 1,
-                dp[i][j - 1] + 1,
-                dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
-            );
-        }
-    }
-    return dp[a.length][b.length];
-}
-
-const GLUED = ['A', 'O', 'UM', 'UMA'];
+// A comparacao pelo som fica em shared/fala.js (FalaMatch): grafias diferentes com o
+// mesmo som, plural, artigo grudado, silabas faladas separadas e trocas de sons
+// parecidos (B/V, T/D...) no modo tolerante.
 
 function speechTokens(transcript) {
-    return semAcento(transcript).replace(/[^A-Z ]/g, ' ').split(/\s+/).filter(Boolean);
+    return FalaMatch.tokens(transcript);
 }
 
-// Todas as palavras do jogo (sem acento): no modo tolerante, ouvir OUTRA palavra
-// do jogo nunca vale (MENINO x MENINA, JANELA x PANELA, CANETA x CANECA...)
+// Todas as palavras do jogo (sem acento): ouvir OUTRA palavra do jogo nunca vale
+// (MENINO x MENINA, JANELA x PANELA, CANETA x CANECA...)
 let knownWords = null;
 function isKnownWord(w) {
-    if (!knownWords) knownWords = new Set(getPalavras('variadas').map(p => semAcento(p.word)));
+    if (!knownWords) knownWords = new Set(getPalavras('variadas').map(p => FalaMatch.semAcento(p.word)));
     return knownWords.has(w);
 }
 
 // A fala reconhecida corresponde a palavra da tela?
 function speechMatches(target, transcript) {
-    const t = semAcento(target);
-    const tokens = speechTokens(transcript);
-    if (!tokens.length) return false;
-    if (tokens.includes(t)) return true;
-    // Artigo grudado pelo reconhecedor: "abola", "umgato" (mas SAPATO nao vale para PATO:
-    // so artigos, e nunca se o resultado for outra palavra do jogo, ex.: O+VELHA)
-    if (tokens.some(tok => GLUED.some(p => tok === p + t) && !isKnownWord(tok))) return true;
-    // Silabas faladas separadas: "bo la" -> "BOLA"
-    const joined = tokens.join('');
-    if (joined === t) return true;
-    for (let i = 0; i < tokens.length; i++) {
-        for (let j = i + 2; j <= tokens.length; j++) {
-            if (tokens.slice(i, j).join('') === t) return true;
-        }
-    }
-    // Modo tolerante: aceita 1 letra de diferenca em palavras de 5+ letras
-    if (document.getElementById('opt-lenient').checked && t.length >= 5) {
-        if (tokens.some(tok => !isKnownWord(tok) && editDistance(tok, t) <= 1)) return true;
-        if (!isKnownWord(joined) && editDistance(joined, t) <= 1) return true;
-    }
-    return false;
+    return FalaMatch.matches(target, transcript, {
+        lenient: document.getElementById('opt-lenient').checked,
+        isKnown: isKnownWord
+    });
+}
+
+// Comeco da palavra lido ha pouco (silaba por silaba): vale por alguns segundos
+const PARTIAL_MS = 6000;
+function partialPrefix() {
+    const p = state.partial;
+    if (!p || Date.now() - p.at > PARTIAL_MS) { state.partial = null; return ''; }
+    return p.text + ' ';
 }
 
 function startMic() {
@@ -556,10 +535,15 @@ function startMic() {
                 // ("bola gato") num resultado so. Confere so o que veio DEPOIS.
                 const skip = i === state.consumedIndex ? state.consumedTokens : 0;
                 const alts = Array.from(res).map(a => skip ? speechTokens(a.transcript).slice(skip).join(' ') : a.transcript);
-                const hit = alts.findIndex(a => speechMatches(state.current.word, a));
+                const w = state.current;
+                // Junta com o comeco ja lido antes ("ca..." + "sa" = CASA): o reconhecedor
+                // separa em resultados diferentes quando a crianca faz pausa entre as silabas
+                const before = skip ? '' : partialPrefix();
+                const hit = alts.findIndex(a => speechMatches(w.word, a) || (before && speechMatches(w.word, before + a)));
                 if (hit >= 0) {
                     state.consumedIndex = i;   // este pedaco de fala ja valeu
                     state.consumedTokens = skip + speechTokens(alts[hit]).length;
+                    state.partial = null;
                     correctWord();
                     return;
                 }
@@ -569,9 +553,21 @@ function startMic() {
                     if (skip) continue;   // resto de uma fala ja aceita: nao vira "erro"
                     // Final atrasado da palavra anterior (ex.: repetiu "bola"): ignora sem dar erro
                     if (state.prevWord && alts.some(a => speechMatches(state.prevWord, a))) continue;
-                    if (alts[0] && alts[0].trim()) wrongAttempt(alts[0]);
+                    const said = alts.find(a => a && a.trim());
+                    if (!said) continue;
+                    // So o comeco da palavra ("ca", "ca mi"): ainda esta lendo, espera o resto
+                    const partAlt = alts.find(a => a && a.trim() && FalaMatch.isPartial(w.word, before + a, w.syllables));
+                    if (partAlt !== undefined) {
+                        state.partial = { text: (before + partAlt).trim(), at: Date.now() };
+                        setHeard(`👂 ${escapeHtml(state.partial.text.toLowerCase())}... continue!`, 'listening');
+                        continue;
+                    }
+                    // "ah", "hum": nao e leitura, nao conta como erro
+                    if (alts.every(a => !a || !a.trim() || FalaMatch.isFiller(a))) continue;
+                    state.partial = null;
+                    wrongAttempt(said);
                 } else if (alts[0] && alts[0].trim()) {
-                    setHeard(`👂 ${escapeHtml(alts[0].trim())}...`, 'listening');
+                    setHeard(`👂 ${escapeHtml((skip ? '' : partialPrefix()) + alts[0].trim())}...`, 'listening');
                 }
             }
         };

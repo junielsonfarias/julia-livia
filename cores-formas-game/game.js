@@ -149,6 +149,7 @@ function generateColorQuestion() {
     // Criar opcoes
     const optionsArea = document.getElementById('options-area');
     optionsArea.innerHTML = '';
+    optionsArea.classList.toggle('many', options.length > 6);
 
     options.forEach(color => {
         const btn = document.createElement('button');
@@ -223,6 +224,7 @@ function generateShapeQuestion() {
     // Criar opcoes
     const optionsArea = document.getElementById('options-area');
     optionsArea.innerHTML = '';
+    optionsArea.classList.toggle('many', options.length > 6);
 
     options.forEach(option => {
         const btn = document.createElement('button');

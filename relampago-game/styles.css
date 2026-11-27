@@ -83,3 +83,22 @@ body.playing .game-area { padding: 8px; align-items: stretch; }
     .half .q-feedback { display: none; }
     .clock { width: 58px; height: 58px; font-size: 1.7rem; }
 }
+
+/* Frente a frente com o tablet deitado: cada metade fica baixa (~330px), entao a pergunta fica
+   compacta e as 4 respostas vao numa linha so (antes a parte de baixo das respostas era cortada) */
+@media (orientation: landscape) and (max-height: 900px) {
+    .arena.frente .half { padding: 6px; gap: 5px; overflow: hidden; }
+    .arena.frente .half-head { padding: 3px 12px; font-size: 1.05rem; }
+    .arena.frente .half-score { font-size: 1.5rem; }
+    .arena.frente .half .question-card { padding: 8px 12px; border-width: 3px; justify-content: space-evenly; }
+    .arena.frente .half .q-title { font-size: 1.1rem; margin-bottom: 2px; }
+    .arena.frente .half .q-big { font-size: 2.8rem; }
+    .arena.frente .half .q-calc { font-size: 2rem; }
+    .arena.frente .half .q-group { font-size: 1.4rem; gap: 2px; }
+    .arena.frente .half .q-options { margin-top: 6px; gap: 8px; }
+    .arena.frente .half .q-options:not(.three):not(.wide) { grid-template-columns: repeat(4, 1fr); }
+    .arena.frente .half .q-opt { min-height: 56px; padding: 6px; font-size: 1.6rem; }
+    .arena.frente .half .q-opt.big { font-size: 2rem; }
+    .arena.frente .half .q-feedback { display: none; }
+    .arena.frente .clock { width: 60px; height: 60px; font-size: 1.7rem; }
+}

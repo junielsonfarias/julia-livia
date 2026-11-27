@@ -265,3 +265,15 @@ select{padding:8px;border-radius:10px;border:1px solid #ddd}
     #settings-panel .settings-grid { grid-template-columns: 1fr; gap: 4px; }
     #settings-panel .settings-grid > label { margin-top: 8px; }
 }
+
+/* Tablet/toque: botoes e respostas maiores */
+.choice-btn{font-size:1.35rem;min-height:56px}
+.choice-input{font-size:1.4rem;padding:10px;min-height:48px;border:2px solid #ddd;border-radius:10px}
+.input-wrap{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.input-wrap .primary{min-height:48px}
+@media (pointer: coarse), (hover: none) {
+    .primary, .hint{min-height:48px}
+    .back{min-height:48px}
+}
+#settings-panel input[type="number"]{min-height:44px;font-size:1rem}
+#settings-panel .settings-grid > div label{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 6px;font-size:1.2rem}

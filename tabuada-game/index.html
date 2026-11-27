@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tabuada Divertida - Mundo de Julia & Livia</title>
     <base href="/tabuada-game/">
-    <link rel="stylesheet" href="styles.css?v=b83fa070">
+    <link rel="stylesheet" href="styles.css?v=63e18fe5">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -69,8 +69,9 @@
                 <span>Usar Configurações do Painel</span>
             </label>
 
-            <label>Dificuldade:
+            <!-- botao fora do <label>: tocar em "Dificuldade" abria as Configuracoes -->
             <button id="open-settings-btn" class="primary btn-open-settings">Configurações</button>
+            <label>Dificuldade:
                 <select id="difficulty-select" aria-label="Nível de dificuldade" title="Nível de dificuldade">
                     <option value="easy">Fácil</option>
                     <option value="medium" selected>Médio</option>
@@ -143,7 +144,13 @@
             <button id="close-progress" class="primary btn-close-progress">Fechar</button>
         </section>
 
-    <!-- Settings modal -->
+        <section class="achievements-panel">
+            <h3>Conquistas</h3>
+            <div id="achievements" class="achievements"></div>
+        </section>
+    </main>
+
+    <!-- Settings modal (fora do <main>: o ajuste de tela aumenta o <main> e a janela passava da tela) -->
     <div id="settings-panel" class="result-area hidden">
         <h2>Configurações do Jogo</h2>
         <div class="settings-grid">
@@ -196,14 +203,8 @@
         </div>
     </div>
 
-        <section class="achievements-panel">
-            <h3>Conquistas</h3>
-            <div id="achievements" class="achievements"></div>
-        </section>
-    </main>
-
     <script src="../shared/kids-audio.js?v=da92b96a"></script>
-    <script src="game.js?v=e3781108"></script>
-    <script src="../shared/fit-screen.js?v=1e8736b9"></script>
+    <script src="game.js?v=a77345a4"></script>
+    <script src="../shared/fit-screen.js?v=0f4dccb7"></script>
 </body>
 </html>

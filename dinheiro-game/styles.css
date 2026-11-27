@@ -47,3 +47,23 @@ body.mercadinho { background: linear-gradient(135deg, #55efc4 0%, #00b894 50%, #
 .tray-piece:active, .money-btn:active { transform: scale(.92); }
 .wallet { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 10px; background: #fff; border-radius: 16px; box-shadow: inset 0 0 0 2px #eef1f8; }
 .pay-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
+
+/* Tablet deitado: produto/pergunta a esquerda, respostas (ou carteira) a direita.
+   Em coluna unica a tela ficava alta e era encolhida (letra pequena). */
+@media (orientation: landscape) and (min-width: 900px) {
+    .mercadinho #game-screen { max-width: 1100px; }
+    .mercadinho #game-screen .panel {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+        grid-template-rows: auto auto auto auto 1fr;
+        column-gap: 24px;
+        align-items: start;
+    }
+    .mercadinho #game-screen .scene { grid-column: 1; grid-row: 1 / span 5; align-self: center; }
+    .mercadinho #game-screen .pay-area,
+    .mercadinho #game-screen .options,
+    .mercadinho #game-screen .feedback,
+    .mercadinho #game-screen .next-btn { grid-column: 2; }
+    .mercadinho #game-screen .pay-area,
+    .mercadinho #game-screen .options { margin-top: 0; }
+}

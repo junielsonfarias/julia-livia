@@ -237,7 +237,8 @@ body {
     height: 0;
     border-left: 40px solid transparent;
     border-right: 40px solid transparent;
-    border-bottom: 69px solid;
+    /* sem cor aqui: o atalho "border-bottom" apagava a cor (.triangle.red...) e o triangulo ficava preto */
+    border-bottom-width: 69px; border-bottom-style: solid;
     background: transparent !important;
 }
 .target-shape.rectangle {
@@ -356,7 +357,7 @@ body {
     height: 0;
     border-left: 30px solid transparent;
     border-right: 30px solid transparent;
-    border-bottom: 52px solid;
+    border-bottom-width: 52px; border-bottom-style: solid;
     background: transparent !important;
 }
 .option-shape.rectangle {
@@ -785,4 +786,10 @@ body {
 @media (max-height: 820px) {
     .options-area { grid-template-columns: repeat(3, 1fr) !important; gap: 10px !important; }
     .option-btn { aspect-ratio: auto !important; min-height: 86px !important; }
+}
+
+/* Formas: 7 opcoes. No tablet ficam em 4 colunas (2 linhas) em vez de 3 linhas com uma sobrando */
+@media (min-width: 700px) {
+    .options-area.many { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 12px !important; }
+    .options-area.many .option-btn { padding: 8px !important; }
 }

@@ -387,6 +387,9 @@ body {
 
 .compare-btn {
     flex-direction: column;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    color: #333;
 }
 
 .compare-emoji {
@@ -725,4 +728,26 @@ mark.kw { background: #ffeaa7; color: #2d3436; padding: 0 3px; border-radius: 4p
     .option-btn { padding: 12px 8px; min-height: 70px; }
     .problem-btn { font-size: 1.1rem; overflow-wrap: anywhere; }
     .explain { font-size: 0.98rem; }
+}
+
+/* ==========================================
+   TABLET deitado: inicio em 2 colunas, alternativas numa linha so
+   ========================================== */
+.play-again-btn, .menu-btn, .next-btn { min-height: 50px; }
+
+@media (min-width: 900px) and (orientation: landscape) {
+    #start-screen { max-width: 1000px; }
+    .start-content {
+        display: grid; grid-template-columns: 1fr 1.15fr; gap: 36px;
+        align-items: center; padding: 28px 36px;
+    }
+    .start-intro p { margin-bottom: 0; }
+    .start-content .mode-btn:hover { transform: translateX(6px); }
+
+    #game-screen { max-width: 940px; }
+    .game-content { padding: 22px 30px; }
+    .question-text { margin-bottom: 12px; }
+    .fraction-display { min-height: 150px; margin-bottom: 16px; }
+    .options-area:not(.compare-options) { grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+    .option-btn { min-height: 90px; padding: 14px 10px; }
 }

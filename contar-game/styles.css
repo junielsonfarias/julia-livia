@@ -677,3 +677,36 @@ body {
     transform: translateY(3px);
     box-shadow: 0 2px 0 #0767b1;
 }
+
+/* 6 alternativas (modo Dificil): 6 colunas em vez de 5 + 1 sozinha */
+.options-area.six { grid-template-columns: repeat(6, 1fr); }
+@media (max-width: 480px) { .options-area.six { grid-template-columns: repeat(3, 1fr); } }
+
+/* ==========================================
+   TABLET deitado: inicio em 2 colunas e jogo mais largo
+   ========================================== */
+@media (min-width: 900px) and (orientation: landscape) {
+    #start-screen { max-width: 1000px; }
+    .start-content {
+        display: grid; grid-template-columns: 1fr 1.1fr; gap: 36px;
+        align-items: center; padding: 28px 36px;
+    }
+    .start-intro p { margin-bottom: 18px; }
+    .start-modes .section-title { margin: 6px 0 8px; }
+    .start-modes .section-title + .mode-select { margin-bottom: 8px; }
+    .start-modes .mode-select { gap: 10px; }
+    .start-modes .mode-btn { padding: 10px 22px; }
+    .start-modes .mode-icon { font-size: 2.2rem; }
+    .start-modes .mode-btn:hover { transform: translateX(6px); }
+
+    #game-screen { max-width: 940px; }
+    .game-content { padding: 22px 30px; }
+    .question-text { margin-bottom: 10px; }
+    .hear-row { margin-bottom: 10px; }
+    .objects-display { padding: 18px; margin-bottom: 16px; min-height: 120px; }
+    .options-area { grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); margin-bottom: 12px; }
+    .options-area.six { grid-template-columns: repeat(6, 1fr); }
+    .option-btn { aspect-ratio: auto; height: 84px; }
+    .compare-btn { height: auto; flex-direction: row; justify-content: center; gap: 10px; }
+    .feedback { min-height: 36px; margin-bottom: 10px; }
+}

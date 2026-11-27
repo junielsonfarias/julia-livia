@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jogo de Ortografia - Mundo de Julia & Livia</title>
     <base href="/ortografia-game/">
-    <link rel="stylesheet" href="styles.css?v=099a7a0b">
+    <link rel="stylesheet" href="styles.css?v=ce88e2d5">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -23,6 +23,7 @@
             <!-- Tela de Inicio -->
             <div id="start-screen" class="screen active">
                 <div class="start-content">
+                    <div class="start-intro">
                     <div class="letters-preview">
                         <span class="letter">A</span>
                         <span class="letter">B</span>
@@ -30,6 +31,7 @@
                     </div>
                     <h2>Jogo de Ortografia!</h2>
                     <p>Complete as palavras com a letra correta!</p>
+                    </div>
 
                     <div class="mode-select">
                         <button class="mode-btn" onclick="startGame('ss_s')">
@@ -99,6 +101,7 @@
             <!-- Tela de Resultado -->
             <div id="result-screen" class="screen">
                 <div class="result-content">
+                    <div class="result-main">
                     <div class="result-icon" id="result-icon">🏆</div>
                     <h2 id="result-title">Muito Bem!</h2>
                     <p id="result-message">Você escreve muito bem!</p>
@@ -127,12 +130,13 @@
                         <span class="star">⭐</span>
                     </div>
 
-                    <div class="review" id="review"></div>
-
                     <div class="result-buttons">
                         <button class="play-again-btn" onclick="playAgain()">Jogar Novamente</button>
                         <button class="menu-btn" onclick="goToMenu()">Menu</button>
                     </div>
+                    </div>
+
+                    <div class="review" id="review"></div>
                 </div>
             </div>
         </main>
@@ -140,6 +144,6 @@
 
     <script src="../shared/kids-audio.js?v=da92b96a"></script>
     <script src="game.js?v=62c81311"></script>
-    <script src="../shared/fit-screen.js?v=1e8736b9"></script>
+    <script src="../shared/fit-screen.js?v=0f4dccb7"></script>
 </body>
 </html>

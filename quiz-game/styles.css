@@ -651,3 +651,42 @@ mark.kw { background: #ffeaa7; color: #2d3436; padding: 0 3px; border-radius: 4p
 .review-item .review-q { font-weight: 700; color: #2d3436; }
 .review-item .review-ok { color: #00866b; }
 .review-item .review-exp { color: #1e3799; }
+
+/* ==========================================
+   TABLET (em pe e deitado)
+   ========================================== */
+.play-again-btn, .menu-btn { min-height: 50px; }
+
+@media (min-width: 700px) and (orientation: portrait) {
+    .review { max-height: 28vh; }
+}
+
+@media (min-width: 900px) and (orientation: landscape) {
+    /* Inicio: apresentacao | categorias */
+    #start-screen { max-width: 1000px; }
+    .start-content {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 36px;
+        align-items: center; padding: 30px 36px;
+    }
+    .start-intro p { margin-bottom: 18px; }
+    .category-select h3 { margin-bottom: 6px; }
+    .category-btn { padding: 12px 22px; }
+    .category-btn:hover { transform: translateX(6px); }
+
+    /* Pergunta: alternativas em 2 colunas */
+    #game-screen { max-width: 920px; }
+    .options-area { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .question-text { margin-bottom: 18px; }
+
+    /* Resultado: resumo | revisao dos erros */
+    #result-screen { max-width: 1060px; }
+    .result-content:has(.review:not(:empty)) {
+        display: grid; grid-template-columns: 1fr 1.3fr; gap: 28px;
+        align-items: center; padding: 28px 32px;
+    }
+    .result-content:has(.review:not(:empty)) .review { margin: 0; max-height: 64vh; }
+    .result-content:has(.review:not(:empty)) .result-icon { font-size: 4rem; margin-bottom: 6px; }
+    .result-content:has(.review:not(:empty)) .result-main p { margin-bottom: 16px; }
+    .result-content:has(.review:not(:empty)) .score-display { margin-bottom: 14px; }
+    .result-content:has(.review:not(:empty)) .stars-earned { margin: 10px 0 16px; }
+}

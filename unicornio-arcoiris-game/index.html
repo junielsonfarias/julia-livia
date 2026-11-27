@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arco-íris Mágico - Mundo de Julia & Livia</title>
+    <base href="/unicornio-arcoiris-game/">
+    <link rel="stylesheet" href="styles.css?v=938c3a40">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Desenho do unicornio (original), reaproveitado em varios lugares.
+         As cores vem de variaveis CSS: --body, --m1..--m5 (crina), --horn -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <symbol id="unicorn" viewBox="-10 -12 160 132">
+                <!-- cauda -->
+                <path d="M34 58 C14 52 8 70 14 86" fill="none" stroke="var(--m1, #ff5e7e)" stroke-width="9" stroke-linecap="round"/>
+                <path d="M34 62 C20 62 18 78 24 92" fill="none" stroke="var(--m3, #ffd93b)" stroke-width="8" stroke-linecap="round"/>
+                <path d="M35 66 C28 72 30 86 36 96" fill="none" stroke="var(--m5, #a66cff)" stroke-width="7" stroke-linecap="round"/>
+                <!-- pernas de tras -->
+                <rect x="42" y="70" width="12" height="30" rx="6" fill="var(--body, #fff)" stroke="#cdb9e6" stroke-width="2"/>
+                <rect x="84" y="70" width="12" height="30" rx="6" fill="var(--body, #fff)" stroke="#cdb9e6" stroke-width="2"/>
+                <!-- corpo -->
+                <ellipse cx="68" cy="64" rx="37" ry="23" fill="var(--body, #fff)" stroke="#cdb9e6" stroke-width="2"/>
+                <!-- pernas da frente -->
+                <rect x="54" y="74" width="12" height="28" rx="6" fill="var(--body, #fff)" stroke="#cdb9e6" stroke-width="2"/>
+                <rect x="96" y="72" width="12" height="30" rx="6" fill="var(--body, #fff)" stroke="#cdb9e6" stroke-width="2"/>
+                <!-- cascos -->
+                <rect x="54" y="96" width="12" height="6" rx="3" fill="#d6a6e8"/>
+                <rect x="96" y="96" width="12" height="6" rx="3" fill="#d6a6e8"/>
+                <rect x="42" y="94" width="12" height="6" rx="3" fill="#c79ad9"/>
+                <rect x="84" y="94" width="12" height="6" rx="3" fill="#c79ad9"/>
+                <!-- pescoco -->
+                <ellipse cx="97" cy="46" rx="13" ry="21" transform="rotate(28 97 46)" fill="var(--body, #fff)" stroke="#cdb9e6" stroke-width="2"/>
+                <!-- crina -->
+                <circle cx="84" cy="56" r="7" fill="var(--m5, #a66cff)"/>
+                <circle cx="85" cy="46" r="7.5" fill="var(--m4, #4cc3ff)"/>
+                <circle cx="88" cy="36" r="8" fill="var(--m3, #ffd93b)"/>
+                <circle cx="93" cy="26" r="8" fill="var(--m2, #ff9f43)"/>
+                <circle cx="100" cy="18" r="7.5" fill="var(--m1, #ff5e7e)"/>
+                <!-- cabeca -->
+                <ellipse cx="110" cy="32" rx="19" ry="16" fill="var(--body, #fff)" stroke="#cdb9e6" stroke-width="2"/>
+                <ellipse cx="124" cy="39" rx="11" ry="9" fill="#ffe1ee" stroke="#cdb9e6" stroke-width="2"/>
+                <circle cx="127" cy="38" r="1.6" fill="#c98aa8"/>
+                <!-- orelha -->
+                <path d="M100 20 L104 4 L111 17 Z" fill="var(--body, #fff)" stroke="#cdb9e6" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M102.5 17 L104.5 9 L108 16 Z" fill="#ffc6dc"/>
+                <!-- chifre dourado -->
+                <path d="M110 17 L118 15 L121 -8 Z" fill="var(--horn, #f6c945)" stroke="#d9a520" stroke-width="1.5" stroke-linejoin="round"/>
+                <path d="M111.5 11 L118 9.5 M113 4.5 L119 3.5 M115 -1.5 L120 -2.2" stroke="#d9a520" stroke-width="1.4" stroke-linecap="round"/>
+                <!-- franja -->
+                <circle cx="106" cy="17" r="5" fill="var(--m1, #ff5e7e)"/>
+                <!-- rosto -->
+                <path d="M106 29 Q110 25 114 29" fill="none" stroke="#4a3b5c" stroke-width="2.6" stroke-linecap="round"/>
+                <circle cx="113" cy="39" r="4" fill="#ffb3c9" opacity=".85"/>
+                <path d="M120 45 Q124 48 128 45" fill="none" stroke="#c98aa8" stroke-width="1.8" stroke-linecap="round"/>
+            </symbol>
+        </defs>
+    </svg>
+
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1><span class="h1-emoji">🌈</span> <span class="h1-text">Arco-íris Mágico</span></h1>
+            <div class="round-info" id="hud"><span id="hud-bands">🦄</span><span id="hud-timer" hidden></span></div>
+        </header>
+
+        <main class="game-area">
+            <!-- INICIO -->
+            <section id="start-screen" class="screen active">
+                <div class="panel">
+                    <svg class="hero-unicorn" viewBox="-10 -12 160 132" aria-hidden="true"><use href="#unicorn"/></svg>
+                    <h2>Arco-íris Mágico</h2>
+                    <p class="lead">O unicórnio precisa de ajuda para montar o <b>arco-íris</b>, uma cor de cada vez!</p>
+                    <button class="intro-hear" type="button" onclick="speakIntro()">🔊 Ouvir como joga</button>
+
+                    <div class="mode-grid">
+                        <button class="mode-btn m-catch" type="button" onclick="startGame('catch')">
+                            <span class="mode-icon">🎈</span>
+                            <span class="mode-name">Pegue as Cores</span>
+                            <span class="mode-who">5 anos</span>
+                        </button>
+                        <div class="mode-btn m-order">
+                            <span class="mode-icon">🌈</span>
+                            <span class="mode-name">Ordem do Arco-íris</span>
+                            <span class="sub-row">
+                                <button class="sub-btn" type="button" onclick="startGame('order', true)"><span class="mini-dots"><i style="background:#ff3b3b"></i><i style="background:#ffe11a"></i><i style="background:#2ecc40"></i><i style="background:#1e90ff"></i></span>Fácil</button>
+                                <button class="sub-btn" type="button" onclick="startGame('order', false)"><span class="mini-dots seven"><i style="background:#ff3b3b"></i><i style="background:#ff9f1a"></i><i style="background:#ffe11a"></i><i style="background:#2ecc40"></i><i style="background:#1e90ff"></i><i style="background:#3f3cbb"></i><i style="background:#b84cff"></i></span>Todas</button>
+                            </span>
+                        </div>
+                        <button class="mode-btn m-quiz" type="button" onclick="startGame('quiz')">
+                            <span class="mode-icon">🧠</span>
+                            <span class="mode-name">Desafio do Unicórnio</span>
+                            <span class="mode-who">4º ano · <span id="best-time">sem recorde</span></span>
+                        </button>
+                    </div>
+
+                    <div class="collection">
+                        <h3>⭐ Coleção de figurinhas <span id="collection-count">0/12</span></h3>
+                        <div class="sticker-row" id="sticker-row"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- JOGO -->
+            <section id="game-screen" class="screen">
+                <div class="stage" id="stage">
+                    <svg class="rainbow" id="rainbow" viewBox="0 0 400 225" aria-label="Arco-íris"></svg>
+                    <div class="confetti" id="confetti"></div>
+                </div>
+
+                <!-- Modo 1: Pegue as Cores -->
+                <div class="mode-area" id="catch-area" hidden>
+                    <div class="prompt-bar">
+                        <span class="prompt-dot" id="catch-dot"></span>
+                        <span class="prompt-text" id="catch-text">Pegue o VERMELHO!</span>
+                        <button class="hear-btn" type="button" onclick="repeatPrompt()" aria-label="Ouvir de novo">🔊</button>
+                    </div>
+                    <div class="sky-field" id="sky-field"></div>
+                </div>
+
+                <!-- Modo 2: Ordem do Arco-íris -->
+                <div class="mode-area" id="order-area" hidden>
+                    <div class="prompt-bar">
+                        <span class="prompt-emoji">🧩</span>
+                        <span class="prompt-text" id="order-text">Olhe bem as cores!</span>
+                        <button class="hear-btn" type="button" onclick="repeatPrompt()" aria-label="Ouvir de novo">🔊</button>
+                    </div>
+                    <div class="chip-tray" id="chip-tray"></div>
+                </div>
+
+                <!-- Modo 3: Desafio -->
+                <div class="mode-area" id="quiz-area" hidden>
+                    <div class="quiz-card" id="quiz-card">
+                        <div class="quiz-top">
+                            <span class="quiz-tag" id="quiz-tag">Tabuada</span>
+                            <button class="hear-btn" type="button" onclick="repeatPrompt()" aria-label="Ouvir a pergunta">🔊</button>
+                        </div>
+                        <div class="quiz-question" id="quiz-question"></div>
+                        <div class="quiz-options" id="quiz-options"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RESULTADO -->
+            <section id="result-screen" class="screen">
+                <div class="panel">
+                    <h2 id="result-title">Arco-íris pronto!</h2>
+                    <div class="stars" id="stars"></div>
+                    <p class="lead" id="result-msg"></p>
+                    <p class="time-line" id="time-line" hidden></p>
+                    <div class="new-sticker" id="new-sticker"></div>
+                    <div class="btn-row">
+                        <button class="big-btn primary" type="button" onclick="playAgain()">Jogar de novo 🌈</button>
+                        <button class="big-btn" type="button" onclick="backToMenu()">Mudar modo</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../shared/kids-audio.js?v=da92b96a"></script>
+    <script src="game.js?v=f45963dc"></script>
+    <script src="../shared/fit-screen.js?v=0f4dccb7"></script>
+</body>
+</html>

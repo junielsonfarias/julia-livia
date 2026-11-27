@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Corrida de Unicórnio - Mundo de Julia & Livia</title>
+    <base href="/unicornio-corrida-game/">
+    <link rel="stylesheet" href="styles.css?v=aad11827">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="goBack()">&#8592; Voltar</button>
+            <h1>🦄 Corrida de Unicórnio</h1>
+            <div class="header-spacer"></div>
+        </header>
+
+        <main class="game-area">
+            <!-- PREPARACAO -->
+            <section id="setup-screen" class="screen active">
+                <div class="panel setup-panel">
+                    <div class="setup-intro">
+                    <canvas id="preview" class="preview" width="220" height="150" aria-hidden="true"></canvas>
+                    <h2>Corrida de Unicórnio</h2>
+                    <p class="lead">Corra pela estrada do arco-íris 🌈 e chegue primeiro ao castelo 🏰!</p>
+                    <button class="hear intro-btn" type="button" onclick="speakIntro()">🔊 Ouvir como joga</button>
+                    </div>
+
+                    <div class="setup-options">
+                    <h3>Quem vai jogar?</h3>
+                    <div class="choice-grid" id="who-row">
+                        <button class="pick who" type="button" data-who="julia"><span class="pick-emoji">👸</span><span class="pick-name">Julia</span></button>
+                        <button class="pick who" type="button" data-who="livia"><span class="pick-emoji">🧚</span><span class="pick-name">Livia</span></button>
+                        <button class="pick who" type="button" data-who="convidado"><span class="pick-emoji">🙂</span><span class="pick-name">Convidado</span></button>
+                    </div>
+
+                    <h3>Cor do unicórnio</h3>
+                    <div class="color-row" id="color-row"></div>
+
+                    <h3>Velocidade</h3>
+                    <div class="choice-grid" id="diff-row">
+                        <button class="pick diff" type="button" data-diff="facil"><span class="pick-emoji">🐢</span><span class="pick-name">Fácil</span></button>
+                        <button class="pick diff" type="button" data-diff="normal"><span class="pick-emoji">🦄</span><span class="pick-name">Normal</span></button>
+                        <button class="pick diff" type="button" data-diff="rapido"><span class="pick-emoji">⚡</span><span class="pick-name">Rápido</span></button>
+                    </div>
+
+                    <p class="score-line" id="score-line"></p>
+                    <button class="big-btn primary" id="start-btn" type="button" onclick="startRace()">Correr! 🌈</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CORRIDA (tela cheia) -->
+            <section id="race-screen" class="screen">
+                <canvas id="race-canvas"></canvas>
+
+                <div class="race-hud">
+                    <button class="hud-btn" id="pause-btn" type="button" aria-label="Pausar">⏸</button>
+                    <div class="track" aria-hidden="true">
+                        <div class="track-road"></div>
+                        <span class="marker rival" id="m-rival">🦄</span>
+                        <span class="marker me" id="m-me">👸</span>
+                        <span class="track-castle">🏰</span>
+                    </div>
+                    <div class="hud-stars">⭐<b id="hud-stars">0</b></div>
+                </div>
+
+                <button class="jump-btn" id="jump-btn" type="button" aria-label="Pular">⬆️<small>Pular</small></button>
+                <div class="banner" id="banner"></div>
+
+                <!-- Portal magico -->
+                <div class="overlay" id="portal-overlay" hidden>
+                    <div class="card portal-card">
+                        <div class="portal-title">✨ Portal Mágico ✨</div>
+                        <div class="q-text" id="q-text"></div>
+                        <div class="q-visual" id="q-visual"></div>
+                        <div class="q-options" id="q-options"></div>
+                        <div class="q-feedback" id="q-feedback"></div>
+                        <button class="hear small" type="button" id="q-hear">🔊 Ouvir de novo</button>
+                    </div>
+                </div>
+
+                <!-- Pausa -->
+                <div class="overlay" id="pause-overlay" hidden>
+                    <div class="card">
+                        <div class="big-icon">⏸️</div>
+                        <h2>Pausa</h2>
+                        <div class="btn-col">
+                            <button class="big-btn primary" type="button" id="resume-btn">▶ Continuar</button>
+                            <button class="big-btn" type="button" onclick="goSetup()">⚙️ Mudar opções</button>
+                            <button class="big-btn" type="button" onclick="goBack()">🏠 Sair</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RESULTADO -->
+            <section id="result-screen" class="screen">
+                <div class="panel">
+                    <div class="winner-emoji" id="winner-emoji">🏆</div>
+                    <h2 id="winner-title">Você venceu!</h2>
+                    <p class="lead" id="winner-msg"></p>
+                    <div class="rating" id="rating"></div>
+                    <p class="stars-line" id="stars-line"></p>
+                    <p class="score-line" id="score-line-end"></p>
+                    <div class="btn-row">
+                        <button class="big-btn primary" type="button" onclick="startRace()">🔁 Jogar de novo</button>
+                        <button class="big-btn" type="button" onclick="goSetup()">⚙️ Mudar opções</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../shared/kids-audio.js?v=da92b96a"></script>
+    <script src="game.js?v=beb91494"></script>
+    <script src="../shared/fit-screen.js?v=0f4dccb7"></script>
+</body>
+</html>

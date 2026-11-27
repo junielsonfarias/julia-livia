@@ -711,3 +711,18 @@ body {
     .sound-text { margin-top: 6px; font-size: 1.5rem; min-height: 0; }
     .animals-grid { gap: 10px; margin-bottom: 8px; max-width: 420px; margin-left: auto; margin-right: auto; }
 }
+
+/* Tablet deitado: os 4 habitats numa linha so (em 2x2 quadrados a tela ficava alta e
+   estreita e o fit-screen encolhia tudo para ~0.65) */
+@media (orientation: landscape) and (min-width: 700px) {
+    .habitat-grid { grid-template-columns: repeat(4, 1fr) !important; max-width: none !important; }
+    .habitat-btn { aspect-ratio: auto; min-height: 150px; padding: 12px 8px; }
+    .habitat-emoji { font-size: 3.4rem; }
+}
+
+/* Tablet em pe: habitats 2x2 grandes, entao figura e nome maiores (antes ficavam pequenos no meio) */
+@media (orientation: portrait) and (min-width: 700px) {
+    .habitat-btn { aspect-ratio: auto; min-height: 190px; }
+    .habitat-emoji { font-size: 4.6rem; }
+    .habitat-name { font-size: 1.5rem; }
+}

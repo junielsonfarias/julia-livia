@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aprender a Contar - Mundo de Julia & Livia</title>
     <base href="/contar-game/">
-    <link rel="stylesheet" href="styles.css?v=dafdea79">
+    <link rel="stylesheet" href="styles.css?v=a48afe82">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -23,6 +23,7 @@
             <!-- Tela de Inicio -->
             <div id="start-screen" class="screen active">
                 <div class="start-content">
+                    <div class="start-intro">
                     <div class="counting-preview">
                         <span>1</span>
                         <span>2</span>
@@ -30,6 +31,10 @@
                     </div>
                     <h2>Vamos Contar!</h2>
                     <p>Conte os objetos e escolha o número certo!</p>
+                    <div class="hear-row"><button class="hear-btn" type="button" onclick="speakIntro()">🔊 Ouvir como joga</button></div>
+                    </div>
+
+                    <div class="start-modes">
 
                     <h3 class="section-title">Modo Contar:</h3>
                     <div class="mode-select">
@@ -62,6 +67,7 @@
                             <span class="mode-name">Qual tem mais?</span>
                             <span class="mode-desc">Médio</span>
                         </button>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -113,7 +119,7 @@
     </div>
 
     <script src="../shared/kids-audio.js?v=da92b96a"></script>
-    <script src="game.js?v=4cf811d0"></script>
-    <script src="../shared/fit-screen.js?v=1e8736b9"></script>
+    <script src="game.js?v=02de8264"></script>
+    <script src="../shared/fit-screen.js?v=0f4dccb7"></script>
 </body>
 </html>

@@ -40,6 +40,10 @@ let canvas, ctx;
 let dpr = 1;          // densidade de pixels usada no canvas
 let cssW = 0, cssH = 0; // tamanho do canvas em pixels CSS
 let resizeTimer = null;
+let activePointer = null; // dedo/caneta que esta desenhando (outros dedos e a palma sao ignorados)
+// Desenho antes de encolher para caber (girar o tablet): se nada mudou desde entao,
+// ao girar de volta ele volta ao tamanho original em vez de ir ficando menor a cada giro
+let preShrink = null;
 
 // Inicializacao
 document.addEventListener('DOMContentLoaded', () => {
@@ -58,7 +62,17 @@ function initCanvas() {
         resizeTimer = setTimeout(resizeCanvas, 150);
     });
 
-    // Eventos de desenho - Mouse
+    // Eventos de desenho - Pointer (dedo, caneta e mouse num so)
+    if (window.PointerEvent) {
+        canvas.addEventListener('pointerdown', onPointerDown);
+        canvas.addEventListener('pointermove', onPointerMove);
+        canvas.addEventListener('pointerup', onPointerUp);
+        canvas.addEventListener('pointercancel', onPointerUp);
+        canvas.addEventListener('lostpointercapture', onPointerUp);
+        return;
+    }
+
+    // Navegadores antigos: Mouse
     canvas.addEventListener('mousedown', startDrawing);
     canvas.addEventListener('mousemove', draw);
     canvas.addEventListener('mouseup', stopDrawing);
@@ -82,15 +96,20 @@ function resizeCanvas() {
 
     if (newW === cssW && newH === cssH && newDpr === dpr) return;
 
-    // Copiar o conteudo atual
+    // Copiar o conteudo atual (ou o desenho de antes de encolher, se nada mudou)
     let backup = null;
-    if (cssW > 0 && cssH > 0) {
+    let oldW = cssW, oldH = cssH;
+    if (preShrink) {
+        backup = preShrink.canvas;
+        oldW = preShrink.w;
+        oldH = preShrink.h;
+    } else if (cssW > 0 && cssH > 0) {
         backup = document.createElement('canvas');
         backup.width = canvas.width;
         backup.height = canvas.height;
         backup.getContext('2d').drawImage(canvas, 0, 0);
     }
-    const oldW = cssW, oldH = cssH;
+    preShrink = null;
 
     dpr = newDpr;
     cssW = newW;
@@ -105,6 +124,7 @@ function resizeCanvas() {
         // Se cabe, desenha no mesmo tamanho; se nao, encolhe mantendo a proporcao
         const scale = Math.min(1, cssW / oldW, cssH / oldH);
         ctx.drawImage(backup, 0, 0, oldW * scale, oldH * scale);
+        if (scale < 1) preShrink = { canvas: backup, w: oldW, h: oldH };
     }
 
     // As fotos do "Desfazer" tem o tamanho antigo
@@ -195,6 +215,33 @@ function getTouchPos(e) {
     return toCanvasPos(touch.clientX, touch.clientY);
 }
 
+function onPointerDown(e) {
+    if (activePointer !== null) return;               // segundo dedo/palma: ignora
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    e.preventDefault();
+    activePointer = e.pointerId;
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+    const pos = toCanvasPos(e.clientX, e.clientY);
+    startDrawingAt(pos.x, pos.y);
+}
+
+function onPointerMove(e) {
+    if (e.pointerId !== activePointer || !drawState.isDrawing) return;
+    e.preventDefault();
+    // Pontos intermediarios do movimento: traco mais liso no tablet
+    const list = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+    (list.length ? list : [e]).forEach(ev => {
+        const pos = toCanvasPos(ev.clientX, ev.clientY);
+        drawAt(pos.x, pos.y);
+    });
+}
+
+function onPointerUp(e) {
+    if (e.pointerId !== activePointer) return;
+    activePointer = null;
+    stopDrawing();
+}
+
 function handleTouchStart(e) {
     e.preventDefault();
     if (!e.touches.length) return;
@@ -216,6 +263,7 @@ function startDrawing(e) {
 
 function startDrawingAt(x, y) {
     saveUndoSnapshot();
+    preShrink = null;   // o desenho mudou
     drawState.isDrawing = true;
     drawState.lastX = x;
     drawState.lastY = y;
@@ -384,6 +432,7 @@ function clearCanvas() {
     `;
     overlay.querySelector('.confirm-yes').onclick = () => {
         saveUndoSnapshot();
+        preShrink = null;
         fillBackground('#FFFFFF');
         playSound('flip');
         speak('Tudo limpinho!');

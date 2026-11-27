@@ -169,6 +169,22 @@
     {
       "source": "/selva",
       "destination": "/selva-game"
+    },
+    {
+      "source": "/unicornio-corrida",
+      "destination": "/unicornio-corrida-game"
+    },
+    {
+      "source": "/unicornio-pintura",
+      "destination": "/unicornio-pintura-game"
+    },
+    {
+      "source": "/unicornio-arcoiris",
+      "destination": "/unicornio-arcoiris-game"
+    },
+    {
+      "source": "/unicornio",
+      "destination": "/unicornio-corrida-game"
     }
   ]
 }

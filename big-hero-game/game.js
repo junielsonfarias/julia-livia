@@ -640,6 +640,7 @@ let civilianTimer = 0;
 let villainTimer = 0;
 let gameTimer = null;
 let lastFrameTime = 0;
+let loopId = 0;   // cada partida tem seu proprio loop (REINICIAR nao pode deixar dois loops rodando)
 
 // Canvas e Contexto
 let canvas = null;
@@ -881,6 +882,11 @@ function detectMobileDevice() {
     }
 }
 
+// Saiu do app / fechou a janela do jogo: pausa (o relogio continuaria correndo escondido)
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden && gameState.currentScreen === 'game' && gameState.isPlaying && !gameState.isPaused) togglePause();
+});
+
 function handleKeyDown(e) {
     if (gameState.currentScreen !== 'game') return;
     switch(e.code) {
@@ -983,6 +989,14 @@ function startGame() {
     gameState.score = 0;
     gameState.timeRemaining = CONFIG.PHASE_DURATION;
     gameState.isPaused = false;
+    // REINICIAR/SAIR pelo menu de pausa: o menu nao pode continuar aberto na partida nova
+    document.getElementById('pause-menu')?.classList.add('hidden');
+    const timerEl = document.getElementById('timer');
+    if (timerEl) {
+        const t = CONFIG.PHASE_DURATION;
+        timerEl.textContent = `${Math.floor(t / 60)}:${(t % 60).toString().padStart(2, '0')}`;
+        timerEl.classList.remove('danger', 'warning');
+    }
     gameState.isPlaying = true;
     gameState.obstaclesPassed = 0;
     gameState.powerupsCollected = 0;
@@ -1007,7 +1021,8 @@ function startGame() {
     gameTimer = setInterval(updateGameTimer, 1000);
 
     lastFrameTime = performance.now();
-    requestAnimationFrame(gameLoop);
+    const id = ++loopId;
+    requestAnimationFrame(t => gameLoop(t, id));
 }
 
 function resetPlayer() {
@@ -1080,8 +1095,8 @@ function initBackgroundElements() {
 // GAME LOOP
 // ==========================================
 
-function gameLoop(currentTime) {
-    if (!gameState.isPlaying) return;
+function gameLoop(currentTime, id) {
+    if (!gameState.isPlaying || id !== loopId) return;
 
     const deltaTime = currentTime - lastFrameTime;
     lastFrameTime = currentTime;
@@ -1091,7 +1106,7 @@ function gameLoop(currentTime) {
         render();
     }
 
-    requestAnimationFrame(gameLoop);
+    requestAnimationFrame(t => gameLoop(t, id));
 }
 
 function update(deltaTime) {

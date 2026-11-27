@@ -292,6 +292,7 @@
                 const input = document.createElement('input');
                 input.type = 'number';
                 input.className = 'choice-input';
+                input.inputMode = 'numeric';   // teclado de numeros no tablet
                 input.setAttribute('aria-label','Resposta numérica');
 
                 const submit = document.createElement('button');
@@ -299,6 +300,8 @@
                 submit.textContent = 'Enviar';
                 submit.onclick = ()=> {
                     const val = parseInt(input.value,10);
+                    // campo vazio: nao conta como erro (toque sem querer no Enviar)
+                    if (isNaN(val)) { input.focus(); return; }
                     chooseAnswer(val, submit);
                 };
 
@@ -984,12 +987,13 @@
         $('question-text').textContent = `Quanto é ${q.a} ${q.op} ${q.b} ?`;
         const container = $('choices'); container.innerHTML = '';
         // use input mode for memtest for better memorization
-        const input = document.createElement('input'); input.type='number'; input.className='choice-input'; input.style.padding='10px'; input.style.borderRadius='8px';
+        const input = document.createElement('input'); input.type='number'; input.className='choice-input'; input.inputMode='numeric'; input.style.padding='10px'; input.style.borderRadius='8px';
         const submit = document.createElement('button'); submit.className='primary'; submit.textContent='Enviar';
         submit.onclick = ()=>{
             if (submit.disabled || !state.memTest) return;
-            submit.disabled = true;
             const val = parseInt(input.value,10);
+            if (isNaN(val)) { input.focus(); return; }   // campo vazio nao conta
+            submit.disabled = true;
             const respMs = Date.now() - state.question.startTime;
             const correct = (val === state.question.answer);
             state.memTest.times.push(respMs);
@@ -1055,6 +1059,12 @@
         }
         // initialize quick controls from saved settings if use-settings is checked
         const ucb = document.getElementById('use-settings-checkbox');
+        // Mexeu numa opcao rapida: passa a valer o que esta na tela
+        // (com "Usar Configuracoes do Painel" marcado, essas escolhas eram ignoradas sem aviso)
+        ['count-select','mode-select','difficulty-select','timer-select','sound-select'].forEach(id => {
+            const el = $(id);
+            if (el && ucb) el.addEventListener('change', ()=>{ ucb.checked = false; });
+        });
         if (ucb && ucb.checked){
             const s = loadSettings();
             $('count-select').value = s.defaultCount;

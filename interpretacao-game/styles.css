@@ -171,3 +171,25 @@ mark, mark.kw { background: #ffeaa7; color: #2d3436; padding: 0 3px; border-radi
     #start-screen .mode-desc { display: none; }
     #start-screen .method { padding: 8px 14px; margin-bottom: 8px; }
 }
+
+/* ==========================================
+   TABLET deitado: texto ao lado da pergunta (sem encolher a letra)
+   ========================================== */
+.speak-btn { min-height: 44px; }
+
+@media (min-width: 900px) and (orientation: landscape) {
+    #text-screen { max-width: 1120px; }
+    #text-screen .panel {
+        display: grid; grid-template-columns: 1.05fr 1fr; column-gap: 26px;
+        grid-template-rows: auto auto 1fr; align-items: start;
+    }
+    #text-screen .badge-row, #text-screen .text-title, #text-screen .text-body { grid-column: 1; }
+    #text-screen .text-body { margin-bottom: 0; }
+    #text-screen .question-box { grid-column: 2; grid-row: 1 / span 3; }
+
+    /* Inicio um pouco mais compacto */
+    #start-screen .big-icon { font-size: 3rem; }
+    #start-screen .panel h2 { margin-top: 0; }
+    #start-screen .mode-btn { padding: 14px 12px; }
+    #start-screen .method ol { line-height: 1.55; }
+}

@@ -223,6 +223,7 @@ function createOptions() {
         options.sort((a, b) => a - b);
     }
 
+    if (options.length === 6) optionsArea.classList.add('six');
     options.forEach(num => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
@@ -410,6 +411,12 @@ function speak(text, opts) {
 function sayPrompt(text) {
     lastPrompt = text;
     speak(text);
+}
+
+// Explicacao falada da tela inicial (Livia ainda nao le)
+function speakIntro() {
+    speak('Vamos contar! Nos pintinhos e na águia, você conta as figuras e toca no número certo. ' +
+        'O pintinho é o mais fácil. Nas carinhas pensando, você escolhe qual grupo tem mais.', { rate: 0.9 });
 }
 
 function repeatPrompt() {

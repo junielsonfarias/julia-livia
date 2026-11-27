@@ -90,7 +90,10 @@ function playGame(gameId) {
         'trilha': 'trilha-game/index.html',
         'relampago': 'relampago-game/index.html',
         'velha': 'velha-game/index.html',
-        'selva': 'selva-game/index.html'
+        'selva': 'selva-game/index.html',
+        'unicornio-corrida': 'unicornio-corrida-game/index.html',
+        'unicornio-pintura': 'unicornio-pintura-game/index.html',
+        'unicornio-arcoiris': 'unicornio-arcoiris-game/index.html'
     };
 
     const route = gameRoutes[gameId];
