@@ -216,6 +216,19 @@ function jumpArrows() {
     return s;
 }
 
+// Figura 3D (Emoji3D) com reserva para o emoji em texto
+const fig = (e, cls) => (window.Emoji3D ? Emoji3D.html(e, cls) : e);
+const reduzMov = () => (window.Efeitos ? Efeitos.reduzir() : false);
+
+// Faixa com bordas onduladas (rio)
+function wavyBand(y1, y2, amp) {
+    let d = `M-40 ${y1}`;
+    for (let x = -40; x < 640; x += 40) d += ` q20 ${-amp} 40 0`;
+    d += ` L640 ${y2}`;
+    for (let x = 640; x > -40; x -= 40) d += ` q-20 ${amp} -40 0`;
+    return d + ' Z';
+}
+
 // Enfeites da selva entre as fileiras (posicoes fixas, em % do tabuleiro)
 const DECOR = [
     ['🌴', 1, 2, 2.2], ['🌴', 93, 50, 2], ['🌺', 48, 33.3, 1.2], ['🍄', 6, 83.3, 1.2], ['🦜', 86, 16.6, 1.4],
@@ -228,36 +241,82 @@ function buildBoard() {
     const riverY = VB - (RIVER_ROW + 1) * PITCH;
     const finish = cellXY(CELLS - 1);
     const path = trailPath();
+    const rTop = riverY + 10, rH = PITCH - 20;
     let cells = '';
     for (let i = 0; i < CELLS; i++) {
         const { x, y } = cellXY(i);
         const ev = EVENTS[i];
         const kind = i === 0 ? 'start' : i === CELLS - 1 ? 'finish' : ev || 'plain';
-        const label = i === 0 ? '🚩' : i === CELLS - 1 ? '🛕' : ev ? EVENT_INFO[ev].emoji : i;
+        const label = i === 0 ? fig('🚩') : i === CELLS - 1 ? fig('🛕') : ev ? fig(EVENT_INFO[ev].emoji) : i;
         const num = ev ? `<small class="cell-num">${i}</small>` : '';
         cells += `<button type="button" class="cell ${kind}" data-cell="${i}" style="left:${x / VB * 100}%;top:${y / VB * 100}%" aria-label="Casa ${i}${ev ? ': ' + EVENT_INFO[ev].title : ''}"><span class="cell-label">${label}</span>${num}</button>`;
     }
+    // Reflexos de luz no rio (fixos) e brilhos que piscam devagar (camada animada)
+    let glints = '', twinkles = '';
+    for (let k = 0; k < 10; k++) {
+        const gx = 10 + k * 64 + (k % 2) * 22, gy = rTop + 12 + (k % 3) * (rH - 24) / 2;
+        glints += `<ellipse cx="${gx}" cy="${gy}" rx="${12 + (k % 3) * 7}" ry="2.4"/>`;
+        if (k % 3 === 1) twinkles += `<circle class="twinkle" style="animation-delay:${k * 0.45}s" cx="${gx + 16}" cy="${gy}" r="3.2"/>`;
+    }
+    // Duas camadas: a de baixo (textura, sombra, relevo) e parada e fica numa camada propria
+    // (os filtros sao calculados uma vez so); a de cima tem as animacoes leves (ondas, setas, brilho)
     board.innerHTML = `
+        <svg class="board-art" viewBox="0 0 ${VB} ${VB}" aria-hidden="true">
+            <defs>
+                <filter id="manchas" filterUnits="userSpaceOnUse" x="-40" y="-40" width="680" height="680">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.016" numOctaves="3" seed="7" result="n1"/>
+                    <feColorMatrix in="n1" type="matrix" result="escuro"
+                        values="0 0 0 0 0.10  0 0 0 0 0.30  0 0 0 0 0.08  1.9 0 0 0 -0.78"/>
+                    <feColorMatrix in="n1" type="matrix" result="claro"
+                        values="0 0 0 0 0.50  0 0 0 0 0.74  0 0 0 0 0.28  0 1.3 0 0 -0.74"/>
+                    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="1" seed="2" result="n2"/>
+                    <feColorMatrix in="n2" type="matrix" result="grao"
+                        values="0 0 0 0 0.04  0 0 0 0 0.12  0 0 0 0 0.03  0.5 0 0 0 -0.19"/>
+                    <feMerge><feMergeNode in="escuro"/><feMergeNode in="claro"/><feMergeNode in="grao"/></feMerge>
+                </filter>
+                <filter id="terra" x="-5%" y="-5%" width="110%" height="110%">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="2" seed="3" result="t"/>
+                    <feColorMatrix in="t" type="matrix" result="pintas"
+                        values="0 0 0 0 0.36  0 0 0 0 0.22  0 0 0 0 0.08  2.6 0 0 0 -1.12"/>
+                    <feComposite in="pintas" in2="SourceGraphic" operator="in" result="p2"/>
+                    <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="p2"/></feMerge>
+                </filter>
+                <filter id="sombra" x="-10%" y="-10%" width="120%" height="130%"><feGaussianBlur stdDeviation="6"/></filter>
+                <linearGradient id="rioGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#14608f"/><stop offset=".3" stop-color="#2f9ad6"/>
+                    <stop offset=".55" stop-color="#5cc9f3"/><stop offset=".8" stop-color="#2a8fca"/><stop offset="1" stop-color="#114f7a"/>
+                </linearGradient>
+            </defs>
+            <rect x="-40" y="-40" width="680" height="680" fill="#3a8429"/>
+            <rect x="-40" y="-40" width="680" height="680" filter="url(#manchas)"/>
+            <path d="${wavyBand(rTop - 8, rTop + rH + 8, 5)}" fill="#c4a062"/>
+            <path d="${wavyBand(rTop - 3, rTop + rH + 3, 4)}" fill="#8a6a35" opacity=".55"/>
+            <path d="${wavyBand(rTop, rTop + rH, 4)}" fill="url(#rioGrad)"/>
+            <g class="glints" fill="#fff" opacity=".45">${glints}</g>
+            <path class="trail-shadow" d="${path}" filter="url(#sombra)"/>
+            <path class="trail-edge" d="${path}"/>
+            <path class="trail-dirt" d="${path}" filter="url(#terra)"/>
+            <path class="trail-light" d="${path}"/>
+            <path class="trail-dash" d="${path}"/>
+        </svg>
         <svg class="trail" viewBox="0 0 ${VB} ${VB}" aria-hidden="true">
             <defs>
                 <pattern id="waves" width="40" height="14" patternUnits="userSpaceOnUse">
-                    <path d="M0 7 Q10 0 20 7 T40 7" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2.5"/>
+                    <path d="M0 7 Q10 0 20 7 T40 7" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2.2"/>
                 </pattern>
                 <marker id="arrow-up" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto">
                     <path d="M0 0 L10 5 L0 10 z" fill="#d4ffb0"/></marker>
                 <marker id="arrow-down" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto">
                     <path d="M0 0 L10 5 L0 10 z" fill="#ffc2ad"/></marker>
                 <radialGradient id="templeGlow"><stop offset="0" stop-color="#fff59d" stop-opacity=".95"/><stop offset="1" stop-color="#fff59d" stop-opacity="0"/></radialGradient>
+                <clipPath id="rioClip"><rect x="-40" y="${rTop}" width="680" height="${rH}"/></clipPath>
             </defs>
-            <rect class="river" x="-30" y="${riverY + 8}" width="${VB + 60}" height="${PITCH - 16}" rx="28"/>
-            <rect class="river-waves" x="-30" y="${riverY + 8}" width="${VB + 60}" height="${PITCH - 16}" fill="url(#waves)"/>
+            <g clip-path="url(#rioClip)"><rect class="river-waves" x="-80" y="${rTop + 4}" width="${VB + 160}" height="${rH - 8}" fill="url(#waves)"/></g>
+            <g class="twinkles" fill="#fff">${twinkles}</g>
             <circle class="temple-glow" cx="${finish.x}" cy="${finish.y}" r="${PITCH * 0.95}" fill="url(#templeGlow)"/>
-            <path class="trail-edge" d="${path}"/>
-            <path class="trail-dirt" d="${path}"/>
-            <path class="trail-dash" d="${path}"/>
             ${jumpArrows()}
         </svg>
-        <div class="decor" aria-hidden="true">${DECOR.map(([e, l, t, s]) => `<span style="left:${l}%;top:${t}%;font-size:${s}em">${e}</span>`).join('')}</div>
+        <div class="decor" aria-hidden="true">${DECOR.map(([e, l, t, s]) => `<span style="left:${l}%;top:${t}%;font-size:${s}em">${fig(e)}</span>`).join('')}</div>
         ${cells}
         <div class="pawn-layer" id="pawn-layer"></div>`;
     board.querySelectorAll('.cell').forEach(c => c.addEventListener('click', () => explainCell(+c.dataset.cell)));
@@ -305,7 +364,7 @@ function updatePawns() {
             el = document.createElement('span');
             el.className = 'pawn';
             el.dataset.pid = p.id;
-            el.innerHTML = `<span class="pawn-body">${p.emoji}</span>`;
+            el.innerHTML = `<span class="pawn-shadow"></span><span class="pawn-base"></span><span class="pawn-body">${fig(p.emoji)}</span>`;
             el.title = p.name;
             el.style.setProperty('--pc', p.color);
             layer.appendChild(el);
@@ -313,16 +372,40 @@ function updatePawns() {
         const here = state.players.filter(o => o.pos === p.pos);
         const spot = PAWN_SPOTS[Math.min(4, here.length)][here.indexOf(p)] || [0, 0];
         const { x, y } = cellXY(p.pos);
-        if (el.dataset.pos !== undefined && el.dataset.pos !== String(p.pos)) {
-            el.classList.remove('hop'); void el.offsetWidth; el.classList.add('hop');
-        }
+        if (el.dataset.pos !== undefined && el.dataset.pos !== String(p.pos)) hopPawn(el);
         el.dataset.pos = p.pos;
-        el.style.left = (x + spot[0] * PITCH) / VB * 100 + '%';
-        el.style.top = (y + spot[1] * PITCH) / VB * 100 + '%';
+        // posicao em cqw (o tabuleiro e quadrado): move so com transform, sem recalcular o layout
+        el.style.setProperty('--x', ((x + spot[0] * PITCH) / VB * 100).toFixed(2));
+        el.style.setProperty('--y', ((y + spot[1] * PITCH) / VB * 100).toFixed(2));
         el.classList.toggle('small', here.length > 2);
         el.classList.toggle('current', p === cur && !state.over);
     });
 }
+
+// Pulo de uma casa: agacha, estica no ar, achata ao cair (squash & stretch); a sombra encolhe no alto
+const HOP_MS = 330;
+function hopPawn(el) {
+    if (reduzMov() || !el.animate) return;
+    const body = el.querySelector('.pawn-body'), shadow = el.querySelector('.pawn-shadow');
+    try {
+        body.animate([
+            { transform: 'translateY(0) scale(1.14, .84)' },
+            { transform: 'translateY(-12%) scale(.88, 1.14)', offset: 0.18 },
+            { transform: 'translateY(-46%) scale(.96, 1.05)', offset: 0.5 },
+            { transform: 'translateY(0) scale(1.16, .82)', offset: 0.84 },
+            { transform: 'translateY(0) scale(1, 1)' }
+        ], { duration: HOP_MS, easing: 'linear' });
+        shadow.animate([
+            { transform: 'scale(1.1)', opacity: 1 },
+            { transform: 'scale(.55)', opacity: 0.45, offset: 0.5 },
+            { transform: 'scale(1.15)', opacity: 1, offset: 0.84 },
+            { transform: 'scale(1)', opacity: 1 }
+        ], { duration: HOP_MS, easing: 'ease-in-out' });
+    } catch (e) {}
+}
+
+function cellEl(i) { return document.querySelector(`.cell[data-cell="${i}"]`); }
+function pawnEl(p) { return document.querySelector(`.pawn[data-pid="${p.id}"]`); }
 
 function renderBoard() {
     if (!boardBuilt || !document.getElementById('pawn-layer')) buildBoard();
@@ -366,7 +449,7 @@ function beginTurn(note) {
     const p = state.players[state.turn];
     renderRanking();
     const who = document.getElementById('turn-who');
-    who.innerHTML = `<span class="who-emoji">${p.emoji}</span> Vez de <b>${esc(p.name)}</b>`;
+    who.innerHTML = `<span class="who-emoji">${fig(p.emoji)}</span> Vez de <b>${esc(p.name)}</b>`;
     document.getElementById('turn-card').style.setProperty('--pc', p.color);
     const btn = document.getElementById('roll-btn');
     if (p.skip) {
@@ -435,8 +518,9 @@ async function move(p, steps) {
         if (next < 0 || next > CELLS - 1) break;
         p.pos = next;
         renderBoard();
-        KidsAudio.play('click');
-        await sleep(240);
+        // uma nota por casa: sobe quando avanca, desce quando volta
+        KidsAudio.note(dir > 0 ? s : Math.max(0, 5 - s), 0.16);
+        await sleep(HOP_MS + 20);
         if (p.pos === CELLS - 1) { finish(p); return; }
     }
 }
@@ -447,7 +531,7 @@ function showEvent(ev, extra) {
         const info = EVENT_INFO[ev];
         const ov = document.getElementById('event-overlay');
         const card = document.getElementById('event-card');
-        document.getElementById('event-emoji').textContent = info.emoji;
+        document.getElementById('event-emoji').innerHTML = fig(info.emoji);
         document.getElementById('event-title').textContent = info.title;
         document.getElementById('event-text').textContent = info.text;
         card.className = 'event-card ev-' + ev;
@@ -479,19 +563,34 @@ function showEvent(ev, extra) {
     });
 }
 
+// Efeitos da casa especial: estrelas nas boas, balanco nas travessas, brilho nos desafios
+const GOOD_EVENTS = { cipo: ['🌿', '⭐'], elefante: ['🐘', '⭐'], tesouro: ['💎', '✨'] };
+function cellFx(i, ev) {
+    const el = cellEl(i);
+    if (!el || !window.Efeitos) return;
+    if (GOOD_EVENTS[ev]) { Efeitos.estrelas(el, { quantidade: 16, emoji: GOOD_EVENTS[ev] }); Efeitos.pulo(el); KidsAudio.play('sparkle'); }
+    else if (ev === 'desafio' || ev === 'jacare') Efeitos.brilho(el);
+    else Efeitos.balanco(el);
+}
+function pawnFx(p) {
+    const el = pawnEl(p);
+    if (el && window.Efeitos) Efeitos.acerto(el.querySelector('.pawn-body'), { emoji: ['⭐', '🌟'] });
+}
+
 // Resolve a casa onde caiu. Devolve true se joga de novo.
 async function landOn(p) {
     flashCell(p.pos, 'landed');
     const ev = EVENTS[p.pos];
     if (!ev) return false;
+    cellFx(p.pos, ev);
     await sleep(250);
     if (ev === 'desafio' || ev === 'jacare') {
         const correct = await showEvent(ev, { question: true, player: p });
         if (ev === 'desafio') {
-            if (correct) { setMsg(`🗿 ${esc(p.name)} acertou e avança 2!`); await move(p, 2); }
+            if (correct) { setMsg(`🗿 ${esc(p.name)} acertou e avança 2!`); pawnFx(p); await move(p, 2); }
             else { setMsg(`🗿 ${esc(p.name)} errou e volta 2.`); await move(p, -2); }
         } else {
-            if (correct) setMsg(`🐊 ${esc(p.name)} atravessou o rio!`);
+            if (correct) { setMsg(`🐊 ${esc(p.name)} atravessou o rio!`); pawnFx(p); }
             else { setMsg(`🐊 Os jacarés assustaram ${esc(p.name)}: volta 4.`); await move(p, -4); }
         }
         return false;
@@ -518,11 +617,13 @@ function nextTurn() {
 function finish(winner) {
     state.over = true;
     state.busy = false;
+    const te = cellEl(CELLS - 1);
+    if (te && window.Efeitos) { Efeitos.estrelas(te, { quantidade: 24, emoji: ['⭐', '✨', '🏆'] }); KidsAudio.play('sparkle'); }
     document.getElementById('event-overlay').hidden = true;
     const key = (winner.id === 'julia' || winner.id === 'livia') ? winner.id : 'convidado';
     Duelo.recordResult('selva', key);
     const sorted = state.players.slice().sort((a, b) => b.pos - a.pos);
-    document.getElementById('winner-emoji').textContent = winner.emoji;
+    document.getElementById('winner-emoji').innerHTML = fig(winner.emoji);
     document.getElementById('winner-title').textContent = `${winner.name} chegou ao Templo Dourado! 🏆`;
     document.getElementById('winner-msg').textContent = 'Que aventura! A selva inteira está comemorando!';
     document.getElementById('final-ranking').innerHTML = sorted.map((p, i) =>
@@ -532,22 +633,11 @@ function finish(winner) {
         showScreen('result-screen');
         KidsAudio.play('win');
         KidsAudio.speak(`${winner.name} venceu a Aventura na Selva!`);
-        confetti();
+        if (window.Efeitos) {
+            Efeitos.vitoria();
+            Efeitos.estrelas(document.getElementById('winner-emoji'), { quantidade: 18, emoji: ['🌺', '🍃', '🦋', '💎'] });
+        }
     }, 600);
-}
-
-function confetti() {
-    const items = ['🎉', '🌺', '🍃', '⭐', '🦋', '💎'];
-    for (let i = 0; i < 30; i++) {
-        const c = document.createElement('span');
-        c.className = 'confetti';
-        c.textContent = items[i % items.length];
-        c.style.left = Math.random() * 100 + 'vw';
-        c.style.animationDuration = (2 + Math.random() * 2) + 's';
-        c.style.animationDelay = (Math.random() * 0.8) + 's';
-        document.body.appendChild(c);
-        setTimeout(() => c.remove(), 5000);
-    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

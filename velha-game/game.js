@@ -35,6 +35,37 @@ function speakIntro() {
         'Quem fizer uma linha de três figuras iguais vence!', { rate: 0.9 });
 }
 
+// Figura 3D (Emoji3D) com reserva para o emoji em texto
+const fig = (e, cls) => (window.Emoji3D ? Emoji3D.html(e, cls) : e);
+
+// Peca: anel desenhado a traco (stroke-dashoffset) na cor da jogadora + figura 3D que "cai" na casa.
+// So a peca recem-colocada (state.justPlaced) anima; as outras ja aparecem prontas.
+function pieceHTML(owner, fresh) {
+    return `<span class="piece${fresh ? ' fresh' : ''}" style="--pc:${P[owner].color}">
+        <svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42" pathLength="100"/></svg>
+        <span class="fig">${fig(P[owner].emoji)}</span></span>`;
+}
+
+// Linha da vitoria: traco de luz que se desenha por cima das 3 casas
+function drawWinLine(line) {
+    const box = document.getElementById('ttt');
+    const cells = box.querySelectorAll('.ttt-cell');
+    const a = cells[line[0]], b = cells[line[2]];
+    if (!a || !b) return;
+    const c = el => ({ x: el.offsetLeft + el.offsetWidth / 2, y: el.offsetTop + el.offsetHeight / 2 });
+    const p1 = c(a), p2 = c(b);
+    const dx = p2.x - p1.x, dy = p2.y - p1.y, len = Math.hypot(dx, dy) || 1, ext = a.offsetWidth * 0.32;
+    const x1 = p1.x - dx / len * ext, y1 = p1.y - dy / len * ext, x2 = p2.x + dx / len * ext, y2 = p2.y + dy / len * ext;
+    const W = box.clientWidth, H = box.clientHeight, sw = a.offsetWidth * 0.11;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'win-line');
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.innerHTML = `<line class="glow" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="${sw * 2.2}" pathLength="100"/>
+        <line class="core" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="${sw}" pathLength="100"/>
+        <line class="shine" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="${sw * 0.35}" pathLength="100"/>`;
+    box.appendChild(svg);
+}
+
 function renderBoard(winLine) {
     const box = document.getElementById('ttt');
     box.innerHTML = '';
@@ -42,12 +73,18 @@ function renderBoard(winLine) {
         const b = document.createElement('button');
         b.type = 'button';
         b.className = 'ttt-cell' + (owner ? ' ' + owner : '') + (winLine && winLine.includes(i) ? ' win' : '');
-        b.textContent = owner ? P[owner].emoji : '';
+        b.innerHTML = owner ? pieceHTML(owner, state.justPlaced === i) : '';
         b.setAttribute('aria-label', owner ? `Casa de ${P[owner].name}` : `Casa ${i + 1} vazia`);
         b.disabled = !!owner || state.over;
         b.onclick = () => chooseCell(i);
         box.appendChild(b);
     });
+    // efeitos da peca nova (pulo e estrelinhas na cor da jogadora)
+    if (state.justPlaced != null && window.Efeitos) {
+        const el = box.children[state.justPlaced];
+        setTimeout(() => { Efeitos.estrelas(el, { quantidade: 12 }); KidsAudio.play('pop'); }, 260);
+    }
+    state.justPlaced = null;
 }
 
 function seriesText() {
@@ -136,7 +173,10 @@ function onAnswer(ok, q, level) {
         DueloPerguntas.feedback(box, '✅ Acertou! A casa é sua!', 'good');
         KidsAudio.speak('Acertou! A casa é sua!', { rate: 0.95 });
         state.cells[state.pending] = state.turn;
+        state.justPlaced = state.pending;
     } else {
+        const el = document.querySelectorAll('.ttt-cell')[state.pending];
+        if (el && window.Efeitos) Efeitos.erro(el);
         KidsAudio.play('wrong');
         DueloPerguntas.feedback(box, `❌ Não foi dessa vez. ${q.explain || ''}`, 'bad');
         KidsAudio.speak('Não foi dessa vez!' + sayExplain, { rate: 0.95 });
@@ -160,6 +200,13 @@ function finish(winner, line) {
     state.over = true;
     renderBoard(line);
     Duelo.recordResult('velha', winner);
+    if (line) setTimeout(() => {
+        if (id !== state.gameId) return;
+        drawWinLine(line);
+        KidsAudio.play('sparkle');
+        if (window.Efeitos) Efeitos.vitoria();
+    }, 450);
+    else if (window.Efeitos) Efeitos.estrelas(document.getElementById('ttt'), { quantidade: 20, emoji: ['🤝', '⭐'] });
 
     let title, voice, emoji;
     if (winner === 'empate') { emoji = '🤝'; title = 'Deu velha! Empate!'; voice = 'Deu velha! Empate!'; }
@@ -183,7 +230,7 @@ function finish(winner, line) {
         }
     }
     seriesEl.hidden = !s;
-    document.getElementById('winner-emoji').textContent = emoji;
+    document.getElementById('winner-emoji').innerHTML = fig(emoji);
     document.getElementById('winner-title').textContent = title;
     document.getElementById('again-btn').textContent = againLabel;
     document.getElementById('score-line-end').innerHTML = Duelo.scoreText('velha');
@@ -192,7 +239,7 @@ function finish(winner, line) {
         if (id !== state.gameId) return;
         showScreen('result-screen');
         KidsAudio.speak(voice, { interrupt: false });
-    }, 1400);
+    }, line ? 2000 : 1400);
 }
 
 document.addEventListener('DOMContentLoaded', () => {

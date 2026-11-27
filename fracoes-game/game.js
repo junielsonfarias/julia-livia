@@ -111,13 +111,28 @@ function updateProgress() {
     document.getElementById('progress-fill').style.width = progress + '%';
 }
 
-// Proxima pergunta
+// Proxima pergunta: a atual sai (opacity/transform) e a nova entra
+let turnTimer = null;
 function nextQuestion() {
+    const content = document.querySelector('#game-screen .game-content');
+    clearTimeout(turnTimer);
+    const first = !document.getElementById('options-area').children.length || gameState.currentQuestion === 0;
+    if (!content || first) { renderQuestion(); return; }
+    content.classList.add('leaving');
+    turnTimer = setTimeout(() => {
+        renderQuestion();
+        content.classList.remove('leaving');
+    }, 230);
+}
+
+function renderQuestion() {
+    gameState.wrongTries = 0;
     document.getElementById('feedback').textContent = '';
     document.getElementById('feedback').className = 'feedback';
     document.getElementById('explain').innerHTML = '';
     document.getElementById('next-btn').hidden = true;
     document.getElementById('options-area').className = 'options-area';
+    document.getElementById('fraction-display').className = 'fraction-display';
     gameState.answered = false;
     updateProgress();
     updateStats();
@@ -161,34 +176,63 @@ function generateIdentifyQuestion() {
 }
 
 // Criar visualizacao de pizza
+// Pizza com volume: borda (massa), molho e queijo com gradiente, calabresas, sombra no prato.
+// As fatias coloridas se afastam um pouquinho do centro (animacao), uma de cada vez.
 function createPizzaVisualization(numerator, denominator) {
     const sliceAngle = 360 / denominator;
+    const R = 44, rad = a => a * Math.PI / 180;
+    const pt = (r, a) => `${(50 + r * Math.cos(rad(a))).toFixed(2)} ${(50 + r * Math.sin(rad(a))).toFixed(2)}`;
     let slicesHtml = '';
 
     for (let i = 0; i < denominator; i++) {
-        const startAngle = i * sliceAngle - 90;
-        const endAngle = (i + 1) * sliceAngle - 90;
+        const a0 = i * sliceAngle - 90, a1 = (i + 1) * sliceAngle - 90, mid = (a0 + a1) / 2;
         const filled = i < numerator;
-
-        const x1 = 50 + 45 * Math.cos(startAngle * Math.PI / 180);
-        const y1 = 50 + 45 * Math.sin(startAngle * Math.PI / 180);
-        const x2 = 50 + 45 * Math.cos(endAngle * Math.PI / 180);
-        const y2 = 50 + 45 * Math.sin(endAngle * Math.PI / 180);
-
-        const largeArcFlag = sliceAngle > 180 ? 1 : 0;
-
-        slicesHtml += `
-            <path d="M 50 50 L ${x1} ${y1} A 45 45 0 ${largeArcFlag} 1 ${x2} ${y2} Z"
-                  fill="${filled ? '#ff6b6b' : '#f0f0f0'}"
-                  stroke="#333" stroke-width="2"/>
-        `;
+        const big = sliceAngle > 180 ? 1 : 0;
+        const d = denominator === 1
+            ? `M 50 ${50 - R} A ${R} ${R} 0 1 1 49.99 ${50 - R} Z`
+            : `M 50 50 L ${pt(R, a0)} A ${R} ${R} 0 ${big} 1 ${pt(R, a1)} Z`;
+        const inner = denominator === 1
+            ? `M 50 ${50 - R + 5} A ${R - 5} ${R - 5} 0 1 1 49.99 ${50 - R + 5} Z`
+            : `M 50 50 L ${pt(R - 5, a0)} A ${R - 5} ${R - 5} 0 ${big} 1 ${pt(R - 5, a1)} Z`;
+        // deslocamento da fatia (em unidades do SVG) na direcao do meio dela
+        const dx = (Math.cos(rad(mid)) * 3.5).toFixed(2), dy = (Math.sin(rad(mid)) * 3.5).toFixed(2);
+        let tops = '';
+        if (filled) {
+            const n = denominator <= 3 ? 3 : denominator <= 5 ? 2 : 1;
+            for (let k = 0; k < n; k++) {
+                const f = n === 1 ? 0.5 : k / (n - 1);
+                const ang = a0 + sliceAngle * (0.3 + 0.4 * f);
+                const r = n === 1 ? 24 : 14 + 16 * ((k + 1) % 2 ? 0.95 : 0.35);
+                const [px, py] = pt(r, ang).split(' ');
+                tops += `<circle cx="${px}" cy="${py}" r="${denominator >= 6 ? 3.6 : 4.4}" fill="url(#pzPep)"/>`;
+            }
+        }
+        slicesHtml += `<g class="slice ${filled ? 'on' : 'off'}" style="--dx:${dx}px;--dy:${dy}px;--t:${200 + i * 110}ms">
+            <path d="${d}" fill="${filled ? 'url(#pzCrust)' : '#f3e3c3'}" stroke="${filled ? '#9a5a22' : '#d8c29a'}" stroke-width="1.2"/>
+            ${filled ? `<path d="${inner}" fill="url(#pzCheese)"/>${tops}` : `<path d="${inner}" fill="#f8ecd3"/>`}
+        </g>`;
     }
 
     return `
         <div class="pizza-container">
-            <svg viewBox="0 0 100 100" class="pizza-svg">
+            <svg viewBox="-6 -6 112 116" class="pizza-svg" role="img" aria-label="Pizza dividida em ${denominator} partes, ${numerator} coloridas">
+                <defs>
+                    <radialGradient id="pzCrust" cx="40%" cy="35%" r="70%">
+                        <stop offset="0" stop-color="#f6c47a"/><stop offset=".75" stop-color="#e09a48"/><stop offset="1" stop-color="#b56a2a"/>
+                    </radialGradient>
+                    <radialGradient id="pzCheese" cx="38%" cy="32%" r="75%">
+                        <stop offset="0" stop-color="#fff1a8"/><stop offset=".45" stop-color="#ffd25a"/><stop offset="1" stop-color="#f08a2c"/>
+                    </radialGradient>
+                    <radialGradient id="pzPep" cx="35%" cy="30%" r="70%">
+                        <stop offset="0" stop-color="#ff8a75"/><stop offset=".6" stop-color="#d23a2a"/><stop offset="1" stop-color="#8e1d14"/>
+                    </radialGradient>
+                    <radialGradient id="pzPlate" cx="50%" cy="45%" r="55%">
+                        <stop offset="0" stop-color="#ffffff"/><stop offset=".85" stop-color="#eef1f6"/><stop offset="1" stop-color="#cfd6e2"/>
+                    </radialGradient>
+                </defs>
+                <ellipse cx="50" cy="104" rx="40" ry="5" fill="rgba(0,0,0,.18)"/>
+                <circle cx="50" cy="50" r="53" fill="url(#pzPlate)"/>
                 ${slicesHtml}
-                <circle cx="50" cy="50" r="45" fill="none" stroke="#333" stroke-width="2"/>
             </svg>
             <p class="pizza-hint">Conte: quantas partes ao todo? Quantas coloridas?</p>
         </div>
@@ -211,6 +255,7 @@ function createIdentifyOptions() {
     options.forEach(fraction => {
         const btn = document.createElement('button');
         btn.className = 'option-btn fraction-btn';
+        btn.dataset.key = fraction.num + '/' + fraction.den;
         btn.innerHTML = `
             <span class="fraction-display-small">
                 <span class="frac-num">${fraction.num}</span>
@@ -219,6 +264,7 @@ function createIdentifyOptions() {
             </span>
         `;
         btn.onclick = () => checkAnswer(fraction, 'identify');
+        btn.style.animationDelay = (160 + optionsArea.children.length * 50) + 'ms';
         optionsArea.appendChild(btn);
     });
 }
@@ -277,9 +323,10 @@ function generateCompareQuestion() {
 // Criar visualizacao de barra
 function createBarVisualization(numerator, denominator) {
     let barsHtml = '';
+    // Barra de chocolate: os quadradinhos aparecem um a um; os pintados sao chocolate
     for (let i = 0; i < denominator; i++) {
         const filled = i < numerator;
-        barsHtml += `<div class="bar-segment ${filled ? 'filled' : ''}"></div>`;
+        barsHtml += `<div class="bar-segment ${filled ? 'filled' : ''}" style="animation-delay:${150 + i * 55}ms"></div>`;
     }
     return `<div class="bar-visual">${barsHtml}</div>`;
 }
@@ -299,8 +346,10 @@ function createCompareOptions() {
     options.forEach(opt => {
         const btn = document.createElement('button');
         btn.className = 'option-btn compare-btn';
+        btn.dataset.key = opt.value;
         btn.innerHTML = `<span class="compare-emoji">${opt.emoji}</span><span>${opt.text}</span>`;
         btn.onclick = () => checkAnswer(opt.value, 'compare');
+        btn.style.animationDelay = (160 + optionsArea.children.length * 50) + 'ms';
         optionsArea.appendChild(btn);
     });
 }
@@ -352,6 +401,7 @@ function createEquivalentOptions(correctFraction) {
     options.forEach(fraction => {
         const btn = document.createElement('button');
         btn.className = 'option-btn fraction-btn';
+        btn.dataset.key = fraction.num + '/' + fraction.den;
         btn.innerHTML = `
             <span class="fraction-display-small">
                 <span class="frac-num">${fraction.num}</span>
@@ -360,79 +410,73 @@ function createEquivalentOptions(correctFraction) {
             </span>
         `;
         btn.onclick = () => checkAnswer(fraction, 'equivalent');
+        btn.style.animationDelay = (160 + optionsArea.children.length * 50) + 'ms';
         optionsArea.appendChild(btn);
     });
 }
 
-// Verificar resposta
+// Verificar resposta (aprendizagem sem erro: errou, a opcao apaga e pode tentar de novo;
+// no 2º erro a certa brilha e a explicacao aparece)
+function keyOf(v) { return (v && typeof v === 'object') ? v.num + '/' + v.den : String(v); }
+
+const HINTS = {
+    identify: 'Conte TODAS as partes (número de baixo) e as partes coloridas (número de cima).',
+    compare: 'Compare o tamanho da parte pintada nas duas barras.',
+    equivalent: 'Procure a fração que pinta o MESMO tamanho da barra.',
+    problem: 'Leia de novo com calma: a pergunta é o que deu, ficou, comeu ou sobrou?'
+};
+
 function checkAnswer(answer, type) {
     if (gameState.answered) return;   // evita toque duplo
-    gameState.answered = true;
     const feedbackEl = document.getElementById('feedback');
-    const buttons = document.querySelectorAll('.option-btn');
-    let isCorrect = false;
+    const buttons = [...document.querySelectorAll('#options-area .option-btn')];
+    const key = keyOf(answer), correctKey = keyOf(gameState.correctAnswer);
+    const btn = buttons.find(b => b.dataset.key === key);
+    const rightBtn = buttons.find(b => b.dataset.key === correctKey);
 
-    if (type === 'identify') {
-        isCorrect = answer.num === gameState.correctAnswer.num && answer.den === gameState.correctAnswer.den;
-    } else if (type === 'compare' || type === 'problem') {
-        isCorrect = answer === gameState.correctAnswer;
-    } else {
-        isCorrect = answer.num === gameState.correctAnswer.num && answer.den === gameState.correctAnswer.den;
-    }
-
-    // Desabilitar botoes
-    buttons.forEach(btn => { btn.disabled = true; btn.style.pointerEvents = 'none'; });
-
-    // Marcar resposta
-    buttons.forEach(btn => {
-        if (type === 'problem') {
-            if (btn.dataset.value === answer) btn.classList.add(isCorrect ? 'correct' : 'wrong');
-            if (btn.dataset.value === gameState.correctAnswer) btn.classList.add('correct');
-        } else if (type === 'identify' || type === 'equivalent') {
-            const numEl = btn.querySelector('.frac-num');
-            const denEl = btn.querySelector('.frac-den');
-            if (numEl && denEl) {
-                const btnNum = parseInt(numEl.textContent);
-                const btnDen = parseInt(denEl.textContent);
-                if (btnNum === answer.num && btnDen === answer.den) {
-                    btn.classList.add(isCorrect ? 'correct' : 'wrong');
-                }
-                if (btnNum === gameState.correctAnswer.num && btnDen === gameState.correctAnswer.den) {
-                    btn.classList.add('correct');
-                }
-            }
-        } else {
-            const emojiOf = v => v === 'left' ? '👈' : (v === 'right' ? '👉' : '🤝');
-            if (btn.textContent.includes(emojiOf(answer))) {
-                btn.classList.add(isCorrect ? 'correct' : 'wrong');
-            }
-            if (btn.textContent.includes(emojiOf(gameState.correctAnswer))) {
-                btn.classList.add('correct');
-            }
-        }
-    });
-
-    if (isCorrect) {
+    if (key === correctKey) {
+        gameState.answered = true;
+        const first = !gameState.wrongTries;
+        buttons.forEach(b => { b.disabled = true; b.classList.remove('hint-glow'); });
+        if (btn) btn.classList.add('correct');
         playSound('correct');
-        feedbackEl.textContent = getRandomPraise();
+        if (window.Efeitos && btn) Efeitos.acerto(btn, { texto: first ? '+10' : '+5', emoji: ['⭐', '🍕', '✨'] });
+        // a pizza "serve" as fatias coloridas
+        document.getElementById('fraction-display').classList.add('served');
+        feedbackEl.textContent = first ? getRandomPraise() : 'Agora sim! 👏';
         feedbackEl.className = 'feedback correct';
-        gameState.score += 10;
-        gameState.correctAnswers++;
-    } else {
-        playSound('wrong');
-        feedbackEl.textContent = 'Não foi dessa vez! A resposta certa está em verde.';
-        feedbackEl.className = 'feedback wrong';
-        gameState.wrongAnswers++;
+        gameState.score += first ? 10 : 5;
+        if (first) gameState.correctAnswers++; else gameState.wrongAnswers++;
+
+        document.getElementById('explain').innerHTML = '💡 <b>Por quê?</b> ' + explainAnswer(type);
+        gameState.currentQuestion++;
+        document.getElementById('score').textContent = gameState.score;
+        updateProgress();
+        const nextBtn = document.getElementById('next-btn');
+        nextBtn.textContent = gameState.currentQuestion >= gameState.totalQuestions ? 'Ver resultado 🏆' : 'Próxima ➜';
+        nextBtn.hidden = false;
+        return;
     }
 
-    // Explicacao + botao "Proxima" (tempo para entender o porque)
+    gameState.wrongTries = (gameState.wrongTries || 0) + 1;
+    if (btn) {
+        btn.disabled = true;
+        btn.classList.add('faded');
+        if (window.Efeitos) Efeitos.erro(btn);
+    }
+    if (window.KidsAudio) KidsAudio.play('pop');
+    feedbackEl.className = 'feedback wrong';
+    if (gameState.wrongTries === 1) {
+        feedbackEl.textContent = 'Quase! Tente de novo 🙂';
+        document.getElementById('explain').innerHTML = '🔎 <b>Dica:</b> ' + HINTS[type];
+        return;
+    }
+    // 2º erro: apaga mais uma errada, a certa brilha e a explicacao ja aparece
+    const others = buttons.filter(b => b !== rightBtn && !b.disabled);
+    if (others.length > 1) { others[0].disabled = true; others[0].classList.add('faded'); }
+    if (rightBtn) rightBtn.classList.add('hint-glow');
+    feedbackEl.textContent = 'Olha a resposta brilhando ✨ Toque nela!';
     document.getElementById('explain').innerHTML = '💡 <b>Por quê?</b> ' + explainAnswer(type);
-    gameState.currentQuestion++;
-    document.getElementById('score').textContent = gameState.score;
-    updateProgress();
-    const nextBtn = document.getElementById('next-btn');
-    nextBtn.textContent = gameState.currentQuestion >= gameState.totalQuestions ? 'Ver resultado 🏆' : 'Próxima ➜';
-    nextBtn.hidden = false;
 }
 
 function goNext() {
@@ -547,8 +591,10 @@ function generateProblemQuestion() {
         const btn = document.createElement('button');
         btn.className = 'option-btn problem-btn';
         btn.dataset.value = v;
+        btn.dataset.key = v;
         btn.textContent = v;
         btn.onclick = () => checkAnswer(v, 'problem');
+        btn.style.animationDelay = (160 + area.children.length * 50) + 'ms';
         area.appendChild(btn);
     });
 }
@@ -607,6 +653,7 @@ function showResults() {
 
     playSound('win');
     showScreen('result-screen');
+    if (window.Efeitos) setTimeout(() => Efeitos.vitoria(), 200);
 }
 
 // Jogar novamente

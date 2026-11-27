@@ -88,7 +88,7 @@ function buildSetup() {
         b.dataset.color = key;
         b.style.background = COLORS[key].chip;
         b.setAttribute('aria-label', COLORS[key].name);
-        b.textContent = '🦄';
+        if (window.Emoji3D) b.innerHTML = Emoji3D.html('🦄'); else b.textContent = '🦄';
         b.addEventListener('click', () => {
             opts.color = key; play('select'); say(COLORS[key].name); refreshSetup();
         });
@@ -164,10 +164,25 @@ function drawLeg(c, hx, hy, a, b, color, hoof) {
     c.beginPath(); c.arc(fx, fy + 1, 5.5, 0, TAU); c.fill();
 }
 
-function drawUnicorn(c, x, y, s, col, phase, height, blink, air) {
+// degrade do corpo por cor (criado uma vez; coordenadas locais do unicornio)
+const BODY_GRAD = new Map();
+function bodyGrad(c, col) {
+    let g = BODY_GRAD.get(col);
+    if (!g) {
+        g = c.createRadialGradient(-8, -64, 4, 0, -52, 44);
+        g.addColorStop(0, '#ffffff');
+        g.addColorStop(0.45, col.body);
+        g.addColorStop(1, col.shade);
+        BODY_GRAD.set(col, g);
+    }
+    return g;
+}
+
+function drawUnicorn(c, x, y, s, col, phase, height, blink, air, sq) {
     c.save();
     c.translate(x, y - height);
-    c.scale(s, s);
+    if (sq && Math.abs(sq - 1) > 0.004) c.scale(s / Math.sqrt(sq), s * sq);
+    else c.scale(s, s);
     const bob = air ? 0 : -Math.abs(Math.sin(phase)) * 4;
     c.translate(0, bob);
     c.lineCap = 'round';
@@ -194,11 +209,14 @@ function drawUnicorn(c, x, y, s, col, phase, height, blink, air) {
         c.stroke();
     }
 
-    // corpo
-    c.fillStyle = col.body;
+    // corpo (com luz e sombra)
+    c.fillStyle = bodyGrad(c, col);
     c.strokeStyle = col.line;
     c.lineWidth = 2;
     c.beginPath(); c.ellipse(0, -52, 38, 20, 0, 0, TAU); c.fill(); c.stroke();
+    c.fillStyle = 'rgba(255,255,255,.55)';
+    c.beginPath(); c.ellipse(-10, -64, 14, 4.5, -0.15, 0, TAU); c.fill();
+    c.fillStyle = col.body;
     // pescoco
     c.beginPath();
     c.moveTo(14, -66); c.lineTo(30, -100); c.lineTo(46, -94); c.lineTo(36, -52);
@@ -269,7 +287,9 @@ const mMe = document.getElementById('m-me');
 const mRival = document.getElementById('m-rival');
 
 let cssW = 0, cssH = 0, dpr = 1, scale = 1, viewW = 640, viewH = 420, groundY = 370;
-let skyGrad = null, grassGrad = null;
+let skyGrad = null, grassGrad = null, farHillGrad = null, nearHillGrad = null;
+let skyCanvas = null;        // ceu + sol pre-desenhados (refeito so no resize)
+const CLOUD_SPR = [];        // nuvens pre-desenhadas (3 camadas)
 let G = null;            // estado da corrida
 let rafId = 0, lastNow = 0;
 let paused = false;
@@ -298,6 +318,14 @@ function resize() {
     grassGrad = ctx.createLinearGradient(0, groundY, 0, viewH);
     grassGrad.addColorStop(0, '#8ce99a');
     grassGrad.addColorStop(1, '#51cf66');
+    farHillGrad = ctx.createLinearGradient(0, groundY - 200, 0, groundY - 60);
+    farHillGrad.addColorStop(0, '#e5dbff');
+    farHillGrad.addColorStop(1, '#c0aaf5');
+    nearHillGrad = ctx.createLinearGradient(0, groundY - 130, 0, groundY - 60);
+    nearHillGrad.addColorStop(0, '#d3f9d8');
+    nearHillGrad.addColorStop(1, '#8ce99a');
+    buildSky();
+    SPRITES.clear();
     if (G && (paused || G.mode === 'portal')) render();
 }
 window.addEventListener('resize', resize);
@@ -359,8 +387,86 @@ function buildCourse(d) {
 }
 
 // ---------- Cenario fixo (nuvens/brilhos) ----------
+// 3 camadas de nuvem: longe (pequena, lenta, clara), meio e perto
 const CLOUDS = [];
-for (let i = 0; i < 6; i++) CLOUDS.push({ x: i * 190 + rand(0, 80), y: rand(60, 200), s: rand(0.7, 1.3) });
+for (let i = 0; i < 10; i++) {
+    const layer = i < 4 ? 0 : i < 7 ? 1 : 2;
+    CLOUDS.push({ x: rand(0, 1300), y: [rand(40, 110), rand(70, 170), rand(110, 220)][layer], s: [0.55, 0.85, 1.2][layer] * rand(0.85, 1.15), layer });
+}
+const CLOUD_PAR = [0.04, 0.09, 0.16];     // parallax por camada
+const CLOUD_DRIFT = [8, 13, 19];         // deriva propria (px/s)
+const CLOUD_ALPHA = [0.6, 0.8, 0.95];
+
+function buildSky() {
+    const k = dpr * scale;
+    skyCanvas = document.createElement('canvas');
+    skyCanvas.width = Math.ceil(viewW * k); skyCanvas.height = Math.ceil(groundY * k);
+    const g = skyCanvas.getContext('2d');
+    g.setTransform(k, 0, 0, k, 0, 0);
+    g.fillStyle = skyGrad;
+    g.fillRect(0, 0, viewW, groundY);
+    // sol com brilho radial
+    const sx = viewW - 90, sy = 95;
+    const glow = g.createRadialGradient(sx, sy, 20, sx, sy, 170);
+    glow.addColorStop(0, 'rgba(255, 244, 190, .85)');
+    glow.addColorStop(0.3, 'rgba(255, 236, 160, .35)');
+    glow.addColorStop(1, 'rgba(255, 236, 160, 0)');
+    g.fillStyle = glow;
+    g.fillRect(sx - 170, sy - 170, 340, 340);
+    const disk = g.createRadialGradient(sx - 10, sy - 10, 4, sx, sy, 36);
+    disk.addColorStop(0, '#fffbe6');
+    disk.addColorStop(0.7, '#ffe066');
+    disk.addColorStop(1, '#ffd43b');
+    g.fillStyle = disk;
+    g.beginPath(); g.arc(sx, sy, 36, 0, TAU); g.fill();
+    // nuvens pre-desenhadas (com barriga sombreada)
+    CLOUD_SPR.length = 0;
+    for (let L = 0; L < 3; L++) {
+        const cs = document.createElement('canvas');
+        const sc = [0.55, 0.85, 1.2][L] * 1.15;
+        const w = 100 * sc, h = 62 * sc;
+        cs.width = Math.ceil(w * k); cs.height = Math.ceil(h * k);
+        const cg = cs.getContext('2d');
+        cg.setTransform(k, 0, 0, k, 0, 0);
+        const ox = 24 * sc, oy = 39 * sc;
+        const cgr = cg.createLinearGradient(0, oy - 34 * sc, 0, oy + 22 * sc);
+        cgr.addColorStop(0, '#ffffff');
+        cgr.addColorStop(0.65, '#ffffff');
+        cgr.addColorStop(1, '#e3dcf7');
+        cg.fillStyle = cgr;
+        cloudShape(cg, ox, oy, sc);
+        CLOUD_SPR.push({ c: cs, w, h, ox, oy });
+    }
+}
+
+// Figuras 3D (Emoji3D) desenhadas uma vez num canvas do tamanho certo
+const SPRITES = new Map();
+function sprite(ch, size) {
+    const key = ch + size;
+    let sp = SPRITES.get(key);
+    if (sp) return sp;
+    if (!window.Emoji3D) return null;
+    const im = Emoji3D.imagem(ch);
+    if (!Emoji3D.pronta(im)) return null;
+    const k = dpr * scale;
+    sp = document.createElement('canvas');
+    sp.width = sp.height = Math.ceil(size * k);
+    const g = sp.getContext('2d');
+    g.drawImage(im, 0, 0, sp.width, sp.height);
+    SPRITES.set(key, sp);
+    return sp;
+}
+try { if (window.Emoji3D) Emoji3D.carregar(['⭐', '💖', '🪨', '🌧️']); } catch (e) {}
+
+// Rastro de arco-iris (anel fixo de pontos, sem criar objetos por quadro)
+const TRAIL_N = 26;
+const trailX = new Float32Array(TRAIL_N), trailY = new Float32Array(TRAIL_N);
+let trailHead = 0, trailCount = 0, trailLastX = -1e9;
+function trailPush(x, y) {
+    trailX[trailHead] = x; trailY[trailHead] = y;
+    trailHead = (trailHead + 1) % TRAIL_N;
+    if (trailCount < TRAIL_N) trailCount++;
+}
 const SPARKS = [];
 for (let i = 0; i < 18; i++) SPARKS.push({ x: rand(0, 1), y: rand(0.08, 0.6), p: rand(0, TAU) });
 
@@ -391,7 +497,8 @@ function startRace() {
         mode: 'countdown', cd: 0, saidGo: false, t: 0,
         stars: 0, hits: 0, portalsRight: 0,
         shake: 0, finishT: 0, winner: null, hintSaid: false,
-        player: { dist: 0, speed: 0, y: 0, vy: 0, jumps: 0, phase: 0, slowT: 0, boostT: 0, boostMul: 1, invuln: 0, blinkT: 2 },
+        player: { dist: 0, speed: 0, y: 0, vy: 0, jumps: 0, phase: 0, slowT: 0, boostT: 0, boostMul: 1, invuln: 0, blinkT: 2, sq: 1, dustT: 0 },
+        hitStop: 0, streak: -1, lastCatchT: -10,
         rival: {
             dist: 0, speed: 0, y: 0, vy: 0, phase: 1.5, boostT: 0, hopT: rand(2, 4), nextBoost: rand(7, 12),
             done: false, color: COLORS[pick(rivalColors)], blinkT: 3
@@ -399,8 +506,10 @@ function startRace() {
         speechAt: 0
     };
     PARTS.forEach(p => { p.on = false; });
+    trailCount = 0; trailHead = 0; trailLastX = -1e9;
     hudStars.textContent = '0';
-    mMe.textContent = PLAYERS[opts.who].emoji;
+    if (window.Emoji3D) mMe.innerHTML = Emoji3D.html(PLAYERS[opts.who].emoji);
+    else mMe.textContent = PLAYERS[opts.who].emoji;
     mMe.style.background = COLORS[opts.color].chip;
     mRival.style.background = G.rival.color.chip;
     mMe.style.left = '0%'; mRival.style.left = '0%';
@@ -470,12 +579,14 @@ function jump() {
     const p = G.player;
     if (p.y <= 0 && p.vy <= 0) {
         p.vy = JUMP_V; p.jumps = 1;
-        play('click');
+        p.sq = 1.2;
+        play('whoosh');
         const sx = p.dist - 20;
         for (let i = 0; i < 5; i++) spawn(sx, groundY, rand(-80, 20), rand(-80, -20), 0.4, '#fff', rand(3, 5), 0);
     } else if (p.jumps < 2) {
         p.vy = JUMP2_V; p.jumps = 2;
-        play('flip');
+        p.sq = 1.15;
+        play('sparkle');
         for (let i = 0; i < 8; i++) spawn(p.dist, groundY - p.y - 30, rand(-120, 120), rand(-60, 120), 0.5, pick(RAINBOW), rand(3, 5), 1);
     }
 }
@@ -535,6 +646,8 @@ document.addEventListener('visibilitychange', () => {
 
 // ---------- Atualizacao ----------
 function update(dt) {
+    // pausinha de impacto ao pegar estrela (so as particulas continuam)
+    if (G.hitStop > 0) { G.hitStop -= dt; updateParticles(dt * 0.3); return; }
     G.t += dt;
     const p = G.player, r = G.rival, d = G.d;
     if (G.shake > 0) G.shake -= dt;
@@ -570,10 +683,24 @@ function update(dt) {
         p.vy -= GRAVITY * dt;
         p.y += p.vy * dt;
         if (p.y <= 0) {
+            p.sq = 0.8;   // amassa no pouso
             p.y = 0; p.vy = 0; p.jumps = 0;
-            for (let i = 0; i < 4; i++) spawn(p.dist + rand(-20, 20), groundY, rand(-60, 60), rand(-60, -10), 0.35, '#fff', rand(3, 5), 0);
+            for (let i = 0; i < 8; i++) spawn(p.dist + rand(-26, 26), groundY, rand(-90, 90), rand(-70, -15), 0.45, 'rgba(255,255,255,.9)', rand(3, 6), 0);
         }
     }
+    // squash & stretch volta ao normal (no ar estica um pouco com a velocidade)
+    const sqAlvo = p.y > 0 ? 1 + Math.min(0.1, Math.abs(p.vy) / 9000) : 1;
+    p.sq += (sqAlvo - p.sq) * Math.min(1, dt * 14);
+    // poeirinha das patas correndo
+    if (p.y <= 0 && G.mode !== 'countdown') {
+        p.dustT -= dt;
+        if (p.dustT <= 0) {
+            p.dustT = 0.07;
+            spawn(p.dist - rand(10, 30), groundY - 2, rand(-120, -50), rand(-50, -10), 0.4, 'rgba(255,240,250,.85)', rand(2.5, 4.5), 0);
+        }
+    }
+    // rastro de arco-iris preso na cauda
+    if (p.dist - trailLastX > 9) { trailLastX = p.dist; trailPush(p.dist - 40, groundY - p.y - 52); }
     if (p.invuln > 0) p.invuln -= dt;
 
     // --- itens ---
@@ -661,7 +788,12 @@ function checkItem(it, p) {
             hudStars.textContent = G.stars;
             const box = hudStars.parentElement;
             box.classList.remove('bump'); void box.offsetWidth; box.classList.add('bump');
-            play('star');
+            // notas sobem com estrelas seguidas
+            G.streak = G.t - G.lastCatchT < 1.4 ? Math.min(G.streak + 1, 10) : 0;
+            G.lastCatchT = G.t;
+            try { KidsAudio.note(G.streak); } catch (e) {}
+            if (t === 'heart') play('sparkle');
+            G.hitStop = t === 'heart' ? 0.06 : 0.04;
             const col = t === 'heart' ? '#ff6b9d' : '#ffd43b';
             for (let i = 0; i < (t === 'heart' ? 12 : 6); i++) {
                 spawn(it.x, groundY - it.y, rand(-150, 150), rand(-150, 150), 0.5, col, rand(3, 5), 1);
@@ -687,8 +819,8 @@ function checkItem(it, p) {
 function hitObstacle(it, p) {
     G.hits++;
     p.slowT = 1.1; p.invuln = 1.6; p.boostT = 0;
-    G.shake = 0.25;
-    play('wrong');
+    G.streak = -1;
+    play('pop');   // som leve: nada de "erro" nem tela tremendo
     const msgs = { rock: 'Ops, a pedra!', cloud: 'Ops, molhou!', puddle: 'Splash!' };
     banner(it.type === 'puddle' ? '💦 Splash!' : 'Ops!', true);
     if (G.d.hint) sayThrottled(msgs[it.type] + ' Pule na próxima!');
@@ -873,7 +1005,7 @@ function answerPortal(o, btn) {
         say('Isso! Turbo mágico!', { rate: 1 });
         wait = 1100;
     } else {
-        play('wrong');
+        play('turn');
         fb.textContent = 'Quase! Era ' + currentQ.answerSpeech.replace(/^\w/, c => c.toUpperCase());
         fb.className = 'q-feedback soft';
         say('Quase! Era ' + currentQ.answerSpeech + '. Vamos continuar!', { rate: 0.95 });
@@ -934,6 +1066,8 @@ function endRace() {
         : 'A ' + RIVAL_NAME + ' chegou primeiro. Quase! Você pegou ' + starsSpoken + '. Vamos de novo?';
     G = null;
     showScreen('result-screen');
+    try { if (window.Efeitos) Efeitos.vitoria(); } catch (e) {}
+    if (window.Emoji3D) { try { const we = document.getElementById('winner-emoji'); we.innerHTML = Emoji3D.html(won ? '🏆' : '🦄'); } catch (e) {} }
     setTimeout(() => say(speech + (newRecord ? ' Novo recorde!' : ''), { rate: 0.95 }), 300);
 }
 
@@ -947,9 +1081,7 @@ function render() {
     const p = G.player, r = G.rival;
     const c = ctx;
     let camX = p.dist - viewW * 0.28;
-    let sx = 0, sy = 0;
-    if (G.shake > 0) { sx = rand(-4, 4); sy = rand(-3, 3); }
-    c.setTransform(dpr * scale, 0, 0, dpr * scale, sx * dpr * scale, sy * dpr * scale);
+    c.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
 
     drawBackground(c, camX);
     const roadTop = groundY - 72, roadBottom = groundY + 16;
@@ -963,7 +1095,7 @@ function render() {
     const rx = r.dist - camX;
     if (rx > -100 && rx < viewW + 100 && !(r.done && r.dist > G.L + 90)) {
         shadow(c, rx, rivalGround(), 0.8, r.y);
-        drawUnicorn(c, rx, rivalGround(), 0.78, r.color, r.phase, r.y, r.blinkT < 0, r.y > 0);
+        drawUnicorn(c, rx, rivalGround(), 0.78, r.color, r.phase, r.y, r.blinkT < 0, r.y > 0, 1);
     }
 
     // itens da faixa do jogador
@@ -989,10 +1121,11 @@ function render() {
     // jogador
     const px = p.dist - camX;
     shadow(c, px, groundY, 1, p.y);
+    drawTrail(c, camX, p);
     const flick = p.invuln > 0 && p.slowT <= 0 && Math.floor(G.t * 12) % 2 === 0;
     if (!flick) {
         if (p.slowT > 0) c.globalAlpha = 0.75;
-        drawUnicorn(c, px, groundY, 1, COLORS[opts.color], p.phase, p.y, p.blinkT < 0, p.y > 0);
+        drawUnicorn(c, px, groundY, 1, COLORS[opts.color], p.phase, p.y, p.blinkT < 0, p.y > 0, p.sq);
         c.globalAlpha = 1;
     }
     if (p.slowT > 0) drawDizzy(c, px + 40, groundY - p.y - 150);
@@ -1001,13 +1134,8 @@ function render() {
 }
 
 function drawBackground(c, camX) {
-    c.fillStyle = skyGrad;
-    c.fillRect(-10, -10, viewW + 20, groundY + 10);
-    // sol
-    c.fillStyle = 'rgba(255, 236, 153, .55)';
-    c.beginPath(); c.arc(viewW - 90, 95, 52, 0, TAU); c.fill();
-    c.fillStyle = '#ffe066';
-    c.beginPath(); c.arc(viewW - 90, 95, 36, 0, TAU); c.fill();
+    if (skyCanvas) c.drawImage(skyCanvas, 0, 0, viewW, groundY);
+    else { c.fillStyle = skyGrad; c.fillRect(0, 0, viewW, groundY); }
     // brilhos
     c.fillStyle = '#fff';
     const t = G.t;
@@ -1023,18 +1151,47 @@ function drawBackground(c, camX) {
         c.fillRect(x - 0.8, y - z, 1.6, z * 2);
     }
     c.globalAlpha = 1;
-    // nuvens
-    const span = Math.max(viewW + 300, 1140);
-    c.fillStyle = 'rgba(255,255,255,.9)';
+    // nuvens em 3 camadas (figuras prontas, so drawImage)
+    const span = Math.max(viewW + 300, 1300);
+    const yk = Math.min(1, (groundY - 150) / 260);
     for (let i = 0; i < CLOUDS.length; i++) {
         const cl = CLOUDS[i];
-        const x = ((cl.x - camX * 0.12) % span + span) % span - 150;
-        const y = cl.y * Math.min(1, (groundY - 150) / 260);
-        cloudShape(c, x, y, 1.1 * cl.s);
+        const sp = CLOUD_SPR[cl.layer];
+        if (!sp) break;
+        const x = ((cl.x - camX * CLOUD_PAR[cl.layer] - t * CLOUD_DRIFT[cl.layer]) % span + span) % span - 150;
+        c.globalAlpha = CLOUD_ALPHA[cl.layer];
+        c.drawImage(sp.c, x - sp.ox, cl.y * yk - sp.oy, sp.w, sp.h);
     }
-    // morros (dois planos)
-    hills(c, camX * 0.25, groundY - 72, 120, 60, 0.0045, '#d0bfff');
-    hills(c, camX * 0.5, groundY - 72, 70, 40, 0.008, '#b2f2bb');
+    c.globalAlpha = 1;
+    // morros (dois planos, com degrade de luz)
+    hills(c, camX * 0.25, groundY - 72, 120, 60, 0.0045, farHillGrad || '#d0bfff');
+    hills(c, camX * 0.5, groundY - 72, 70, 40, 0.008, nearHillGrad || '#b2f2bb');
+}
+
+function drawTrail(c, camX, p) {
+    if (trailCount < 3) return;
+    const boost = p.boostT > 0;
+    c.lineCap = 'round'; c.lineJoin = 'round';
+    c.lineWidth = boost ? 4.5 : 3.2;
+    const n = trailCount;
+    // duas metades: a mais nova forte, a mais velha clarinha (efeito de sumir)
+    for (let half = 0; half < 2; half++) {
+        c.globalAlpha = (boost ? 0.9 : 0.5) * (half === 0 ? 1 : 0.4);
+        const from = half === 0 ? 0 : Math.floor(n / 2) - 1;
+        const to = half === 0 ? Math.floor(n / 2) : n - 1;
+        for (let b = 0; b < RAINBOW.length; b++) {
+            c.strokeStyle = RAINBOW[b];
+            c.beginPath();
+            for (let j = from; j <= to; j++) {
+                const idx = (trailHead - 1 - j + TRAIL_N * 2) % TRAIL_N;
+                const wv = Math.sin(G.t * 6 + j * 0.6) * (1 + j * 0.12);
+                const x = trailX[idx] - camX, y = trailY[idx] + (b - 2.5) * c.lineWidth + wv;
+                if (j === from) c.moveTo(x, y); else c.lineTo(x, y);
+            }
+            c.stroke();
+        }
+    }
+    c.globalAlpha = 1;
 }
 
 function cloudShape(c, x, y, s) {
@@ -1076,6 +1233,25 @@ function drawRoad(c, camX, top, bottom) {
     // grama
     c.fillStyle = grassGrad;
     c.fillRect(-10, bottom, viewW + 20, viewH - bottom + 10);
+    // tufinhos de grama em 3 faixas (textura; as de baixo passam mais rapido = profundidade)
+    c.strokeStyle = 'rgba(47, 158, 68, .45)';
+    c.lineWidth = 2;
+    c.lineCap = 'round';
+    c.beginPath();
+    const fundo = viewH - bottom;
+    for (let row = 0; row < 3; row++) {
+        const par = 1 + row * 0.25, gap = 64 + row * 18;
+        const yy = bottom + 30 + row * Math.max(26, fundo * 0.28);
+        if (yy > viewH + 10) break;
+        const off = -((camX * par) % gap);
+        for (let x = off - gap; x < viewW + gap; x += gap) {
+            const xx = x + row * 23;
+            c.moveTo(xx - 5, yy - 7); c.lineTo(xx - 1, yy);
+            c.moveTo(xx + 1, yy - 10); c.lineTo(xx + 1, yy);
+            c.moveTo(xx + 6, yy - 7); c.lineTo(xx + 3, yy);
+        }
+    }
+    c.stroke();
     // florzinhas na grama (passam rapido = sensacao de velocidade)
     const fo = -(camX % 110);
     for (let x = fo - 110, k = Math.floor(camX / 110) - 1; x < viewW + 110; x += 110, k++) {
@@ -1096,6 +1272,8 @@ function drawItem(c, it, x) {
     const t = G.t;
     switch (it.type) {
         case 'rock': {
+            const sp = sprite('🪨', 64);
+            if (sp) { c.drawImage(sp, x - 32, g - 56, 64, 64); break; }
             c.fillStyle = '#868e96';
             c.beginPath();
             c.moveTo(x - 27, g + 2);
@@ -1147,13 +1325,17 @@ function drawItem(c, it, x) {
         }
         case 'star': {
             const y = g - it.y + Math.sin(t * 4 + it.x * 0.05) * 4;
-            starShape(c, x, y, 14, '#ffd43b', '#f08c00');
+            const sp = sprite('⭐', 34);
+            if (sp) { const k = 1 + Math.sin(t * 5 + it.x) * 0.06; c.drawImage(sp, x - 17 * k, y - 17 * k, 34 * k, 34 * k); }
+            else starShape(c, x, y, 14, '#ffd43b', '#f08c00');
             break;
         }
         case 'heart': {
             const y = g - it.y + Math.sin(t * 3 + it.x) * 5;
             const s = 1 + Math.sin(t * 6) * 0.08;
-            heartShape(c, x, y, 16 * s);
+            const sp = sprite('💖', 42);
+            if (sp) c.drawImage(sp, x - 21 * s, y - 21 * s, 42 * s, 42 * s);
+            else heartShape(c, x, y, 16 * s);
             break;
         }
         case 'arch': {

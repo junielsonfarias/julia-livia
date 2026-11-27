@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Caca-Rimas - Mundo de Julia & Livia</title>
     <base href="/rimas-game/">
-    <link rel="stylesheet" href="../leitura-game/styles.css?v=2a8c5bce">
-    <link rel="stylesheet" href="styles.css?v=47047c71">
+    <link rel="stylesheet" href="../leitura-game/styles.css?v=35a6a8dd">
+    <link rel="stylesheet" href="styles.css?v=83fa04f6">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="rimas">
@@ -20,11 +20,11 @@
         <main class="game-area">
             <section id="start-screen" class="screen active">
                 <div class="panel">
-                    <div class="big-icon">🎵</div>
+                    <div class="big-icon" data-e3d>🎵</div>
                     <h2>Caça-Rimas</h2>
-                    <p class="lead">Palavras que <b>rimam</b> terminam com o mesmo som:<br>GA<b>TO</b> 🐱 e PA<b>TO</b> 🦆!</p>
+                    <p class="lead">Palavras que <b>rimam</b> terminam com o mesmo som:<br>GA<b>TO</b> <span data-e3d>🐱</span> e PA<b>TO</b> <span data-e3d>🦆</span>!</p>
                     <p class="lead">Ouça a palavra e ache a figura que rima com ela.</p>
-                    <button class="intro-hear" type="button" onclick="speakIntro()">🔊 Ouvir como joga</button>
+                    <button class="intro-hear" type="button" onclick="speakIntro()"><span data-e3d>🔊</span> Ouvir como joga</button>
                     <div class="btn-row"><button class="big-btn primary start-big" onclick="startGame()">Começar ▶️</button></div>
                 </div>
             </section>
@@ -39,14 +39,14 @@
                         <span class="rhyme-plus">rima com</span>
                         <div class="rhyme-slot" id="rhyme-slot">?</div>
                     </div>
-                    <button class="act listen hear-btn" type="button" onclick="sayPrompt()">🔊 Ouvir</button>
+                    <button class="act listen hear-btn" type="button" onclick="sayPrompt()"><span data-e3d>🔊</span> Ouvir</button>
                 </div>
                 <div class="rhyme-options" id="options"></div>
             </section>
 
             <section id="result-screen" class="screen">
                 <div class="panel">
-                    <div class="big-icon">🎉</div>
+                    <div class="big-icon" data-e3d>🎉</div>
                     <h2>Que ouvido bom!</h2>
                     <p class="lead">Você achou <b id="hits">0</b> de <b id="rounds">10</b> rimas de primeira!</p>
                     <div class="stars" id="stars"></div>
@@ -58,9 +58,12 @@
         </main>
     </div>
 
-    <script src="../shared/kids-audio.js?v=da92b96a"></script>
+    <script src="../shared/kids-audio.js?v=90618a14"></script>
+    <script src="../shared/efeitos.js?v=e296ecbf"></script>
+    <script src="../shared/emoji3d.js?v=fc9306e9"></script>
+    <script src="../leitura-game/letrinhas.js?v=3357e8ff"></script>
     <script src="../shared/palavras.js?v=f9361c20"></script>
-    <script src="game.js?v=ca2e8c2a"></script>
+    <script src="game.js?v=2b684c03"></script>
     <script src="../shared/fit-screen.js?v=0f4dccb7"></script>
 </body>
 </html>

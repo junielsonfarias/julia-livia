@@ -67,7 +67,20 @@ const DEFS_MARKUP =
     '<path d="M32 24 L33.5 29 L38 30.5 L33.5 32 L32 37 L30.5 32 L26 30.5 L30.5 29 Z" fill="#fff8d6" stroke="none"/>' +
     '<circle cx="34" cy="9" r="2" fill="#ffffff" stroke="none"/><circle cx="8" cy="34" r="1.6" fill="#ffffff" stroke="none"/>' +
     '<circle cx="22" cy="22" r="1.2" fill="#ffd36e" stroke="none"/>' +
-    '</pattern></defs>';
+    '</pattern>' +
+    // Volume: brilho em cima a esquerda e sombra suave na borda de baixo (vai por cima da cor)
+    '<radialGradient id="ug-shade" cx=".36" cy=".3" r=".85" fx=".3" fy=".22">' +
+    '<stop offset="0" stop-color="#ffffff" stop-opacity=".62"/>' +
+    '<stop offset=".22" stop-color="#ffffff" stop-opacity=".18"/>' +
+    '<stop offset=".5" stop-color="#ffffff" stop-opacity="0"/>' +
+    '<stop offset=".78" stop-color="#2a1640" stop-opacity=".06"/>' +
+    '<stop offset="1" stop-color="#2a1640" stop-opacity=".26"/></radialGradient>' +
+    // Ceu: mais fundo no alto e claro perto do horizonte
+    '<linearGradient id="ug-sky" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0" stop-color="#1c0d3a" stop-opacity=".14"/>' +
+    '<stop offset=".55" stop-color="#ffffff" stop-opacity="0"/>' +
+    '<stop offset="1" stop-color="#ffffff" stop-opacity=".45"/></linearGradient>' +
+    '</defs>';
 
 // ---------- Ajudantes para montar os desenhos ----------
 // r(): regiao pintavel. small=true: parte pequena, nao precisa pintar para terminar.
@@ -75,11 +88,18 @@ function r(id, shape, small) {
     const sp = shape.indexOf(' ');
     const tag = sp < 0 ? shape : shape.slice(0, sp);
     const rest = sp < 0 ? '' : shape.slice(sp);
-    return '<' + tag + ' class="r" data-id="' + id + '"' + (small ? ' data-small="1"' : '') + rest + '/>';
+    return '<' + tag + ' class="r" data-id="' + id + '"' + (small ? ' data-small="1"' : '') + rest + '/>' + shade(id, '<' + tag + rest + '/>');
+}
+// Camada de volume (luz e sombra) logo acima da regiao; aparece quando a regiao e pintada.
+// Repete o contorno para a luz nao clarear a linha.
+function shade(id, shapeMarkup) {
+    const grad = id === 'ceu' ? 'ug-sky' : 'ug-shade';
+    return '<g class="sh" data-sh="' + id + '" pointer-events="none" fill="url(#' + grad + ')" style="opacity:0">' + shapeMarkup + '</g>';
 }
 // rg(): regiao feita de varias formas (ex.: petalas)
 function rg(id, inner, small, extra) {
-    return '<g class="r" data-id="' + id + '"' + (small ? ' data-small="1"' : '') + (extra || '') + '>' + inner + '</g>';
+    return '<g class="r" data-id="' + id + '"' + (small ? ' data-small="1"' : '') + (extra || '') + '>' + inner + '</g>' +
+        shade(id, '<g' + (extra || '') + '>' + inner + '</g>');
 }
 // d(): detalhe fixo (olhos, boca...) - nao recebe toque
 function d(shape) {
@@ -315,7 +335,8 @@ const PICTURES = [
 ];
 
 function svgMarkup(pic, extraAttrs) {
-    return '<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" ' + (extraAttrs || '') + '>' +
+    return '<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" ' + (extraAttrs || '') + '>' +
+        '<defs class="fx-defs"></defs>' +
         '<g class="art" fill="#ffffff" stroke="' + OUTLINE + '" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">' +
         pic.build() + '</g><g class="stickers-layer"></g></svg>';
 }
@@ -385,26 +406,59 @@ function renderChooser() {
 }
 
 function applyFills(svg, fills) {
+    finishWipes(svg);
     svg.querySelectorAll('.r').forEach(el => {
         el.setAttribute('fill', fills[el.dataset.id] ? fillValue(fills[el.dataset.id]) : '#ffffff');
+        setShade(el, !!fills[el.dataset.id]);
     });
+}
+function setShade(el, on) {
+    const sh = el.nextElementSibling;
+    if (sh && sh.classList.contains('sh')) sh.style.opacity = on ? '1' : '0';
 }
 
 function drawStickers(svg, stickers) {
     const layer = svg.querySelector('.stickers-layer');
     layer.innerHTML = '';
-    stickers.forEach((s, i) => {
-        const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        t.setAttribute('x', s.x);
-        t.setAttribute('y', s.y);
-        t.setAttribute('font-size', '44');
-        t.setAttribute('text-anchor', 'middle');
-        t.setAttribute('dominant-baseline', 'central');
-        t.setAttribute('class', 'sticker');
-        t.dataset.i = i;
-        t.textContent = s.e;
-        layer.appendChild(t);
-    });
+    stickers.forEach((s, i) => layer.appendChild(stickerEl(s, i)));
+}
+
+// Adesivo: figura 3D (<image>) com reserva em texto se a figura nao carregar
+const NS = 'http://www.w3.org/2000/svg';
+const STK = 54;   // tamanho da figura (unidades do desenho)
+function stickerText(s, i) {
+    const t = document.createElementNS(NS, 'text');
+    t.setAttribute('font-size', '44');
+    t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('dominant-baseline', 'central');
+    t.setAttribute('class', 'sticker');
+    t.dataset.i = i;
+    t.dataset.e = s.e;
+    t.textContent = s.e;
+    placeSticker(t, s.x, s.y);
+    return t;
+}
+function stickerEl(s, i) {
+    if (!window.Emoji3D || !Emoji3D.ligado()) return stickerText(s, i);
+    const im = document.createElementNS(NS, 'image');
+    im.setAttribute('width', STK);
+    im.setAttribute('height', STK);
+    im.setAttribute('href', Emoji3D.url(s.e));
+    im.setAttribute('class', 'sticker s3d');
+    im.dataset.i = i;
+    im.dataset.e = s.e;
+    placeSticker(im, s.x, s.y);
+    im.addEventListener('error', () => {
+        if (!im.isConnected) return;
+        const t = stickerText(s, im.dataset.i);
+        t.setAttribute('class', im.getAttribute('class'));
+        im.replaceWith(t);
+    }, { once: true });
+    return im;
+}
+function placeSticker(el, x, y) {
+    if (el.tagName === 'image') { el.setAttribute('x', x - STK / 2); el.setAttribute('y', y - STK / 2); }
+    else { el.setAttribute('x', x); el.setAttribute('y', y); }
 }
 
 function backToChooser() {
@@ -462,8 +516,9 @@ function renderPalette() {
         const b = document.createElement('button');
         b.type = 'button';
         b.className = 'swatch sticker-btn';
-        b.textContent = e;
+        b.innerHTML = window.Emoji3D ? Emoji3D.html(e) : e;
         b.dataset.e = e;
+        b.setAttribute('aria-label', 'adesivo ' + e);
         b.onclick = () => chooseSticker(e);
         st.appendChild(b);
     });
@@ -541,17 +596,91 @@ function isComplete() {
     return requiredIds(svg).every(id => state.fills[id]);
 }
 
-function paintRegion(el, key, silent) {
+// Pinta com uma "onda" de tinta: copia da regiao com a cor nova, recortada por um
+// circulo que cresce a partir do toque (ou do meio da regiao). No fim troca a cor de verdade.
+let wipeSeq = 0;
+function paintRegion(el, key, silent, pt) {
     const id = el.dataset.id;
     state.fills[id] = key;
-    el.setAttribute('fill', fillValue(key));
-    if (id !== 'ceu') {
-        el.classList.remove('pop');
-        void el.getBBox(); // reinicia a animacao
-        el.classList.add('pop');
-        setTimeout(() => el.classList.remove('pop'), 400);
+    const svg = el.ownerSVGElement;
+    const val = fillValue(key);
+    if (el._wipe) el._wipe.finish();
+    if (!svg || (window.Efeitos && Efeitos.reduzir())) {
+        el.setAttribute('fill', val);
+        setShade(el, true);
+    } else {
+        startWipe(svg, el, val, pt);
     }
-    if (!silent) KidsAudio.play('flip');
+    if (!silent) KidsAudio.play('pop');
+}
+
+function startWipe(svg, el, val, pt) {
+    let bb;
+    try { bb = el.getBBox(); } catch (e) { bb = { x: 0, y: 0, width: 400, height: 400 }; }
+    const c = pt || { x: bb.x + bb.width / 2, y: bb.y + bb.height / 2 };
+    // raio ate o canto mais longe (+ folga para formas giradas)
+    const R = Math.hypot(Math.max(Math.abs(c.x - bb.x), Math.abs(c.x - bb.x - bb.width)),
+                         Math.max(Math.abs(c.y - bb.y), Math.abs(c.y - bb.y - bb.height))) + 30;
+    const cid = 'wp' + (++wipeSeq);
+    const clip = document.createElementNS(NS, 'clipPath');
+    clip.setAttribute('id', cid);
+    const circ = document.createElementNS(NS, 'circle');
+    circ.setAttribute('cx', c.x.toFixed(1));
+    circ.setAttribute('cy', c.y.toFixed(1));
+    circ.setAttribute('r', '0');
+    clip.appendChild(circ);
+    svg.querySelector('.fx-defs').appendChild(clip);
+    const g = document.createElementNS(NS, 'g');
+    g.setAttribute('class', 'wipe');
+    g.setAttribute('clip-path', 'url(#' + cid + ')');
+    g.setAttribute('pointer-events', 'none');
+    const copy = el.cloneNode(true);
+    copy.removeAttribute('class');
+    copy.removeAttribute('data-id');
+    copy.removeAttribute('data-small');
+    copy.setAttribute('fill', val);
+    g.appendChild(copy);
+    // a camada de volume vem junto na onda
+    const sh = el.nextElementSibling;
+    if (sh && sh.classList.contains('sh')) {
+        const shc = sh.cloneNode(true);
+        shc.style.opacity = '1';
+        g.appendChild(shc);
+    }
+    el.after(g);
+    // pequeno "pulinho" da parte pintada (o recorte acompanha)
+    if (el.dataset.id !== 'ceu') g.classList.add('pop');
+    const DUR = 420;
+    const t0 = performance.now();
+    let raf = 0, done = false;
+    const w = {
+        finish() {
+            if (done) return;
+            done = true;
+            cancelAnimationFrame(raf);
+            g.remove();
+            clip.remove();
+            el.setAttribute('fill', val);
+            setShade(el, true);
+            el._wipe = null;
+        }
+    };
+    el._wipe = w;
+    const tick = (t) => {
+        const k = Math.max(0, Math.min(1, (t - t0) / DUR));
+        const e = 1 - Math.pow(1 - k, 3);   // easeOutCubic
+        circ.setAttribute('r', (R * e).toFixed(1));
+        if (k < 1) raf = requestAnimationFrame(tick);
+        else w.finish();
+    };
+    raf = requestAnimationFrame(tick);
+    // aba escondida: rAF para, entao garante o fim
+    setTimeout(() => w.finish(), DUR + 400);
+}
+
+function finishWipes(svg) {
+    if (!svg) return;
+    svg.querySelectorAll('.r').forEach(el => { if (el._wipe) el._wipe.finish(); });
 }
 
 function svgPoint(svg, e) {
@@ -563,6 +692,13 @@ function svgPoint(svg, e) {
 }
 
 function burst(e, text) {
+    // faiscas da cor escolhida saindo do toque
+    if (window.Efeitos) {
+        const c = COLOR_BY_KEY[state.color];
+        if (c && c.special) Efeitos.estrelas(e, { quantidade: 8, forca: 0.55, emoji: c.special, tamanho: 22 });
+        else Efeitos.estrelas(e, { quantidade: 9, forca: 0.55, cores: [c ? c.v : '#ffd36e', '#ffe14d', '#ffffff'], escala: 0.8 });
+        return;
+    }
     const paper = document.getElementById('paper');
     const rect = paper.getBoundingClientRect();
     const s = document.createElement('span');
@@ -596,7 +732,7 @@ function bindPaper(svg) {
         if (!region) return;
         if (state.fills[region.dataset.id] === state.color) { KidsAudio.play('tick'); return; }
         snapshot();
-        paintRegion(region, state.color);
+        paintRegion(region, state.color, false, svgPoint(svg, e));
         burst(e, COLOR_BY_KEY[state.color].special || '✨');
         persist();
         checkComplete();
@@ -622,8 +758,7 @@ function bindPaper(svg) {
         const s = state.stickers[dr.i];
         s.x = Math.round(p.x + dr.dx);
         s.y = Math.round(p.y + dr.dy);
-        dr.el.setAttribute('x', s.x);
-        dr.el.setAttribute('y', s.y);
+        placeSticker(dr.el, s.x, s.y);
         const out = s.x < -10 || s.x > 410 || s.y < -10 || s.y > 410;
         dr.el.classList.toggle('leaving', out);
     });
@@ -662,6 +797,15 @@ function checkComplete() {
 function celebrate() {
     KidsAudio.play('win');
     setTimeout(() => KidsAudio.speak('Que lindo! Você terminou o desenho!', { rate: 0.95 }), 900);
+    const paper = document.getElementById('paper');
+    if (window.Efeitos) {
+        Efeitos.vitoria();
+        Efeitos.brilho(paper);
+        Efeitos.estrelas(paper, { quantidade: 18, forca: 1.2, emoji: ['✨', '⭐', '💖'], tamanho: 30 });
+        // brilhinhos que piscam por cima do desenho
+        sparkleOver(paper);
+        return;
+    }
     const box = document.getElementById('confetti');
     const items = ['⭐', '💖', '🌟', '💗', '✨', '🌸', '🦄', '🌈'];
     for (let i = 0; i < 46; i++) {
@@ -674,6 +818,21 @@ function celebrate() {
         s.style.setProperty('--drift', (Math.random() * 120 - 60) + 'px');
         box.appendChild(s);
         setTimeout(() => s.remove(), 5000);
+    }
+}
+
+function sparkleOver(paper) {
+    if (window.Efeitos && Efeitos.reduzir()) return;
+    for (let i = 0; i < 14; i++) {
+        const s = document.createElement('span');
+        s.className = 'twinkle';
+        s.textContent = i % 3 ? '✦' : '✧';
+        s.style.left = (8 + Math.random() * 84) + '%';
+        s.style.top = (8 + Math.random() * 84) + '%';
+        s.style.animationDelay = (Math.random() * 1.2) + 's';
+        s.style.fontSize = (16 + Math.random() * 22) + 'px';
+        paper.appendChild(s);
+        setTimeout(() => s.remove(), 3000);
     }
 }
 
@@ -736,30 +895,43 @@ function magicPaint() {
         const el = regions[i++];
         const key = preset[el.dataset.id] || 'rosa';
         paintRegion(el, key, true);
-        if (i % 2) KidsAudio.play('tick');
+        if (i % 2) KidsAudio.note(Math.min(10, (i / 3) | 0), 0.12);
         setTimeout(step, 110);
     };
     step();
 }
 
 // ---------- Salvar PNG ----------
+// O desenho (SVG) vira imagem; os adesivos 3D sao desenhados por cima direto no canvas
+// (SVG como imagem nao carrega figuras de fora). Se o canvas ficar "sujo" (figura sem CORS),
+// refaz com os adesivos em emoji de texto.
 function savePNG() {
     cancelClearArm();
     persist();
     const svg = document.getElementById('paper-svg');
     if (!svg) return;
+    finishWipes(svg);
     const SIZE = 1200;
+    const K = SIZE / 400;
     const clone = svg.cloneNode(true);
     clone.removeAttribute('id');
     clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
     clone.setAttribute('width', SIZE);
     clone.setAttribute('height', SIZE);
     clone.querySelectorAll('.pop, .new').forEach(el => el.classList.remove('pop', 'new'));
+    clone.querySelectorAll('.wipe').forEach(el => el.remove());
+    clone.querySelector('.stickers-layer').innerHTML = '';
     clone.insertAdjacentHTML('afterbegin', DEFS_MARKUP);
     const xml = new XMLSerializer().serializeToString(clone);
+    const stickers = state.stickers.slice();
+    const name = 'unicornio-' + state.pic.id + '.png';
+    const useE3D = window.Emoji3D && Emoji3D.ligado();
+    const ready = useE3D && stickers.length
+        ? Promise.race([Emoji3D.carregar(stickers.map(s => s.e)), new Promise(r => setTimeout(r, 2500))])
+        : Promise.resolve();
     const img = new Image();
-    img.onload = () => {
-        try {
+    img.onload = () => ready.then(() => {
+        const draw = (with3d) => {
             const canvas = document.createElement('canvas');
             canvas.width = SIZE;
             canvas.height = SIZE;
@@ -767,24 +939,48 @@ function savePNG() {
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, SIZE, SIZE);
             ctx.drawImage(img, 0, 0, SIZE, SIZE);
-            const name = 'unicornio-' + state.pic.id + '.png';
-            const done = (url, revoke) => {
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = name;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                if (revoke) setTimeout(() => URL.revokeObjectURL(url), 4000);
-            };
-            if (canvas.toBlob) canvas.toBlob(b => { if (b) done(URL.createObjectURL(b), true); else done(canvas.toDataURL('image/png')); }, 'image/png');
-            else done(canvas.toDataURL('image/png'));
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = (44 * K) + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+            stickers.forEach(s => {
+                const im = with3d ? Emoji3D.imagem(s.e) : null;
+                if (im && Emoji3D.pronta(im)) {
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0,0,0,.25)';
+                    ctx.shadowBlur = 6 * K;
+                    ctx.shadowOffsetY = 3 * K;
+                    ctx.drawImage(im, (s.x - STK / 2) * K, (s.y - STK / 2) * K, STK * K, STK * K);
+                    ctx.restore();
+                } else {
+                    ctx.fillText(s.e, s.x * K, s.y * K);
+                }
+            });
+            return canvas;
+        };
+        const download = (url, revoke) => {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            if (revoke) setTimeout(() => URL.revokeObjectURL(url), 4000);
+        };
+        const exportar = (canvas) => {
+            // getImageData lanca SecurityError se o canvas estiver sujo: testa antes do toBlob (assincrono)
+            canvas.getContext('2d').getImageData(0, 0, 1, 1);
+            if (canvas.toBlob) canvas.toBlob(b => { if (b) download(URL.createObjectURL(b), true); else download(canvas.toDataURL('image/png')); }, 'image/png');
+            else download(canvas.toDataURL('image/png'));
+        };
+        try {
+            try { exportar(draw(useE3D)); }
+            catch (err) { exportar(draw(false)); }
             KidsAudio.play('star');
             KidsAudio.speak('Pronto! Desenho salvo.', { rate: 1 });
         } catch (err) {
             KidsAudio.play('wrong');
         }
-    };
+    });
     img.onerror = () => KidsAudio.play('wrong');
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
 }
@@ -797,5 +993,7 @@ function init() {
     document.body.appendChild(holder.firstChild);
     renderPalette();
     renderChooser();
+    // figuras dos adesivos prontas para o PNG
+    if (window.Emoji3D) Emoji3D.carregar(STICKERS);
 }
 init();

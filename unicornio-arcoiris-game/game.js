@@ -55,7 +55,7 @@ const KEY_BEST = 'unicornio_arcoiris_melhor_tempo';
 const state = {
     mode: 'catch', easy: false,
     colors: [], step: 0, mistakes: 0, wrongTries: 0,
-    locked: true, timers: [], spawnTimer: null, lastLanes: [],
+    locked: true, timers: [], spawnTimer: null, lastLanes: [], streak: 0, paused: false, pausedAt: 0,
     lastSpeak: 0, prompt: '',
     quiz: null, quizList: [], quizStart: 0, quizTick: null, elapsed: 0,
     galloping: false
@@ -97,8 +97,9 @@ function later(fn, ms) {
 function stopAll() {
     state.timers.forEach(clearTimeout);
     state.timers = [];
-    clearInterval(state.spawnTimer); state.spawnTimer = null;
+    clearTimeout(state.spawnTimer); state.spawnTimer = null;
     clearInterval(state.quizTick); state.quizTick = null;
+    state.pausedAt = 0;
     state.galloping = false;
     try { KidsAudio.stop(); } catch (e) {}
 }
@@ -122,6 +123,9 @@ function unicornSVG(st, cls) {
     return `<svg class="${cls || ''}" viewBox="-10 -12 160 132" style="${style}" aria-hidden="true"><use href="#unicorn"/></svg>`;
 }
 
+// acessorio da figurinha como figura 3D (ou emoji se nao houver)
+function acc3d(e) { return window.Emoji3D ? Emoji3D.html(e) : e; }
+
 // ---------- tela inicial ----------
 function speakIntro() {
     say('Arco-íris mágico! O unicórnio precisa de ajuda para montar o arco-íris, uma cor de cada vez. ' +
@@ -135,7 +139,7 @@ function renderStart() {
     const owned = readJSON(KEY_COLLECTION, []);
     const row = document.getElementById('sticker-row');
     row.innerHTML = STICKERS.map((st, i) => owned.includes(i)
-        ? `<div class="sticker" style="background:${st.bg}" title="${st.name}">${unicornSVG(st)}<span class="acc">${st.acc}</span></div>`
+        ? `<div class="sticker" style="background:${st.bg}" title="${st.name}">${unicornSVG(st)}<span class="acc">${acc3d(st.acc)}</span></div>`
         : `<div class="sticker empty" title="Ainda não ganhou">?</div>`).join('');
     document.getElementById('collection-count').textContent = owned.length + '/' + STICKERS.length;
     const best = readJSON(KEY_BEST, null);
@@ -161,21 +165,42 @@ function bandGeom(i, n) {
 }
 function arcPath(r) { return `M ${CX - r} ${CY} A ${r} ${r} 0 0 1 ${CX + r} ${CY}`; }
 
-function cloudSVG(x, y) {
-    return `<g class="cloud" transform="translate(${x} ${y})">
-        <ellipse cx="0" cy="6" rx="30" ry="13" fill="#fff"/>
-        <circle cx="-14" cy="0" r="13" fill="#fff"/><circle cx="4" cy="-6" r="16" fill="#fff"/><circle cx="20" cy="2" r="11" fill="#fff"/>
-    </g>`;
+// Nuvem fofa: bolinhas sobrepostas com degrade (branco em cima, lilas embaixo) e sombra
+function cloudSVG(x, y, cls, sc) {
+    return `<g class="cloud ${cls || ''}" transform="translate(${x} ${y}) scale(${sc || 1})"><g class="cloud-in">
+        <ellipse cx="2" cy="16" rx="32" ry="5" fill="#5a3d8a" opacity=".13"/>
+        <g fill="url(#cloudG)">
+        <ellipse cx="0" cy="6" rx="31" ry="13"/>
+        <circle cx="-15" cy="1" r="13"/><circle cx="4" cy="-6" r="17"/><circle cx="21" cy="2" r="11.5"/>
+        </g>
+        <ellipse cx="-2" cy="-12" rx="9" ry="4" fill="#fff" opacity=".9"/>
+    </g></g>`;
 }
 
 function buildRainbow() {
     const n = state.colors.length;
     const svg = document.getElementById('rainbow');
-    let html = '';
+    let html = `<defs>
+        <radialGradient id="sunGlow"><stop offset="0" stop-color="#fff7b0" stop-opacity=".95"/>
+            <stop offset=".35" stop-color="#ffe26b" stop-opacity=".55"/><stop offset="1" stop-color="#ffd23f" stop-opacity="0"/></radialGradient>
+        <radialGradient id="sunBall" cx=".38" cy=".35" r=".7"><stop offset="0" stop-color="#fffbe0"/>
+            <stop offset=".6" stop-color="#ffd84a"/><stop offset="1" stop-color="#ffb627"/></radialGradient>
+        <linearGradient id="cloudG" gradientUnits="userSpaceOnUse" x1="0" y1="-23" x2="0" y2="19">
+            <stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#fbf8ff"/><stop offset="1" stop-color="#d9cff4"/></linearGradient>
+        <filter id="bandGlow" x="-15%" y="-25%" width="130%" height="150%"><feGaussianBlur stdDeviation="4.5"/></filter>
+    </defs>`;
+    html += '<circle cx="356" cy="34" r="62" fill="url(#sunGlow)"/><circle cx="356" cy="34" r="17" fill="url(#sunBall)"/>';
+    html += cloudSVG(70, 40, 'drift d1', 0.7) + cloudSVG(250, 70, 'drift d2', 0.5);
     state.colors.forEach((c, i) => {
         const { r, w } = bandGeom(i, n);
         html += `<path class="band-empty" d="${arcPath(r)}" stroke-width="${w - 2}"/>`;
-        html += `<path class="band-fill" id="band-${i}" d="${arcPath(r)}" stroke="${c.hex}" stroke-width="${w + 0.6}" pathLength="100"/>`;
+        // faixa = brilho difuso atras + cor + sombra na borda de dentro + reflexo de luz na borda de fora
+        html += `<g class="band" id="band-${i}">
+            <path class="band-halo" d="${arcPath(r)}" stroke="${c.hex}" stroke-width="${w + 6}" pathLength="100" filter="url(#bandGlow)"/>
+            <path class="band-fill" d="${arcPath(r)}" stroke="${c.hex}" stroke-width="${w + 0.6}" pathLength="100"/>
+            <path class="band-lo" d="${arcPath(r - w * 0.34)}" stroke-width="${(w * 0.3).toFixed(1)}" pathLength="100"/>
+            <path class="band-hi" d="${arcPath(r + w * 0.24)}" stroke-width="${(w * 0.22).toFixed(1)}" pathLength="100"/>
+        </g>`;
     });
     html += `<path class="band-glow" d="${arcPath((R_OUT + R_IN) / 2)}" stroke-width="${R_OUT - R_IN + 10}"/>`;
     const mid = (R_OUT + R_IN) / 2;
@@ -184,6 +209,29 @@ function buildRainbow() {
     svg.innerHTML = html;
     svg.classList.remove('shine');
     placeUnicorn(0, 0);
+}
+
+// ponto da tela no alto de uma faixa (para soltar estrelinhas dali)
+function bandPoint(i) {
+    const svg = document.getElementById('rainbow');
+    const m = svg && svg.getScreenCTM();
+    if (!m) return null;
+    const { r } = bandGeom(i, state.colors.length);
+    const p = svg.createSVGPoint();
+    p.x = CX; p.y = CY - r;
+    const q = p.matrixTransform(m);
+    return { x: q.x, y: q.y };
+}
+
+// acerto: faixa acende, estrelinhas da cor, nota que sobe a cada acerto seguido
+function bandJuice(i, c) {
+    state.streak++;
+    KidsAudio.note(Math.min(10, state.streak - 1));
+    const pt = bandPoint(i);
+    if (pt && window.Efeitos) {
+        Efeitos.estrelas(pt, { quantidade: 16, cores: [c.hex, '#ffffff', '#ffe14d'], forca: 0.9 });
+        Efeitos.vibrar('acerto');
+    }
 }
 
 function placeUnicorn(t, rot) {
@@ -203,7 +251,7 @@ function fillBand(i) {
     if (p) p.classList.add('on');
 }
 function clearBands() {
-    document.querySelectorAll('#rainbow .band-fill').forEach(p => p.classList.remove('on'));
+    document.querySelectorAll('#rainbow .band').forEach(p => p.classList.remove('on'));
 }
 function hopUnicorn() {
     const g = document.getElementById('uni-use');
@@ -224,6 +272,8 @@ function startGame(mode, easy) {
     state.step = 0;
     state.mistakes = 0;
     state.wrongTries = 0;
+    state.streak = 0;
+    state.paused = false;
     state.locked = true;
     buildRainbow();
     document.getElementById('confetti').innerHTML = '';
@@ -253,8 +303,18 @@ function startCatch() {
     setCatchTarget(true);
     // primeiros baloes logo de cara
     later(() => spawnBalloon(true), 300);
-    later(() => spawnBalloon(false), 1200);
-    state.spawnTimer = setInterval(() => spawnBalloon(false), 1500);
+    scheduleSpawn(1200);
+}
+
+// proximo balao (setTimeout encadeado: para quando a aba some e volta depois)
+function scheduleSpawn(ms) {
+    clearTimeout(state.spawnTimer);
+    state.spawnTimer = setTimeout(() => {
+        state.spawnTimer = null;
+        if (state.paused || state.mode !== 'catch' || state.step >= state.colors.length) return;
+        spawnBalloon(false);
+        scheduleSpawn(1500);
+    }, ms);
 }
 
 function target() { return state.colors[state.step]; }
@@ -298,11 +358,43 @@ function spawnBalloon(forceTarget) {
     b.setAttribute('aria-label', 'balão ' + c.name);
     b.style.setProperty('--c', c.hex);
     b.style.left = (3 + lane * 19 + Math.random() * 4) + '%';
-    b.style.animationDuration = (9 + Math.random() * 3).toFixed(1) + 's';
+    b.style.setProperty('--sw', (2 + Math.random() * 1.2).toFixed(2) + 's');
     b.innerHTML = '<span class="balloon-body"></span><span class="balloon-string"></span>';
     b.addEventListener('pointerdown', (e) => { e.preventDefault(); tapBalloon(b); });
-    b.addEventListener('animationend', (e) => { if (e.animationName === 'rise') b.remove(); });
     field.appendChild(b);
+    // sobe so com transform (GPU), sem mexer no layout a cada quadro
+    const h = field.clientHeight || 300;
+    const dur = (9 + Math.random() * 3) * 1000;
+    try {
+        b._rise = b.animate([{ transform: `translateY(${h}px)` }, { transform: 'translateY(-140px)' }],
+                            { duration: dur, easing: 'linear', fill: 'forwards' });
+        b._rise.onfinish = () => b.remove();
+        if (state.paused) b._rise.pause();
+    } catch (err) {
+        b.style.transform = `translateY(${h}px)`;
+        setTimeout(() => b.remove(), dur);
+    }
+}
+
+// aba escondida: congela baloes, criacao e relogio; volta de onde parou
+function setPaused(on) {
+    if (state.paused === on) return;
+    state.paused = on;
+    document.querySelectorAll('#sky-field .balloon:not(.popped)').forEach(b => {
+        if (b._rise) { try { if (on) b._rise.pause(); else b._rise.play(); } catch (e) {} }
+    });
+    if (on) {
+        clearTimeout(state.spawnTimer); state.spawnTimer = null;
+        if (state.quizTick) { clearInterval(state.quizTick); state.quizTick = null; state.pausedAt = Date.now(); }
+    } else {
+        const onGame = document.getElementById('game-screen').classList.contains('active');
+        if (onGame && state.mode === 'catch' && state.step < state.colors.length) scheduleSpawn(600);
+        if (state.pausedAt) {
+            state.quizStart += Date.now() - state.pausedAt;
+            state.pausedAt = 0;
+            state.quizTick = setInterval(updateTimer, 250);
+        }
+    }
 }
 
 function tapBalloon(b) {
@@ -311,10 +403,14 @@ function tapBalloon(b) {
     const c = byId(b.dataset.color);
     if (c.id === tgt.id) {
         state.locked = true;
+        state.wrongTries = 0;
         b.classList.add('popped');
+        if (b._rise) try { b._rise.pause(); } catch (e) {}
         sparkleAt(b);
         later(() => b.remove(), 450);
-        KidsAudio.play('correct');
+        KidsAudio.play('pop');
+        document.querySelectorAll('#sky-field .balloon.hint').forEach(x => x.classList.remove('hint'));
+        bandJuice(state.step, c);
         fillBand(state.step);
         hopUnicorn();
         state.step++;
@@ -328,9 +424,13 @@ function tapBalloon(b) {
         }
     } else {
         state.mistakes++;
+        state.wrongTries++;
+        state.streak = 0;
         b.classList.add('wobble');
         later(() => b.classList.remove('wobble'), 650);
         KidsAudio.play('wrong');
+        // 3o erro seguido: os baloes certos brilham
+        if (state.wrongTries >= 3) document.querySelectorAll(`#sky-field .balloon[data-color="${tgt.id}"]`).forEach(x => x.classList.add('hint'));
         const now = Date.now();
         if (now - state.lastSpeak > 700) {
             state.lastSpeak = now;
@@ -345,6 +445,12 @@ function praise() {
 }
 
 function sparkleAt(el) {
+    if (window.Efeitos) {
+        const c = byId(el.dataset.color);
+        Efeitos.estrelas(el, { quantidade: 12, emoji: ['✨', '⭐', '💖'], tamanho: 24, forca: 0.8 });
+        Efeitos.estrelas(el, { quantidade: 10, cores: [c.hex, '#ffffff'], forca: 1.1 });
+        return;
+    }
     const field = el.parentElement;
     if (!field) return;
     const fr = field.getBoundingClientRect();
@@ -447,6 +553,7 @@ function tryChip(chip) {
         later(() => { chip.hidden = true; }, 320);
         document.querySelectorAll('.chip-color.glow').forEach(x => x.classList.remove('glow'));
         KidsAudio.play('correct');
+        bandJuice(state.step, c);
         fillBand(state.step);
         hopUnicorn();
         state.step++;
@@ -463,6 +570,7 @@ function tryChip(chip) {
     } else {
         state.mistakes++;
         state.wrongTries++;
+        state.streak = 0;
         chip.classList.add('wobble');
         later(() => chip.classList.remove('wobble'), 650);
         KidsAudio.play('wrong');
@@ -559,9 +667,10 @@ function answerQuiz(btn) {
         state.locked = true;
         btn.classList.add('right');
         KidsAudio.play('correct');
+        const band = state.colors[state.step];
+        bandJuice(state.step, band);
         fillBand(state.step);
         hopUnicorn();
-        const band = state.colors[state.step];
         state.step++;
         updateHud();
         if (state.step >= state.colors.length) {
@@ -575,6 +684,7 @@ function answerQuiz(btn) {
         }
     } else {
         state.mistakes++;
+        state.streak = 0;
         btn.disabled = true;
         btn.classList.add('wrong', 'wobble');
         KidsAudio.play('wrong');
@@ -587,8 +697,9 @@ function answerQuiz(btn) {
 // ==========================================
 function celebrate() {
     state.locked = true;
-    clearInterval(state.spawnTimer); state.spawnTimer = null;
-    document.querySelectorAll('#sky-field .balloon').forEach(b => b.classList.add('popped'));
+    clearTimeout(state.spawnTimer); state.spawnTimer = null;
+    document.querySelectorAll('#sky-field .balloon').forEach(b => { b.classList.add('popped'); if (b._rise) try { b._rise.pause(); } catch (e) {} });
+    if (window.Efeitos) Efeitos.vitoria();
     document.getElementById('rainbow').classList.add('shine');
     KidsAudio.play('win');
     say('Uau! Que arco-íris lindo! Obrigado pela ajuda!');
@@ -647,8 +758,12 @@ function showResult() {
     state.galloping = false;
     const stars = starsFor();
     const starsEl = document.getElementById('stars');
-    starsEl.innerHTML = [0, 1, 2].map(i => `<span class="star ${i < stars ? 'on' : ''}" style="animation-delay:${0.2 + i * 0.35}s">⭐</span>`).join('');
-    for (let i = 0; i < stars; i++) setTimeout(() => KidsAudio.play('star'), 250 + i * 350);
+    starsEl.innerHTML = [0, 1, 2].map(i => `<span class="star ${i < stars ? 'on' : ''}" style="animation-delay:${0.2 + i * 0.35}s">${acc3d('⭐')}</span>`).join('');
+    for (let i = 0; i < stars; i++) setTimeout(() => {
+        KidsAudio.play('star');
+        const el = starsEl.children[i];
+        if (el && window.Efeitos && el.isConnected) Efeitos.estrelas(el, { quantidade: 10, forca: 0.7 });
+    }, 250 + i * 350);
 
     const msgs = { 3: 'Perfeito! O unicórnio amou o arco-íris!', 2: 'Muito bem! Arco-íris lindo!', 1: 'Você conseguiu! Vamos treinar mais?' };
     document.getElementById('result-title').textContent = 'Arco-íris pronto!';
@@ -671,7 +786,7 @@ function showResult() {
     const prize = awardSticker();
     const st = STICKERS[prize.idx];
     document.getElementById('new-sticker').innerHTML =
-        `<div class="sticker big" style="background:${st.bg}">${unicornSVG(st)}<span class="acc">${st.acc}</span></div>
+        `<div class="sticker big" style="background:${st.bg}">${unicornSVG(st)}<span class="acc">${acc3d(st.acc)}</span></div>
          <div class="sticker-label">${prize.isNew ? 'Figurinha nova' : 'Coleção completa! 🏆'}<br><b>Unicórnio ${st.name}</b></div>`;
 
     showScreen('result-screen');
@@ -686,4 +801,5 @@ function showResult() {
 renderStart();
 document.addEventListener('visibilitychange', () => {
     if (document.hidden) try { KidsAudio.stop(); } catch (e) {}
+    setPaused(document.hidden);
 });

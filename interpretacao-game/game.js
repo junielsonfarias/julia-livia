@@ -143,6 +143,7 @@ function startGame(mode) {
         state.queue = [m[0], m[1], ...textItems(1), m[2], m[3]];
     }
     KidsAudio.play('start');
+    if (window.Letrinhas) Letrinhas.serie.zerar();
     showItem();
 }
 
@@ -156,8 +157,16 @@ function showItem() {
 
 function nextItem() {
     if (KidsAudio.stop) KidsAudio.stop();   // para a leitura em voz alta do item anterior
+    document.getElementById('math-next').hidden = true;   // evita toque duplo durante a troca
+    document.getElementById('text-next').hidden = true;
     state.index++;
-    showItem();
+    const panel = document.querySelector('.screen.active .panel');
+    const item = state.queue[state.index];
+    // Mesmo texto (proxima pergunta): so a caixa da pergunta desliza; item novo: o painel todo
+    const sameText = item && item.kind === 'text' && item.t === state.text && document.getElementById('text-screen').classList.contains('active');
+    const el = sameText ? document.querySelector('.question-box') : panel;
+    if (window.Letrinhas && el && item) Letrinhas.trocar(el, showItem);
+    else showItem();
 }
 
 // ==========================================
@@ -285,6 +294,7 @@ function answerMath(btn, ok) {
         record(s.skill, state.tries === 1);
         addPoints(state.tries === 1 ? 5 : 2);
         KidsAudio.play('correct');
+        if (window.Letrinhas) Letrinhas.serie.acerto(btn, { texto: state.tries === 1 ? '+5' : '+2' });
         setFeedback('math-feedback', state.tries === 1 ? '✅ Isso mesmo!' : '✅ Agora sim!', 'good');
         later(advanceMathStep, 900);
     } else {
@@ -292,6 +302,8 @@ function answerMath(btn, ok) {
         btn.disabled = true;
         shake(btn);
         KidsAudio.play('wrong');
+        if (window.Letrinhas) Letrinhas.serie.erro();
+        if (window.Efeitos) Efeitos.vibrar('erro');
         if (state.tries >= 2) {
             record(s.skill, false);
             const correctBtn = [...document.querySelectorAll('#math-options .option')]
@@ -330,6 +342,7 @@ function checkData() {
         record(s.skill, state.tries === 1);
         addPoints(state.tries === 1 ? 5 : 2);
         KidsAudio.play('correct');
+        if (window.Letrinhas) Letrinhas.serie.acerto(document.getElementById('problem-text'), { texto: state.tries === 1 ? '+5' : '+2' });
         setFeedback('math-feedback', '✅ Ótimo! Você separou só o que importa.', 'good');
         document.getElementById('check-data-btn').hidden = true;
         later(advanceMathStep, 1000);
@@ -337,6 +350,7 @@ function checkData() {
     }
 
     KidsAudio.play('wrong');
+    if (window.Letrinhas) Letrinhas.serie.erro();
     let msg = '';
     if (traps.length) msg += `🪤 Pegadinha! “${esc(traps[0].value)}” não ajuda a responder a pergunta. `;
     if (missing.length) msg += `🔍 Falta marcar ${missing.length === 1 ? 'um número importante' : missing.length + ' números importantes'}. `;
@@ -366,7 +380,8 @@ function advanceMathStep() {
     state.step++;
     renderProblemText();
     if (state.step < MATH_STEPS.length) {
-        renderStep();
+        if (window.Letrinhas) Letrinhas.trocar(document.querySelector('.step-box'), renderStep);
+        else renderStep();
         return;
     }
     // Problema resolvido
@@ -375,6 +390,7 @@ function advanceMathStep() {
     document.getElementById('step-help').textContent = '';
     document.getElementById('math-options').innerHTML = '';
     setFeedback('math-feedback', `💡 <b>Por que é assim?</b> ${esc(state.problem.dica)}`, 'explain');
+    if (window.Efeitos) Efeitos.estrelas(document.getElementById('step-title'), { quantidade: 18, emoji: ['🔎', '⭐'] });
     document.getElementById('math-next').hidden = false;
     document.getElementById('math-next').textContent =
         state.index + 1 >= state.queue.length ? 'Ver resultado 🏆' : 'Próximo ➜';
@@ -449,6 +465,7 @@ function answerText(btn, ok) {
         record(q.tipo, state.tries === 1);
         addPoints(state.tries === 1 ? 10 : 5);
         KidsAudio.play('correct');
+        if (window.Letrinhas) Letrinhas.serie.acerto(btn, { texto: state.tries === 1 ? '+10' : '+5' });
         if (q.prova !== null && q.prova !== undefined) {
             state.phase = 'prove';
             setFeedback('text-feedback', '✅ Correto! <b>🔎 Agora prove:</b> toque na frase do texto que mostra a resposta.', 'good');
@@ -462,6 +479,8 @@ function answerText(btn, ok) {
         btn.disabled = true;
         shake(btn);
         KidsAudio.play('wrong');
+        if (window.Letrinhas) Letrinhas.serie.erro();
+        if (window.Efeitos) Efeitos.vibrar('erro');
         if (state.tries >= 2) {
             record(q.tipo, false);
             const right = document.querySelector('#text-options .option[data-ok="1"]');
@@ -488,6 +507,7 @@ function proveSentence(el) {
         record('Provar a resposta no texto', state.proveTries === 1);
         addPoints(state.proveTries === 1 ? 5 : 2);
         KidsAudio.play('star');
+        if (window.Letrinhas) Letrinhas.serie.acerto(el, { emoji: ['🔎', '⭐'], texto: 'Prova!' });
         finishTextQuestion(true, true);
     } else {
         state.lastWrongProve = i;
@@ -565,6 +585,7 @@ function finish() {
     document.getElementById('progress-label').textContent = '';
     showScreen('result-screen');
     KidsAudio.play('win');
+    if (window.Efeitos && pct >= 0.5) setTimeout(() => Efeitos.vitoria(), 250);
 }
 
 function showReport() {

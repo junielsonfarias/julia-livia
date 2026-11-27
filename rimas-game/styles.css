@@ -5,32 +5,39 @@ body.rimas { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
 .rhyme-card { gap: 14px; }
 .rhyme-pair { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; }
 .rhyme-target { display: flex; flex-direction: column; align-items: center; }
-.target-pic { font-size: 5.5rem; line-height: 1.1; }
+.target-pic { font-size: 5.5rem; line-height: 1.1; min-height: 1.3em; display: flex; align-items: center; }
+.target-pic img.e3d { filter: drop-shadow(0 8px 6px rgba(0, 0, 0, .22)); }
 .target-word { font-family: 'Fredoka One', cursive; font-size: 2rem; letter-spacing: .06em; color: #2d3436; }
 .rhyme-plus { font-family: 'Fredoka One', cursive; font-size: 1.3rem; color: #e17055; }
 .rhyme-slot {
     width: 130px; height: 130px; border-radius: 28px; border: 5px dashed #fab1a0;
     display: flex; align-items: center; justify-content: center;
-    font-family: 'Fredoka One', cursive; font-size: 4rem; color: #fab1a0; background: #fffaf6;
+    font-family: 'Fredoka One', cursive; font-size: 4rem; color: #fab1a0;
+    background: linear-gradient(#fff3ec, #fffaf6); box-shadow: inset 0 5px 10px rgba(225, 112, 85, .12);
 }
-.rhyme-slot.filled { border-style: solid; border-color: #00b894; background: #e8fff8; animation: pop .3s ease; }
-.hear-btn { font-size: 1.1rem; padding: 10px 22px; }
+.rhyme-slot.filled { border-style: solid; border-color: #20c997; background: linear-gradient(#e6fcf5, #c3fae8); box-shadow: 0 6px 0 #12b886, 0 10px 18px rgba(0, 0, 0, .12); }
+.rhyme-slot img.e3d { width: 1.2em; height: 1.2em; }
+.hear-btn { font-size: 1.1rem; padding: 10px 22px; min-height: 56px; }
 
-.rhyme-options { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+/* Cartas de resposta com espessura */
+.rhyme-options { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 22px; min-height: 150px; }
 .rhyme-option {
+    --edge: #e9c2ae;
     display: flex; flex-direction: column; align-items: center; gap: 4px;
-    width: 140px; padding: 14px 8px; border: none; border-radius: 24px; cursor: pointer;
-    background: #fff; box-shadow: 0 7px 0 rgba(0,0,0,.12); touch-action: manipulation;
+    width: 144px; padding: 14px 8px; border: none; border-radius: 24px; cursor: pointer;
+    background: linear-gradient(#ffffff, #fff4ee);
+    box-shadow: inset 0 3px 0 #fff, inset 0 -4px 0 rgba(0, 0, 0, .05), 0 8px 0 var(--edge), 0 14px 20px rgba(0, 0, 0, .16);
+    touch-action: manipulation; transition: transform .08s ease, box-shadow .08s ease;
 }
-.rhyme-option:active { transform: translateY(4px); box-shadow: 0 3px 0 rgba(0,0,0,.12); }
+.rhyme-option:active { transform: translateY(6px); box-shadow: inset 0 3px 0 #fff, 0 2px 0 var(--edge), 0 4px 8px rgba(0, 0, 0, .14); }
 .opt-emoji { font-size: 3.8rem; line-height: 1.1; }
+.opt-emoji img.e3d { width: 1.2em; height: 1.2em; }
 .opt-word { font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: #636e72; letter-spacing: .04em; }
-.rhyme-option.right { background: #e8fff8; box-shadow: 0 7px 0 #00b894; animation: pulse .5s 2; }
-.rhyme-option.wrong-pick { opacity: .3; animation: shake .4s ease; }
-@keyframes pulse { 50% { transform: scale(1.1); } }
-@keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+.rhyme-option.right { --edge: #12b886; background: linear-gradient(#f0fff9, #c3fae8); }
+.rhyme-option.wrong-pick { --edge: #ced4da; }
 .start-big { font-size: 1.6rem; padding: 18px 40px; margin-top: 6px; }
 .stars { font-size: 3rem; margin: 10px 0; letter-spacing: 6px; }
+.lead img.e3d { width: 1.3em; height: 1.3em; }
 
 @media (max-width: 560px) {
     .rhyme-option { width: 104px; }

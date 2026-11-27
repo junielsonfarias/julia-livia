@@ -6,7 +6,7 @@
     <title>Duelo Relampago - Mundo de Julia & Livia</title>
     <base href="/relampago-game/">
     <link rel="stylesheet" href="../shared/duelo.css?v=1de99c64">
-    <link rel="stylesheet" href="styles.css?v=d4338b34">
+    <link rel="stylesheet" href="styles.css?v=aca24fe7">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -20,7 +20,7 @@
         <main class="game-area" id="area">
             <section id="start-screen" class="screen active">
                 <div class="panel">
-                    <div class="big-icon">⚡</div>
+                    <div class="big-icon" data-e3d>⚡</div>
                     <h2>Duelo Relâmpago</h2>
                     <p class="lead">As duas jogam <b>ao mesmo tempo</b>, cada uma na sua metade da tela.<br>Quem acertar mais em <b>60 segundos</b> vence! Errou? Espera um pouquinho ⏳.</p>
                     <button class="intro-hear" type="button" onclick="speakIntro()">🔊 Ouvir como joga</button>
@@ -42,18 +42,18 @@
             <section id="game-screen" class="screen arena-screen">
                 <div class="arena" id="arena">
                     <div class="half" id="half-livia" style="--pc:#ff6b9d">
-                        <div class="half-head"><span>🧚 Livia</span><b class="half-score" id="score-livia">0</b></div>
+                        <div class="half-head"><span>🧚 Livia</span><span class="combo" id="combo-livia"></span><b class="half-score" id="score-livia">0</b></div>
                         <div class="question-card" id="q-livia"></div>
-                        <div class="freeze" id="freeze-livia" hidden>⏳</div>
+                        <div class="freeze" id="freeze-livia" hidden><span>⏳</span><small>Respira...</small></div>
                     </div>
                     <div class="mid">
                         <div class="clock" id="clock">60</div>
                         <button class="exit-btn" id="exit-btn" type="button" onclick="askExit()" aria-label="Sair do duelo (toque duas vezes)"><span class="x">✕</span><span class="sure">Sair?</span></button>
                     </div>
                     <div class="half" id="half-julia" style="--pc:#9b59b6">
-                        <div class="half-head"><span>👸 Julia</span><b class="half-score" id="score-julia">0</b></div>
+                        <div class="half-head"><span>👸 Julia</span><span class="combo" id="combo-julia"></span><b class="half-score" id="score-julia">0</b></div>
                         <div class="question-card" id="q-julia"></div>
-                        <div class="freeze" id="freeze-julia" hidden>⏳</div>
+                        <div class="freeze" id="freeze-julia" hidden><span>⏳</span><small>Respira...</small></div>
                     </div>
                 </div>
                 <div class="countdown" id="countdown" hidden>3</div>
@@ -77,11 +77,13 @@
         </main>
     </div>
 
-    <script src="../shared/kids-audio.js?v=da92b96a"></script>
+    <script src="../shared/kids-audio.js?v=90618a14"></script>
+    <script src="../shared/efeitos.js?v=e296ecbf"></script>
+    <script src="../shared/emoji3d.js?v=fc9306e9"></script>
     <script src="../shared/palavras.js?v=f9361c20"></script>
     <script src="../shared/duelo.js?v=d613fbb0"></script>
     <script src="../shared/duelo-perguntas.js?v=b997e24c"></script>
-    <script src="game.js?v=3c9e7025"></script>
+    <script src="game.js?v=d099498a"></script>
     <script src="../shared/fit-screen.js?v=0f4dccb7"></script>
 </body>
 </html>

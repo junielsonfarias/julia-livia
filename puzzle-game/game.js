@@ -74,8 +74,18 @@ let gameState = {
     placedPieces: [],
     selectedPiece: null,
     theme: 'emojis',
-    themeIndex: 0
+    themeIndex: 0,
+    streak: 0,       // acertos seguidos (a nota sobe)
+    wrongTries: 0    // erros seguidos (2o erro: o lugar certo brilha)
 };
+
+const SNAP = 75;     // raio (px na tela) para a peca "grudar" no lugar ao soltar
+
+// Emoji como figura 3D (numeros e letras continuam texto)
+function pieceHTML(piece) {
+    const isText = gameState.theme === 'numbers' || gameState.theme === 'letters';
+    return (!isText && window.Emoji3D) ? Emoji3D.html(piece) : piece;
+}
 
 let lastPrompt = '';
 
@@ -176,7 +186,7 @@ function createThemeOptions() {
     PUZZLE_THEMES.emojis.forEach((puzzle, index) => {
         const option = document.createElement('button');
         option.className = 'puzzle-option emoji-puzzle';
-        option.textContent = puzzle.image;
+        option.innerHTML = window.Emoji3D ? Emoji3D.html(puzzle.image) : puzzle.image;
         option.title = puzzle.name;
         option.onclick = () => startPuzzle('emojis', index);
         container.appendChild(option);
@@ -204,6 +214,8 @@ function startPuzzle(theme, index) {
     gameState.theme = theme;
     gameState.themeIndex = index;
     gameState.moves = 0;
+    gameState.streak = 0;
+    gameState.wrongTries = 0;
     gameState.placedPieces = new Array(gameState.totalPieces).fill(null);
     gameState.selectedPiece = null;
 
@@ -241,7 +253,7 @@ function startPuzzle(theme, index) {
     } else if (theme === 'letters') {
         hintEl.textContent = 'A→' + gameState.currentPuzzle.pieces[gameState.totalPieces - 1];
     } else {
-        hintEl.textContent = gameState.currentPuzzle.image;
+        hintEl.innerHTML = pieceHTML(gameState.currentPuzzle.image);
     }
 
     // Atualizar texto da dica
@@ -257,7 +269,7 @@ function startPuzzle(theme, index) {
     }
 
     playSound('start');
-    sayPrompt('Toque numa peça e depois no lugar com o desenho igual!');
+    sayPrompt('Arraste cada peça até o lugar com o desenho igual! Ou toque na peça e depois no lugar.');
 }
 
 // Obter pecas baseado na dificuldade
@@ -292,22 +304,6 @@ function setupPuzzleBoard() {
         board.appendChild(slot);
     }
 
-    // Adicionar eventos de drop nos slots
-    document.querySelectorAll('.puzzle-slot').forEach(slot => {
-        slot.ondragover = (e) => {
-            e.preventDefault();
-            slot.classList.add('highlight');
-        };
-        slot.ondragleave = () => slot.classList.remove('highlight');
-        slot.ondrop = (e) => {
-            e.preventDefault();
-            slot.classList.remove('highlight');
-            const piece = e.dataTransfer.getData('text/plain');
-            const correctIndex = parseInt(e.dataTransfer.getData('correctIndex'));
-            const slotIndex = parseInt(slot.dataset.index);
-            placePiece(piece, slotIndex, correctIndex);
-        };
-    });
 }
 
 // Configurar bandeja de pecas
@@ -327,29 +323,82 @@ function setupPiecesTray() {
             pieceEl.classList.add('text-piece');
         }
 
-        pieceEl.textContent = piece;
+        pieceEl.innerHTML = pieceHTML(piece);
         pieceEl.dataset.piece = piece;
 
         // Encontrar o indice correto desta peca
         pieceEl.dataset.correctIndex = gameState.currentPuzzle.pieces.indexOf(piece);
 
-        pieceEl.onclick = () => selectPiece(pieceEl);
-
-        // Suporte a drag and drop
-        pieceEl.draggable = true;
-        pieceEl.ondragstart = (e) => {
-            pieceEl.classList.add('dragging');
-            e.dataTransfer.setData('text/plain', piece);
-            e.dataTransfer.setData('correctIndex', pieceEl.dataset.correctIndex);
-        };
-        pieceEl.ondragend = () => pieceEl.classList.remove('dragging');
+        setupPieceDrag(pieceEl);
 
         tray.appendChild(pieceEl);
     });
 }
 
+// Arrastar com dedo/mouse (Pointer Events). Toque sem arrastar = selecionar.
+function setupPieceDrag(el) {
+    let down = false, dragging = false, sx = 0, sy = 0, z = 1, pid = null;
+    el.addEventListener('pointerdown', (e) => {
+        if (down || (e.pointerType === 'mouse' && e.button !== 0)) return;
+        down = true; dragging = false; pid = e.pointerId;
+        sx = e.clientX; sy = e.clientY;
+        // zoom do fit-screen: px da tela -> px do elemento
+        z = (el.getBoundingClientRect().width / (el.offsetWidth || 1)) || 1;
+        try { el.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    el.addEventListener('pointermove', (e) => {
+        if (!down || e.pointerId !== pid) return;
+        const dx = e.clientX - sx, dy = e.clientY - sy;
+        if (!dragging) {
+            if (Math.hypot(dx, dy) < 10) return;
+            dragging = true;
+            el.classList.remove('returning');
+            el.classList.add('dragging');
+            selectPiece(el, true);
+            playSound('pop');
+        }
+        el.style.transform = `translate(${dx / z}px, ${dy / z}px) scale(1.1)`;
+        markNearSlot(e.clientX, e.clientY);
+    });
+    const end = (e, cancel) => {
+        if (!down || e.pointerId !== pid) return;
+        down = false;
+        markNearSlot(-1, -1);
+        if (!dragging) { if (!cancel) selectPiece(el); return; }
+        el.classList.remove('dragging');
+        const slot = cancel ? null : nearestSlot(e.clientX, e.clientY);
+        let ok = false;
+        if (slot) ok = placePiece(el.dataset.piece, +slot.dataset.index, +el.dataset.correctIndex);
+        if (!ok && el.isConnected) {
+            // volta suave para a bandeja (300 ms, easeOutBack)
+            el.classList.add('returning');
+            el.style.transform = '';
+            setTimeout(() => el.classList.remove('returning'), 340);
+        }
+    };
+    el.addEventListener('pointerup', (e) => end(e, false));
+    el.addEventListener('pointercancel', (e) => end(e, true));
+}
+
+// Lugar vazio mais perto do dedo (dentro do raio de encaixe ou por cima da casa)
+function nearestSlot(x, y) {
+    let best = null, bestD = Infinity;
+    document.querySelectorAll('.puzzle-slot:not(.filled)').forEach(s => {
+        const r = s.getBoundingClientRect();
+        const d = Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2));
+        const lim = Math.max(SNAP, r.width * 0.5);
+        if (d < lim && d < bestD) { best = s; bestD = d; }
+    });
+    return best;
+}
+function markNearSlot(x, y) {
+    const near = x < 0 ? null : nearestSlot(x, y);
+    document.querySelectorAll('.puzzle-slot.highlight').forEach(s => { if (s !== near) s.classList.remove('highlight'); });
+    if (near) near.classList.add('highlight');
+}
+
 // Selecionar peca (para mobile/click)
-function selectPiece(pieceEl) {
+function selectPiece(pieceEl, quiet) {
     // Remover selecao anterior
     document.querySelectorAll('.puzzle-piece').forEach(p => p.classList.remove('selected'));
 
@@ -361,7 +410,7 @@ function selectPiece(pieceEl) {
         correctIndex: parseInt(pieceEl.dataset.correctIndex)
     };
 
-    playSound('click');
+    if (!quiet) playSound('click');
 }
 
 // Colocar peca selecionada no slot
@@ -381,7 +430,7 @@ function placePiece(piece, slotIndex, correctIndex) {
 
     // Verificar se o slot ja esta ocupado
     if (gameState.placedPieces[slotIndex] !== null) {
-        return;
+        return false;
     }
 
     gameState.moves++;
@@ -390,8 +439,9 @@ function placePiece(piece, slotIndex, correctIndex) {
     // Verificar se a peca esta no lugar correto
     if (slotIndex === correctIndex) {
         // Correto!
-        slot.textContent = piece;
-        slot.classList.add('filled');
+        slot.innerHTML = pieceHTML(piece);
+        slot.classList.remove('highlight', 'hint');
+        slot.classList.add('filled', 'pop-in');
 
         // Estilo para numeros/letras
         if (gameState.theme === 'numbers' || gameState.theme === 'letters') {
@@ -405,6 +455,11 @@ function placePiece(piece, slotIndex, correctIndex) {
         if (pieceEl) pieceEl.remove();
 
         playSound('correct');
+        gameState.streak++;
+        gameState.wrongTries = 0;
+        if (window.KidsAudio) KidsAudio.note(Math.min(10, gameState.streak - 1));
+        if (window.Efeitos) Efeitos.acerto(slot, { quantidade: 14 });
+        document.querySelectorAll('.puzzle-slot.hint').forEach(s => s.classList.remove('hint'));
         if (gameState.theme === 'numbers' || gameState.theme === 'letters') {
             speak(piece);
         }
@@ -415,15 +470,27 @@ function placePiece(piece, slotIndex, correctIndex) {
 
         // Verificar se completou
         if (gameState.placedPieces.filter(p => p !== null).length === gameState.totalPieces) {
-            setTimeout(showWinScreen, 500);
+            setTimeout(showWinScreen, 700);
         }
+        return true;
     } else {
-        // Errado
+        // Errado (sem punir): balancinho e ajuda aos poucos
+        gameState.streak = 0;
+        gameState.wrongTries++;
         slot.classList.add('wrong');
         setTimeout(() => slot.classList.remove('wrong'), 500);
+        if (window.Efeitos) Efeitos.vibrar('erro');
         playSound('wrong');
-        speak('Aqui não. Procure a sombra igual!');
+        if (gameState.wrongTries >= 2) {
+            // 2o erro: o lugar certo brilha
+            const right = document.querySelectorAll('.puzzle-slot')[correctIndex];
+            if (right) right.classList.add('hint');
+            speak('Olhe o lugar que está brilhando!');
+        } else {
+            speak('Aqui não. Procure a sombra igual!');
+        }
         // A peca continua selecionada para tentar outro lugar
+        return false;
     }
 }
 
@@ -435,7 +502,7 @@ function showWinScreen() {
     } else if (gameState.theme === 'letters') {
         winImage.textContent = '🔤';
     } else {
-        winImage.textContent = gameState.currentPuzzle.image;
+        winImage.innerHTML = pieceHTML(gameState.currentPuzzle.image);
     }
 
     document.getElementById('final-moves').textContent = gameState.moves;
@@ -459,6 +526,7 @@ function showWinScreen() {
     });
 
     playSound('win');
+    if (window.Efeitos) Efeitos.vitoria();
     speak(`Parabéns! Você montou o quebra-cabeça! Ganhou ${stars} ${stars === 1 ? 'estrela' : 'estrelas'}!`);
     showScreen('win-screen');
 }

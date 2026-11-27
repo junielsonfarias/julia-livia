@@ -4,33 +4,47 @@ body.letras { background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%); }
 
 .letter-card { gap: 8px; }
 .prompt { font-family: 'Fredoka One', cursive; font-size: 1.5rem; color: #6c5ce7; text-align: center; }
-.big-picture { font-size: 6rem; line-height: 1.1; }
+.big-picture { font-size: 6rem; line-height: 1.1; min-height: 1.35em; display: flex; align-items: center; justify-content: center; gap: 16px; }
+.big-picture img.e3d { filter: drop-shadow(0 8px 6px rgba(0, 0, 0, .22)); }
 .big-letter {
     display: inline-flex; align-items: center; justify-content: center; width: 1.4em; height: 1.4em;
-    font-family: 'Fredoka One', cursive; font-size: 5rem; color: #fff; border-radius: 28px;
-    background: linear-gradient(135deg, #6c5ce7, #a29bfe); box-shadow: 0 8px 0 #4b3fb5;
+    font-family: 'Fredoka One', cursive; font-size: 5rem; color: #fff; border-radius: 28px; text-shadow: 0 3px 0 rgba(0, 0, 0, .18);
+    background: linear-gradient(#a99cff, #6c5ce7);
+    box-shadow: inset 0 4px 0 rgba(255, 255, 255, .5), inset 0 -6px 0 rgba(0, 0, 0, .15), 0 9px 0 #4b3fb5, 0 16px 24px rgba(0, 0, 0, .22);
 }
 .blank-word { font-family: 'Fredoka One', cursive; font-size: clamp(2.2rem, 10vw, 3.6rem); letter-spacing: .08em; color: #2d3436; min-height: 1.2em; }
-.gap { display: inline-block; min-width: 1em; color: #e17055; border-bottom: 5px solid #e17055; animation: pulse 1s infinite; }
+.gap { display: inline-block; min-width: 1em; color: #e17055; border-bottom: 5px solid #e17055; animation: pulse 1.4s ease-in-out infinite; }
 @keyframes pulse { 50% { transform: scale(1.12); } }
-.hear-btn { font-size: 1.1rem; padding: 10px 22px; }
+.hear-btn { font-size: 1.1rem; padding: 10px 22px; min-height: 56px; }
 
-.letter-options { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+/* Pecas de letra: botoes brilhantes com espessura */
+.letter-options { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 22px; min-height: 112px; }
 .letter-btn {
-    width: 104px; height: 104px; border: none; border-radius: 26px; cursor: pointer;
-    font-family: 'Fredoka One', cursive; font-size: 3.2rem; color: #fff;
-    background: linear-gradient(135deg, #00b894, #00cec9); box-shadow: 0 7px 0 #00876c;
-    touch-action: manipulation; transition: transform .1s;
+    --top: #4ee8c4; --bot: #00a383; --edge: #00785f;
+    position: relative; width: 104px; height: 104px; border: none; border-radius: 26px; cursor: pointer;
+    font-family: 'Fredoka One', cursive; font-size: 3.2rem; color: #fff; text-shadow: 0 3px 0 rgba(0, 0, 0, .18);
+    background: linear-gradient(var(--top), var(--bot));
+    box-shadow: inset 0 3px 0 rgba(255, 255, 255, .55), inset 0 -5px 0 rgba(0, 0, 0, .14), 0 8px 0 var(--edge), 0 14px 20px rgba(0, 0, 0, .2);
+    touch-action: manipulation; transition: transform .08s ease, box-shadow .08s ease;
 }
-.letter-btn:active { transform: translateY(4px); box-shadow: 0 3px 0 #00876c; }
-.picture-btn { background: #fff; box-shadow: 0 7px 0 #ccc; font-size: 3.6rem; width: 120px; height: 120px; }
-.letter-btn.right { background: linear-gradient(135deg, #fdcb6e, #e17055); box-shadow: 0 7px 0 #b55a3c; animation: pulse .5s 2; }
-.letter-btn.wrong-pick { opacity: .3; animation: shake .4s ease; }
-@keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+.letter-btn::after { content: ''; position: absolute; left: 14%; right: 14%; top: 7px; height: 26%; border-radius: 16px; background: linear-gradient(rgba(255, 255, 255, .5), rgba(255, 255, 255, 0)); pointer-events: none; }
+.letter-btn:nth-child(5n+2) { --top: #74c0fc; --bot: #1c7ed6; --edge: #155fa3; }
+.letter-btn:nth-child(5n+3) { --top: #ffa8d2; --bot: #e64980; --edge: #b02a5f; }
+.letter-btn:nth-child(5n+4) { --top: #ffd166; --bot: #f59f00; --edge: #b87500; }
+.letter-btn:nth-child(5n+5) { --top: #b197fc; --bot: #7048e8; --edge: #5232b8; }
+.letter-btn:active { transform: translateY(6px); box-shadow: inset 0 3px 0 rgba(255, 255, 255, .55), inset 0 -4px 0 rgba(0, 0, 0, .14), 0 2px 0 var(--edge), 0 4px 8px rgba(0, 0, 0, .18); }
+.letter-btn.picture-btn { --top: #ffffff; --bot: #f1f3f5; --edge: #ced4da; font-size: 3.6rem; width: 124px; height: 124px; }
+.picture-btn::after { display: none; }
+.picture-btn img.e3d { width: 1.3em; height: 1.3em; }
+.letter-btn.right { --top: #ffe066; --bot: #fab005; --edge: #c48a00; }
+.picture-btn.right { --top: #e6fcf5; --bot: #c3fae8; --edge: #20c997; }
+.letter-btn.wrong-pick { --top: #dee2e6; --bot: #adb5bd; --edge: #868e96; }
+.picture-btn.wrong-pick { --top: #f1f3f5; --bot: #dee2e6; --edge: #adb5bd; }
 .stars { font-size: 3rem; margin: 10px 0; letter-spacing: 6px; }
+.mode-sample img.e3d { width: 1.1em; height: 1.1em; }
 
 @media (max-width: 560px) {
     .letter-btn { width: 80px; height: 80px; font-size: 2.5rem; }
-    .picture-btn { width: 96px; height: 96px; font-size: 3rem; }
+    .letter-btn.picture-btn { width: 96px; height: 96px; font-size: 3rem; }
     .big-picture { font-size: 4.5rem; }
 }

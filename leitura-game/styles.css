@@ -110,7 +110,7 @@ body {
     display: flex; flex-direction: column; justify-content: center; align-items: center;
     padding: 24px; box-shadow: 0 12px 40px rgba(0, 0, 0, .15); border: 6px solid #fff;
 }
-.word-card.pop { animation: pop .3s ease; }
+.word-card.pop { animation: pop .32s cubic-bezier(.34, 1.56, .64, 1); }
 .word-card.good { border-color: #00b894; }
 .word-card.skip { border-color: #b2bec3; }
 @keyframes pop { from { transform: scale(.85); opacity: .3; } to { transform: scale(1); opacity: 1; } }
@@ -243,3 +243,53 @@ button.mini-word { cursor: pointer; background: #ffeaa7; min-height: 44px; paddi
     #start-screen .big-icon { display: none; }
     #start-screen .lead br { display: none; }
 }
+
+/* ==========================================================
+   Pecas "fisicas" e feedback (compartilhado com silabas, letras e rimas)
+   ========================================================== */
+.act {
+    position: relative;
+    box-shadow: inset 0 3px 0 rgba(255, 255, 255, .45), inset 0 -4px 0 rgba(0, 0, 0, .14), 0 6px 0 rgba(0, 0, 0, .2), 0 10px 18px rgba(0, 0, 0, .16);
+    transition: transform .08s ease, box-shadow .08s ease;
+}
+.act:active { transform: translateY(4px); box-shadow: inset 0 3px 0 rgba(255, 255, 255, .45), inset 0 -3px 0 rgba(0, 0, 0, .14), 0 2px 0 rgba(0, 0, 0, .2), 0 4px 8px rgba(0, 0, 0, .14); }
+.act.listen { background: linear-gradient(#8cc8ff, #2d8ff0); }
+.act.ok { background: linear-gradient(#3fe0b5, #00a383); }
+.act.skip { background: linear-gradient(#c9d3d7, #95a5a6); }
+.intro-hear { background: linear-gradient(#8cc8ff, #2d8ff0); box-shadow: inset 0 3px 0 rgba(255, 255, 255, .45), 0 5px 0 #1f6fc0, 0 8px 14px rgba(0, 0, 0, .15); }
+.mode-btn { box-shadow: inset 0 3px 0 rgba(255, 255, 255, .35), inset 0 -4px 0 rgba(0, 0, 0, .12), 0 6px 0 rgba(0, 0, 0, .18), 0 10px 16px rgba(0, 0, 0, .12); }
+.big-btn { box-shadow: inset 0 3px 0 rgba(255, 255, 255, .5), 0 5px 0 rgba(0, 0, 0, .15), 0 8px 14px rgba(0, 0, 0, .12); transition: transform .08s; }
+.big-btn:active { transform: translateY(3px); box-shadow: inset 0 3px 0 rgba(255, 255, 255, .5), 0 2px 0 rgba(0, 0, 0, .15); }
+
+/* Figuras 3D dentro dos cartoes */
+img.e3d.big-fig, .big-fig { width: 1.2em; height: 1.2em; }
+
+/* Erro sem frustracao: opcao apagada (2o erro) e certa acesa (3o erro) */
+.apagada { opacity: .22 !important; transform: scale(.88) !important; filter: grayscale(.7); pointer-events: none; transition: opacity .35s ease, transform .35s ease, filter .35s ease; }
+.dica-certa { animation: dicaPulso 1.3s ease-in-out infinite !important; outline: 5px solid #ffd43b; outline-offset: 4px; }
+@keyframes dicaPulso { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+/* Peca voando ate o lugar dela */
+.voando { box-shadow: 0 14px 24px rgba(0, 0, 0, .25) !important; }
+
+/* Estrelas do resultado */
+.star-row { display: flex; justify-content: center; gap: 10px; font-size: 3.4rem; letter-spacing: 0; }
+.star-slot { display: inline-block; line-height: 1; }
+.star-slot.on { animation: starIn .5s cubic-bezier(.34, 1.56, .64, 1) both; }
+.star-empty { color: rgba(0, 0, 0, .18); }
+@keyframes starIn { from { transform: scale(0) rotate(-40deg); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Objeto principal "respira" devagar */
+.breathe { animation: breathe 2.6s ease-in-out infinite; }
+@keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+
+@media (prefers-reduced-motion: reduce) {
+    .breathe, .dica-certa, .big-icon, .gap, .slot.next { animation: none !important; }
+    .star-slot.on { animation-duration: .01s; }
+    .screen.active { animation: none; }
+}
+
+/* Caixas de marcar maiores (alvo de toque para dedos pequenos) */
+html.fit-screen .options input[type="checkbox"], .options input { width: 42px; height: 42px; min-width: 42px; flex: none; }
+.word-picture img.e3d { width: 1.45em; height: 1.45em; }
+.act img.e3d, .intro-hear img.e3d { width: 1.3em; height: 1.3em; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .25)); }

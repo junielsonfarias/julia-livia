@@ -53,11 +53,19 @@ function minPieces(value) {
     return n;
 }
 
+// Bicho de cada nota (como nas notas do Real)
+const BICHO = { 200: '🐢', 500: '🦢', 1000: '🦜', 2000: '🐒', 5000: '🐆', 10000: '🐟' };
+const e3d = ch => window.Emoji3D ? Emoji3D.html(ch) : ch;
+
 function moneyHTML(v, extra) {
     const cls = isNota(v) ? `money nota n${v}` : `money moeda m${v}`;
+    if (isNota(v)) {
+        // nota: fundo com desenho, o bicho num "selo" oval e o valor grande
+        return `<span class="${cls}" ${extra || ''}><i class="nota-bicho">${e3d(BICHO[v])}</i><b>${brl(v).replace(',00', '')}</b></span>`;
+    }
     // Moedas de centavos mostram o numero e "centavos" embaixo, como na moeda de verdade
-    const label = isNota(v) ? brl(v).replace(',00', '') : (v === 100 ? 'R$ 1' : `${v}<small>centavos</small>`);
-    return `<span class="${cls}" ${extra || ''}>${label}</span>`;
+    const label = v === 100 ? '1<small>real</small>' : `${v}<small>centavos</small>`;
+    return `<span class="${cls}" ${extra || ''}><b>${label}</b></span>`;
 }
 
 // Completa ate 4 alternativas diferentes (valores positivos proximos da resposta)
@@ -122,7 +130,16 @@ function startGame(mode) {
     showRound();
 }
 
+let turnTimer = null;
 function showRound() {
+    const panel = document.querySelector('#game-screen .panel');
+    clearTimeout(turnTimer);
+    if (!panel || state.round === 0) return renderRound();
+    panel.classList.add('leaving');
+    turnTimer = setTimeout(() => { renderRound(); panel.classList.remove('leaving'); }, 230);
+}
+
+function renderRound() {
     const it = state.items[state.round];
     state.current = it;
     state.tray = [];
@@ -139,19 +156,19 @@ function showRound() {
 
     if (it.kind === 'pagar') {
         pay.hidden = false;
-        scene.innerHTML = `<div class="shop-item big"><span class="prod-emoji">${it.prod[0]}</span><span class="prod-name">${it.prod[1]}</span><span class="price-tag">${brl(it.total)}</span></div>
+        scene.innerHTML = `<div class="shop-item big"><span class="prod-emoji">${e3d(it.prod[0])}</span><span class="prod-name">${it.prod[1]}</span><span class="price-tag">${brl(it.total)}</span></div>
             <p class="task">Toque nas notas e moedas para pagar <b>exatamente ${brl(it.total)}</b>.</p>`;
         renderWallet();
         renderTray();
     } else if (it.kind === 'troco') {
         pay.hidden = true;
         scene.innerHTML = `<div class="shop-row">${it.prods.map(x =>
-            `<div class="shop-item"><span class="prod-emoji">${x.p[0]}</span><span class="prod-name">${x.p[1]}</span><span class="price-tag">${brl(x.v)}</span></div>`).join('')}</div>
+            `<div class="shop-item"><span class="prod-emoji">${e3d(x.p[0])}</span><span class="prod-name">${x.p[1]}</span><span class="price-tag">${brl(x.v)}</span></div>`).join('')}</div>
             <p class="task">Julia comprou ${it.prods.length === 1 ? 'este produto' : 'estes produtos'} e pagou com ${moneyHTML(it.nota)}.<br><b>Quanto ela vai receber de <mark class="kw">troco</mark>?</b></p>`;
         renderOptions(it);
     } else {
         pay.hidden = true;
-        scene.innerHTML = `<div class="shop-item big"><span class="prod-emoji">${it.prod[0]}</span><span class="prod-name">${it.prod[1]}</span><span class="price-tag">${brl(it.total)}</span></div>
+        scene.innerHTML = `<div class="shop-item big"><span class="prod-emoji">${e3d(it.prod[0])}</span><span class="prod-name">${it.prod[1]}</span><span class="price-tag">${brl(it.total)}</span></div>
             <p class="task">Livia tem este dinheiro na carteira:</p>
             <div class="wallet-show">${it.carteira.map(v => moneyHTML(v)).join('')}</div>
             <p class="task"><b>Quanto <mark class="kw">falta</mark> para ela comprar ${it.prod[4]} ${it.prod[1].toLowerCase()}?</b></p>`;
@@ -167,6 +184,7 @@ function renderOptions(it) {
         b.dataset.value = v;
         b.innerHTML = `<span class="letter">${'ABCD'[i]}</span>${brl(v)}`;
         b.onclick = () => answer(b, v);
+        b.style.animationDelay = (150 + i * 50) + 'ms';
         box.appendChild(b);
     });
 }
@@ -175,21 +193,76 @@ function renderOptions(it) {
 function renderWallet() {
     const w = document.getElementById('wallet');
     w.innerHTML = DINHEIRO.map(v => `<button class="money-btn" data-v="${v}" aria-label="${brl(v)}">${moneyHTML(v)}</button>`).join('');
-    w.querySelectorAll('.money-btn').forEach(b => b.onclick = () => {
-        if (state.locked) return;
-        state.tray.push(Number(b.dataset.v));
-        KidsAudio.play(isNota(Number(b.dataset.v)) ? 'flip' : 'click');
-        renderTray();
+    w.querySelectorAll('.money-btn').forEach(wireMoney);
+}
+
+function addMoney(v) {
+    if (state.locked) return;
+    state.tray.push(v);
+    KidsAudio.play(isNota(v) ? 'flip' : 'pop');
+    renderTray(v);
+}
+
+// Arrastar com folga: soltar perto do balcao (ate 70px fora dele) ja conta.
+// Toque simples (sem arrastar) tambem coloca o dinheiro no balcao.
+function wireMoney(b) {
+    const v = Number(b.dataset.v);
+    b.onclick = e => { if (e.detail === 0) addMoney(v); };   // teclado
+    b.addEventListener('pointerdown', e => {
+        if (state.locked || (e.pointerType === 'mouse' && e.button !== 0)) return;
+        const sx = e.clientX, sy = e.clientY;
+        const src = b.firstElementChild;
+        const r = src.getBoundingClientRect();
+        const ox = sx - r.left, oy = sy - r.top;
+        let ghost = null, gx = r.left, gy = r.top;
+        try { b.setPointerCapture(e.pointerId); } catch (err) {}
+        const place = () => { ghost.style.transform = `translate(${gx}px,${gy}px)`; };
+        const move = ev => {
+            if (!ghost && Math.hypot(ev.clientX - sx, ev.clientY - sy) > 10) {
+                ghost = document.createElement('div');
+                ghost.className = 'money-ghost';
+                const inner = src.cloneNode(true);
+                inner.style.zoom = r.width / (src.offsetWidth || r.width);
+                ghost.appendChild(inner);
+                document.body.appendChild(ghost);
+                b.classList.add('lifted');
+                KidsAudio.play('select');
+            }
+            if (ghost) { gx = ev.clientX - ox; gy = ev.clientY - oy; place(); }
+        };
+        const end = ev => {
+            b.removeEventListener('pointermove', move);
+            b.removeEventListener('pointerup', end);
+            b.removeEventListener('pointercancel', end);
+            b.classList.remove('lifted');
+            if (!ghost) { if (ev.type === 'pointerup') addMoney(v); return; }
+            const t = document.getElementById('tray').getBoundingClientRect(), pad = 70;
+            const inside = ev.type === 'pointerup' && ev.clientX > t.left - pad && ev.clientX < t.right + pad &&
+                ev.clientY > t.top - pad && ev.clientY < t.bottom + pad;
+            if (inside) { ghost.remove(); addMoney(v); return; }
+            // soltou longe: volta devagar para a carteira
+            ghost.classList.add('back');
+            gx = r.left; gy = r.top; place();
+            setTimeout(() => ghost.remove(), 320);
+        };
+        b.addEventListener('pointermove', move);
+        b.addEventListener('pointerup', end);
+        b.addEventListener('pointercancel', end);
     });
 }
 
-function renderTray() {
+function renderTray(added) {
     const tray = document.getElementById('tray');
     const sum = state.tray.reduce((s, v) => s + v, 0);
     const sorted = state.tray.map((v, i) => ({ v, i })).sort((a, b) => b.v - a.v);
     tray.innerHTML = sorted.length
         ? sorted.map(({ v, i }) => `<button class="tray-piece" data-i="${i}" aria-label="Tirar ${brl(v)}">${moneyHTML(v)}</button>`).join('')
         : '<span class="empty">Toque no dinheiro abaixo para colocar aqui</span>';
+    // a peca que acabou de chegar "pula" no balcao
+    if (added !== undefined) {
+        const novo = tray.querySelector(`.tray-piece[data-i="${state.tray.length - 1}"]`);
+        if (novo) novo.classList.add('arrive');
+    }
     tray.querySelectorAll('.tray-piece').forEach(b => b.onclick = () => {
         if (state.locked) return;
         state.tray.splice(Number(b.dataset.i), 1);
@@ -198,8 +271,9 @@ function renderTray() {
     });
     const it = state.current;
     const sumEl = document.getElementById('tray-sum');
+    if (sumEl.textContent !== brl(sum)) { sumEl.classList.remove('bump'); void sumEl.offsetWidth; }
     sumEl.textContent = brl(sum);
-    sumEl.className = 'tray-sum' + (sum === it.total ? ' exact' : sum > it.total ? ' over' : '');
+    sumEl.className = 'tray-sum bump' + (sum === it.total ? ' exact' : sum > it.total ? ' over' : '');
 }
 
 function clearTray() {
@@ -228,13 +302,15 @@ function payNow() {
         state.score += (first ? 10 : 5) + (used === min ? 5 : 0);
         document.getElementById('score').textContent = state.score;
         KidsAudio.play('correct');
+        if (window.Efeitos) Efeitos.acerto(document.getElementById('tray-sum'), { texto: first ? '+10' : '+5', emoji: ['🪙', '⭐', '💚'] });
         fb.className = 'feedback explain';
         fb.innerHTML = `✅ Pagou certinho ${brl(it.total)}!` + (used === min
             ? ` ⭐ E usou o <b>menor número</b> de notas e moedas (${min})! +5`
             : `<br>💡 Desafio: dava para pagar com só <b>${min}</b> ${min === 1 ? 'peça' : 'peças'} (você usou ${used}). Comece pelas notas maiores!`);
         endRound();
     } else {
-        KidsAudio.play('wrong');
+        KidsAudio.play('pop');
+        if (window.Efeitos) Efeitos.erro(document.getElementById('tray'));
         fb.className = 'feedback bad';
         fb.innerHTML = sum > it.total
             ? `🤔 Você colocou ${brl(sum)}: passou ${brl(sum - it.total)}. Tire alguma nota ou moeda (toque nela).`
@@ -250,7 +326,9 @@ function answer(btn, v) {
     const fb = document.getElementById('feedback');
     if (v === it.answer) {
         state.locked = true;
+        document.querySelectorAll('#options .option').forEach(b => b.classList.remove('hint-glow'));
         btn.classList.add('correct');
+        if (window.Efeitos) Efeitos.acerto(btn, { texto: state.tries === 1 ? '+10' : '+4', emoji: ['🪙', '⭐', '💚'] });
         if (state.tries === 1) { state.hits++; state.score += 10; } else state.score += 4;
         document.getElementById('score').textContent = state.score;
         KidsAudio.play('correct');
@@ -260,14 +338,13 @@ function answer(btn, v) {
     } else {
         btn.classList.add('wrong');
         btn.disabled = true;
-        KidsAudio.play('wrong');
+        KidsAudio.play('pop');
+        if (window.Efeitos) Efeitos.erro(btn);
         if (state.tries >= 2) {
-            state.locked = true;
             const right = document.querySelector(`#options .option[data-value="${it.answer}"]`);
-            if (right) right.classList.add('correct', 'revealed');
+            if (right) right.classList.add('hint-glow');
             fb.className = 'feedback explain';
-            fb.innerHTML = `A resposta certa está em verde.<br>💡 ${it.why}`;
-            endRound();
+            fb.innerHTML = `✨ Veja a conta e toque na resposta que está brilhando.<br>💡 ${it.why}`;
         } else {
             fb.className = 'feedback bad';
             fb.innerHTML = it.kind === 'troco'
@@ -294,8 +371,9 @@ function finish() {
     const n = state.items.length;
     document.getElementById('final-score').textContent = state.score;
     document.getElementById('final-hits').textContent = `${state.hits}/${n}`;
-    document.getElementById('result-icon').textContent = state.hits >= n - 1 ? '🏆' : state.hits >= n / 2 ? '🎉' : '🪙';
+    document.getElementById('result-icon').innerHTML = e3d(state.hits >= n - 1 ? '🏆' : state.hits >= n / 2 ? '🎉' : '🪙');
     document.getElementById('progress').textContent = '';
     showScreen('result-screen');
     KidsAudio.play('win');
+    if (window.Efeitos) setTimeout(() => Efeitos.vitoria(), 200);
 }

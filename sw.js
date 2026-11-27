@@ -7,39 +7,39 @@
 // ==========================================
 
 // <PRECACHE>
-const CACHE_VERSION = '9211eff54d';
+const CACHE_VERSION = '1f76aa765d';
 const PRECACHE = [
     "/",
-    "/animais-game/game.js?v=f8fbd192",
+    "/animais-game/game.js?v=08b708eb",
     "/animais-game/index.html",
-    "/animais-game/styles.css?v=ad204085",
-    "/big-hero-game/game.js?v=6336f073",
+    "/animais-game/styles.css?v=c602d3bd",
+    "/big-hero-game/game.js?v=68b8932e",
     "/big-hero-game/index.html",
     "/big-hero-game/styles.css?v=69489a08",
-    "/contar-game/game.js?v=02de8264",
+    "/contar-game/game.js?v=e0f925a8",
     "/contar-game/index.html",
-    "/contar-game/styles.css?v=a48afe82",
-    "/cores-formas-game/game.js?v=d91602f8",
+    "/contar-game/styles.css?v=ce5502eb",
+    "/cores-formas-game/game.js?v=8fd58470",
     "/cores-formas-game/index.html",
-    "/cores-formas-game/styles.css?v=068adc4b",
-    "/corpo-game/game.js?v=fec5b87d",
+    "/cores-formas-game/styles.css?v=2c83aaa9",
+    "/corpo-game/game.js?v=245eac0e",
     "/corpo-game/index.html",
-    "/corpo-game/styles.css?v=ff44447b",
-    "/desenhar-game/game.js?v=89f434a6",
+    "/corpo-game/styles.css?v=c81f4c7a",
+    "/desenhar-game/game.js?v=346719e8",
     "/desenhar-game/index.html",
-    "/desenhar-game/styles.css?v=70b67b55",
-    "/dinheiro-game/game.js?v=2b1822d6",
+    "/desenhar-game/styles.css?v=df20165b",
+    "/dinheiro-game/game.js?v=0adadf18",
     "/dinheiro-game/index.html",
-    "/dinheiro-game/styles.css?v=a37ef6c4",
-    "/emocoes-game/game.js?v=ec147b5f",
+    "/dinheiro-game/styles.css?v=4246c4be",
+    "/emocoes-game/game.js?v=8d4011bf",
     "/emocoes-game/index.html",
-    "/emocoes-game/styles.css?v=247b5aec",
-    "/fracoes-game/game.js?v=ec7ebd69",
+    "/emocoes-game/styles.css?v=dce63540",
+    "/fracoes-game/game.js?v=fb65cb09",
     "/fracoes-game/index.html",
-    "/fracoes-game/styles.css?v=04d123c6",
-    "/graficos-game/game.js?v=cf152887",
+    "/fracoes-game/styles.css?v=741d4fe8",
+    "/graficos-game/game.js?v=47347f9c",
     "/graficos-game/index.html",
-    "/graficos-game/styles.css?v=a0b77282",
+    "/graficos-game/styles.css?v=bfff9ffe",
     "/icons/apple-touch-icon.png",
     "/icons/favicon-32.png",
     "/icons/icon-192.png",
@@ -48,82 +48,86 @@ const PRECACHE = [
     "/icons/icon-maskable-512.png",
     "/index.html",
     "/interpretacao-game/data.js?v=779d1533",
-    "/interpretacao-game/game.js?v=1873ca19",
+    "/interpretacao-game/game.js?v=aceacb0f",
     "/interpretacao-game/index.html",
-    "/interpretacao-game/styles.css?v=6fd0b4b7",
-    "/leitura-game/game.js?v=a52ed24a",
+    "/interpretacao-game/styles.css?v=3a99807f",
+    "/leitura-game/game.js?v=1839fdd0",
     "/leitura-game/index.html",
-    "/leitura-game/styles.css?v=2a8c5bce",
-    "/letras-game/game.js?v=78772c06",
+    "/leitura-game/letrinhas.js?v=3357e8ff",
+    "/leitura-game/styles.css?v=35a6a8dd",
+    "/letras-game/game.js?v=a5b648be",
     "/letras-game/index.html",
-    "/letras-game/styles.css?v=a8602086",
-    "/main-script.js?v=8eb4420d",
-    "/main-styles.css?v=549baece",
+    "/letras-game/styles.css?v=fab8fe22",
+    "/main-script.js?v=d69142b5",
+    "/main-styles.css?v=d6e36fa5",
     "/manifest.webmanifest",
-    "/memoria-game/game.js?v=04d53c40",
+    "/memoria-game/game.js?v=6082455a",
     "/memoria-game/index.html",
-    "/memoria-game/styles.css?v=f8df7fcf",
+    "/memoria-game/styles.css?v=9a62984d",
     "/olimpiada-game/data.js?v=87763617",
-    "/olimpiada-game/game.js?v=62098494",
+    "/olimpiada-game/game.js?v=b85438fc",
     "/olimpiada-game/index.html",
-    "/olimpiada-game/styles.css?v=2869081a",
-    "/ortografia-game/game.js?v=62c81311",
+    "/olimpiada-game/styles.css?v=cfc8a101",
+    "/ortografia-game/game.js?v=84bbfe0c",
     "/ortografia-game/index.html",
-    "/ortografia-game/styles.css?v=ce88e2d5",
-    "/puzzle-game/game.js?v=332b6afd",
+    "/ortografia-game/styles.css?v=987f2631",
+    "/puzzle-game/game.js?v=5adc566a",
     "/puzzle-game/index.html",
-    "/puzzle-game/styles.css?v=d981b258",
-    "/quiz-game/game.js?v=6ed53d6f",
+    "/puzzle-game/styles.css?v=ca0c7b47",
+    "/quiz-game/game.js?v=3f1f94c3",
     "/quiz-game/index.html",
-    "/quiz-game/styles.css?v=de66e455",
-    "/relampago-game/game.js?v=3c9e7025",
+    "/quiz-game/styles.css?v=786aaaff",
+    "/relampago-game/game.js?v=d099498a",
     "/relampago-game/index.html",
-    "/relampago-game/styles.css?v=d4338b34",
-    "/rimas-game/game.js?v=ca2e8c2a",
+    "/relampago-game/styles.css?v=aca24fe7",
+    "/rimas-game/game.js?v=2b684c03",
     "/rimas-game/index.html",
-    "/rimas-game/styles.css?v=47047c71",
-    "/selva-game/cartas.js?v=8c1f7c84",
-    "/selva-game/game.js?v=e4f5aad4",
+    "/rimas-game/styles.css?v=83fa04f6",
+    "/selva-game/cartas.js?v=556ec43a",
+    "/selva-game/game.js?v=cf595427",
     "/selva-game/index.html",
-    "/selva-game/styles.css?v=4bf942fd",
-    "/sequencia-game/game.js?v=994277f6",
+    "/selva-game/styles.css?v=2d88fcae",
+    "/sequencia-game/game.js?v=687e0935",
     "/sequencia-game/index.html",
-    "/sequencia-game/styles.css?v=950b1055",
+    "/sequencia-game/styles.css?v=fc2357f3",
     "/shared/dado.css?v=3a3c9597",
     "/shared/dado.js?v=9d4b65b1",
     "/shared/duelo-perguntas.js?v=b997e24c",
     "/shared/duelo.css?v=1de99c64",
     "/shared/duelo.js?v=d613fbb0",
+    "/shared/efeitos.js?v=e296ecbf",
+    "/shared/emoji3d.js?v=fc9306e9",
     "/shared/fala.js?v=609e07f8",
     "/shared/fit-screen.js?v=0f4dccb7",
-    "/shared/kids-audio.js?v=da92b96a",
+    "/shared/kids-audio.js?v=90618a14",
     "/shared/palavras.js?v=f9361c20",
-    "/silabas-game/game.js?v=255b6463",
+    "/silabas-game/game.js?v=44650db1",
     "/silabas-game/index.html",
-    "/silabas-game/styles.css?v=fe0b5e44",
-    "/tabuada-game/game.js?v=a77345a4",
+    "/silabas-game/styles.css?v=29ac31cc",
+    "/tabuada-game/game.js?v=e69839b3",
     "/tabuada-game/index.html",
-    "/tabuada-game/styles.css?v=63e18fe5",
-    "/trilha-game/game.js?v=fbcd0078",
+    "/tabuada-game/styles.css?v=9b8865c8",
+    "/trilha-game/game.js?v=d366c845",
     "/trilha-game/index.html",
-    "/trilha-game/styles.css?v=d81be890",
-    "/unicornio-arcoiris-game/game.js?v=f45963dc",
+    "/trilha-game/styles.css?v=66ba4423",
+    "/unicornio-arcoiris-game/game.js?v=dc7aab69",
     "/unicornio-arcoiris-game/index.html",
-    "/unicornio-arcoiris-game/styles.css?v=938c3a40",
-    "/unicornio-corrida-game/game.js?v=beb91494",
+    "/unicornio-arcoiris-game/styles.css?v=88769bde",
+    "/unicornio-corrida-game/game.js?v=aca1557e",
     "/unicornio-corrida-game/index.html",
     "/unicornio-corrida-game/styles.css?v=aad11827",
-    "/unicornio-pintura-game/game.js?v=1a7ec6a4",
+    "/unicornio-pintura-game/game.js?v=85e84d07",
     "/unicornio-pintura-game/index.html",
-    "/unicornio-pintura-game/styles.css?v=59183941",
-    "/velha-game/game.js?v=5ca03add",
+    "/unicornio-pintura-game/styles.css?v=06834862",
+    "/velha-game/game.js?v=933331c0",
     "/velha-game/index.html",
-    "/velha-game/styles.css?v=ce3b50b4"
+    "/velha-game/styles.css?v=32075b05"
 ];
 // </PRECACHE>
 
 const CACHE = 'julia-livia-' + CACHE_VERSION;
 const FONT_CACHE = 'julia-livia-fontes';
+const EMOJI_CACHE = 'julia-livia-emoji3d';   // figuras 3D (Fluent Emoji) vindas do jsDelivr
 // Fontes do Google usadas por todas as paginas: guardadas ja na instalacao,
 // para o visual ficar igual mesmo abrindo o app pela primeira vez sem internet.
 const FONT_CSS = 'https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap';
@@ -168,7 +172,7 @@ self.addEventListener('activate', (event) => {
     event.waitUntil((async () => {
         const keys = await caches.keys();
         await Promise.all(keys
-            .filter(k => k.startsWith('julia-livia-') && k !== CACHE && k !== FONT_CACHE)
+            .filter(k => k.startsWith('julia-livia-') && k !== CACHE && k !== FONT_CACHE && k !== EMOJI_CACHE)
             .map(k => caches.delete(k)));
         await self.clients.claim();
     })());
@@ -201,6 +205,23 @@ self.addEventListener('fetch', (event) => {
     if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
         event.respondWith((async () => {
             const cache = await caches.open(FONT_CACHE);
+            const hit = await cache.match(req);
+            if (hit) return hit;
+            try {
+                const res = await fetch(req);
+                if (res.ok || res.type === 'opaque') cache.put(req, res.clone());
+                return res;
+            } catch (e) {
+                return new Response('', { status: 503 });
+            }
+        })());
+        return;
+    }
+
+    // Figuras 3D: guardadas na primeira vez (versao fixa no endereco, nunca mudam)
+    if (url.hostname === 'cdn.jsdelivr.net' && url.pathname.includes('/fluent-emoji-3d@')) {
+        event.respondWith((async () => {
+            const cache = await caches.open(EMOJI_CACHE);
             const hit = await cache.match(req);
             if (hit) return hit;
             try {

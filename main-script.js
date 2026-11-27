@@ -912,3 +912,71 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 console.log('Mundo de Julia e Livia carregado com sucesso!');
+
+// ==========================================
+// VISUAL DO PORTAL: figuras 3D nos cartoes, entrada em cascata e fundo vivo
+// ==========================================
+const reduzMovimento = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
+
+// Troca os emojis dos icones dos cartoes por figuras 3D (Emoji3D); simbolos que nao sao emoji (ex.: "×") ficam
+function figuras3DNosCartoes() {
+    if (!window.Emoji3D || !Emoji3D.ligado()) return;
+    const ehEmoji = /\p{Extended_Pictographic}/u;
+    const partes = txt => (window.Intl && Intl.Segmenter)
+        ? [...new Intl.Segmenter('pt', { granularity: 'grapheme' }).segment(txt)].map(s => s.segment)
+        : [...txt];
+    document.querySelectorAll('.game-thumbnail > span[class$="-icon"], .menu-card .card-icon').forEach(el => {
+        if (el.dataset.e3dOk || el.children.length) return;
+        const txt = el.textContent.trim();
+        if (!txt || !ehEmoji.test(txt)) return;
+        el.dataset.e3dOk = '1';
+        el.classList.add('icon-3d');
+        // figuras do menu de jogos so carregam quando aparecem (lazy)
+        el.innerHTML = partes(txt).map(g => ehEmoji.test(g) ? Emoji3D.html(g, 'card-fig').replace('<img ', '<img loading="lazy" ') : (g.trim() ? `<span>${g}</span>` : '')).join('');
+    });
+}
+
+// Entrada em cascata dos cartoes visiveis (ao abrir a secao ou trocar o filtro)
+function entradaCartoes() {
+    const box = document.querySelector('.games-container');
+    if (!box || reduzMovimento()) return;
+    let i = 0;
+    box.querySelectorAll('.game-card').forEach(c => {
+        if (c.style.display === 'none') return;
+        c.style.setProperty('--i', Math.min(i++, 14));
+    });
+    box.classList.remove('enter');
+    void box.offsetWidth;
+    box.classList.add('enter');
+}
+
+// Fundo vivo: poucas nuvens e brilhos que flutuam devagar (so transform/opacity; parado se pedir menos movimento)
+function fundoVivo() {
+    ['main-menu', 'games-section'].forEach(id => {
+        const scr = document.getElementById(id);
+        if (!scr || scr.querySelector('.ambient')) return;
+        const amb = document.createElement('div');
+        amb.className = 'ambient';
+        amb.setAttribute('aria-hidden', 'true');
+        let h = '';
+        [[12, 46, 0], [34, 30, -18], [62, 38, -9]].forEach(([top, dur, delay], k) =>
+            h += `<span class="amb-cloud c${k}" style="top:${top}%;animation-duration:${dur}s;animation-delay:${delay}s"></span>`);
+        for (let k = 0; k < 10; k++) {
+            h += `<span class="amb-spark" style="left:${(k * 37 + 7) % 96}%;top:${(k * 53 + 11) % 90}%;animation-delay:${(k * 0.7).toFixed(1)}s;animation-duration:${(3.5 + (k % 4) * 0.8).toFixed(1)}s"></span>`;
+        }
+        amb.innerHTML = h;
+        scr.prepend(amb);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    figuras3DNosCartoes();
+    fundoVivo();
+    // abrir a secao de jogos e trocar o filtro animam a entrada dos cartoes
+    const games = document.getElementById('games-section');
+    if (games && window.MutationObserver) {
+        new MutationObserver(() => { if (games.classList.contains('active')) entradaCartoes(); })
+            .observe(games, { attributes: true, attributeFilter: ['class'] });
+    }
+    document.querySelectorAll('.filter-btn').forEach(b => b.addEventListener('click', entradaCartoes));
+});

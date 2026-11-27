@@ -54,6 +54,7 @@ function shuffle(arr) {
 }
 const rnd = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const e3d = ch => window.Emoji3D ? Emoji3D.html(ch) : ch;
 const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 
 // ---------- Dados ----------
@@ -135,12 +136,13 @@ function renderChart(chart) {
     const d = chart.dados;
     if (chart.tipo === 'tabela') {
         box.innerHTML = `<table class="data-table"><thead><tr><th>${chart.tema.col}</th><th>Quantidade (${chart.tema.unidade})</th></tr></thead><tbody>` +
-            d.map(x => `<tr><td>${x.emoji} ${esc(x.nome)}</td><td>${x.valor}</td></tr>`).join('') + '</tbody></table>';
+            d.map((x, i) => `<tr style="animation-delay:${120 + i * 90}ms"><td>${e3d(x.emoji)} ${esc(x.nome)}</td><td>${x.valor}</td></tr>`).join('') + '</tbody></table>';
         return;
     }
     if (chart.tipo === 'pictograma') {
-        box.innerHTML = `<div class="picto">` + d.map(x =>
-            `<div class="picto-row"><span class="picto-label">${esc(x.nome)}</span><span class="picto-icons">${x.emoji.repeat(x.valor / chart.step)}</span></div>`
+        box.innerHTML = `<div class="picto">` + d.map((x, i) =>
+            `<div class="picto-row"><span class="picto-label">${esc(x.nome)}</span><span class="picto-icons">${Array.from({ length: x.valor / chart.step }, (_, k) =>
+                `<span class="picto-ic" style="animation-delay:${100 + (i * 2 + k) * 45}ms">${e3d(x.emoji)}</span>`).join('')}</span></div>`
         ).join('') + `</div><p class="legend">🔑 Legenda: cada figura vale <b>${chart.step} ${chart.tema.unidade}</b></p>`;
         return;
     }
@@ -155,15 +157,26 @@ function renderChart(chart) {
         grid += `<text x="${left - 6}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="#636e72">${v}</text>`;
     }
     const bw = plotW / d.length;
+    const defs = d.map((x, i) => `<linearGradient id="bg${i}" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0" stop-color="${x.cor}"/><stop offset=".35" stop-color="${shade(x.cor, 40)}"/><stop offset="1" stop-color="${shade(x.cor, -35)}"/></linearGradient>`).join('');
     const bars = d.map((x, i) => {
         const cx = left + bw * i + bw / 2;
-        return `<rect x="${cx - bw * 0.3}" y="${y(x.valor)}" width="${bw * 0.6}" height="${y(0) - y(x.valor)}" rx="4" fill="${x.cor}"/>
-            <text x="${cx}" y="${H - bottom + 20}" text-anchor="middle" font-size="18">${x.emoji}</text>
+        const h = y(0) - y(x.valor);
+        return `<g class="bar-grow" style="animation-delay:${150 + i * 130}ms">
+            <rect x="${cx - bw * 0.3}" y="${y(x.valor)}" width="${bw * 0.6}" height="${h}" rx="5" fill="url(#bg${i})"/>
+            <rect x="${cx - bw * 0.3 + 4}" y="${y(x.valor) + 3}" width="${bw * 0.1}" height="${Math.max(0, h - 6)}" rx="3" fill="rgba(255,255,255,.35)"/></g>
+            ${window.Emoji3D && Emoji3D.ligado() ? `<image href="${Emoji3D.url(x.emoji)}" x="${cx - 11}" y="${H - bottom + 4}" width="22" height="22"/>` : `<text x="${cx}" y="${H - bottom + 20}" text-anchor="middle" font-size="18">${x.emoji}</text>`}
             <text x="${cx}" y="${H - bottom + 38}" text-anchor="middle" font-size="12" font-weight="700" fill="#2d3436">${esc(x.nome)}</text>`;
     }).join('');
     box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" class="bar-chart" role="img" aria-label="Gráfico de barras: ${esc(chart.tema.titulo)}">
-        <line x1="${left}" y1="${top}" x2="${left}" y2="${y(0)}" stroke="#2d3436" stroke-width="2"/>${grid}${bars}</svg>
+        <defs>${defs}</defs><line x1="${left}" y1="${top}" x2="${left}" y2="${y(0)}" stroke="#2d3436" stroke-width="2"/>${grid}${bars}</svg>
         <p class="legend">Eixo da esquerda: quantidade de ${chart.tema.unidade}</p>`;
+}
+
+function shade(hex, p) {
+    const n = parseInt(hex.slice(1), 16);
+    const f = c => Math.max(0, Math.min(255, Math.round(c + (p > 0 ? (255 - c) : c) * p / 100)));
+    return '#' + [n >> 16, (n >> 8) & 255, n & 255].map(f).map(c => c.toString(16).padStart(2, '0')).join('');
 }
 
 // ---------- Fluxo ----------
@@ -187,7 +200,16 @@ function startGame() {
     showQuestion();
 }
 
+let turnTimer = null;
 function showQuestion() {
+    const qb = document.querySelector('#game-screen .question-box');
+    clearTimeout(turnTimer);
+    if (!qb || state.index === 0) return renderQuestion();
+    qb.classList.add('leaving');
+    turnTimer = setTimeout(() => { renderQuestion(); qb.classList.remove('leaving'); }, 230);
+}
+
+function renderQuestion() {
     const item = state.queue[state.index];
     state.tries = 0;
     state.locked = false;
@@ -204,6 +226,8 @@ function showQuestion() {
     item.options.forEach((o, i) => {
         const b = document.createElement('button');
         b.className = 'option';
+        b.dataset.value = o;
+        b.style.animationDelay = (150 + i * 50) + 'ms';
         b.innerHTML = `<span class="letter">${'ABCD'[i]}</span>${esc(o)}`;
         b.onclick = () => answer(b, o);
         box.appendChild(b);
@@ -217,7 +241,9 @@ function answer(btn, value) {
     const fb = document.getElementById('feedback');
     if (value === item.answer) {
         state.locked = true;
+        document.querySelectorAll('#options .option').forEach(b => b.classList.remove('hint-glow'));
         btn.classList.add('correct');
+        if (window.Efeitos) Efeitos.acerto(btn, { texto: state.tries === 1 ? '+10' : '+4', emoji: ['📊', '⭐', '✨'] });
         if (state.tries === 1) { state.hits++; state.score += 10; } else state.score += 4;
         document.getElementById('score').textContent = state.score;
         KidsAudio.play('correct');
@@ -227,15 +253,15 @@ function answer(btn, value) {
     } else {
         btn.classList.add('wrong');
         btn.disabled = true;
-        KidsAudio.play('wrong');
+        KidsAudio.play('pop');
+        if (window.Efeitos) Efeitos.erro(btn);
         if (state.tries >= 2) {
-            state.locked = true;
+            // 2º erro: a certa brilha e a explicacao aparece; ela toca na certa para seguir
             document.querySelectorAll('#options .option').forEach(b => {
-                if (b.textContent.slice(1) === item.answer) b.classList.add('correct', 'revealed');
+                if (b.dataset.value === item.answer) b.classList.add('hint-glow');
             });
             fb.className = 'feedback explain';
-            fb.innerHTML = `A resposta certa está em verde.<br>💡 ${esc(item.why)}`;
-            endQuestion();
+            fb.innerHTML = `✨ Veja a explicação e toque na resposta que está brilhando.<br>💡 ${esc(item.why)}`;
         } else {
             fb.className = 'feedback bad';
             fb.innerHTML = '🤔 Ainda não. Olhe o gráfico de novo com calma e releia a pergunta.';
@@ -261,7 +287,7 @@ function finish() {
     document.getElementById('final-score').textContent = state.score;
     document.getElementById('final-hits').textContent = `${state.hits}/${n}`;
     const pct = state.hits / n;
-    document.getElementById('result-icon').textContent = pct >= 0.8 ? '🏆' : pct >= 0.5 ? '🎉' : '📊';
+    document.getElementById('result-icon').innerHTML = e3d(pct >= 0.8 ? '🏆' : pct >= 0.5 ? '🎉' : '📊');
     document.getElementById('result-msg').textContent = pct >= 0.8
         ? 'Excelente! Você lê gráficos como uma cientista!'
         : 'Dica: antes de responder, leia o título, a legenda e a escala do gráfico.';
@@ -269,4 +295,5 @@ function finish() {
     document.getElementById('progress').textContent = '';
     showScreen('result-screen');
     KidsAudio.play('win');
+    if (window.Efeitos) setTimeout(() => Efeitos.vitoria(), 200);
 }

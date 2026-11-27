@@ -23,7 +23,7 @@ const RIMAS = {
 };
 
 const ROUNDS = 10;
-const state = { round: 0, items: [], current: null, tries: 0, hits: 0, locked: false };
+const state = { round: 0, items: [], current: null, tries: 0, misses: 0, hits: 0, locked: false };
 
 // Monta lista de palavras com figura e seu grupo de rima
 const WORDS = Object.entries(RIMAS).flatMap(([grupo, list]) =>
@@ -73,35 +73,43 @@ function startGame() {
         state.items.push(r);
     }
     document.getElementById('total').textContent = state.items.length;
+    Letrinhas.serie.zerar();
     KidsAudio.play('start');
     showScreen('game-screen');
-    showRound();
+    showRound(true);
 }
 
-function showRound() {
+function showRound(first) {
     const r = state.items[state.round];
     state.current = r;
     state.tries = 0;
+    state.misses = 0;
     state.locked = false;
     document.getElementById('round').textContent = state.round + 1;
-    document.getElementById('target-pic').textContent = r.target.emoji;
+    // Primeira rodada monta direto; as outras entram deslizando
+    if (first) renderRound(r);
+    else Letrinhas.trocar([document.getElementById('card'), document.getElementById('options')], () => renderRound(r));
+    // interrupt:false = espera o "Rimou!" da rodada anterior terminar
+    setTimeout(() => { if (state.current === r) sayPrompt(false); }, 350);
+}
+
+function renderRound(r) {
+    document.getElementById('target-pic').innerHTML = Letrinhas.fig(r.target.emoji, 'breathe');
     document.getElementById('target-word').textContent = r.target.word;
-    document.getElementById('rhyme-slot').textContent = '?';
-    document.getElementById('rhyme-slot').className = 'rhyme-slot';
+    const slot = document.getElementById('rhyme-slot');
+    slot.textContent = '?';
+    slot.className = 'rhyme-slot';
     const box = document.getElementById('options');
     box.innerHTML = '';
     r.options.forEach(o => {
         const b = document.createElement('button');
         b.className = 'rhyme-option';
-        b.innerHTML = `<span class="opt-emoji">${o.emoji}</span><span class="opt-word">${o.word}</span>`;
+        b.innerHTML = `<span class="opt-emoji">${Letrinhas.fig(o.emoji)}</span><span class="opt-word">${o.word}</span>`;
         b.setAttribute('aria-label', o.word.toLowerCase());
+        b.dataset.ok = o.grupo === r.target.grupo ? '1' : '0';
         b.onclick = () => choose(b, o);
         box.appendChild(b);
     });
-    const card = document.getElementById('card');
-    card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
-    // interrupt:false = espera o "Rimou!" da rodada anterior terminar
-    setTimeout(() => { if (state.current === r) sayPrompt(false); }, 350);
 }
 
 function sayPrompt(interrupt) {
@@ -123,25 +131,38 @@ function choose(btn, o) {
     if (o.grupo === r.target.grupo) {
         state.locked = true;
         if (state.tries === 1) state.hits++;
+        btn.classList.remove('dica-certa');
         btn.classList.add('right');
-        const slot = document.getElementById('rhyme-slot');
-        slot.textContent = o.emoji;
-        slot.classList.add('filled');
         KidsAudio.play('correct');
+        Letrinhas.serie.acerto(btn, { emoji: ['🎵', '⭐'] });
+        // A figura voa ate o quadrinho "?"
+        const slot = document.getElementById('rhyme-slot');
+        const fig = btn.querySelector('.opt-emoji');
+        Letrinhas.voar(fig, slot, fig.innerHTML, 360).then(() => {
+            slot.innerHTML = Letrinhas.fig(o.emoji);
+            slot.classList.add('filled');
+            Efeitos.pulo(slot);
+        });
         setTimeout(() => KidsAudio.speak(`${r.target.word.toLowerCase()}... ${o.word.toLowerCase()}! Rimou!`, { rate: 0.85 }), 400);
-        setTimeout(nextRound, 2700);
+        setTimeout(nextRound, 2600);
     } else {
+        state.misses++;
+        Letrinhas.serie.erro();
         btn.classList.add('wrong-pick');
-        btn.disabled = true;
+        setTimeout(() => btn.classList.remove('wrong-pick'), 400);
         KidsAudio.play('wrong');
-        KidsAudio.speak(`${r.target.word.toLowerCase()}, ${o.word.toLowerCase()}... não rima. Tente outra!`, { rate: 0.9 });
+        // Erro sem frustracao: 1o balanca e repete, 2o apaga uma opcao errada, 3o acende a certa
+        const all = [...document.querySelectorAll('#options .rhyme-option')];
+        Letrinhas.ajuda(state.misses, { tocado: btn, erradas: all.filter(b => b.dataset.ok !== '1'), certa: all.find(b => b.dataset.ok === '1') });
+        if (state.misses >= 3) KidsAudio.speak(`${r.target.word.toLowerCase()}... ${r.rhyme.word.toLowerCase()}! Toque na figura que brilha.`, { rate: 0.9 });
+        else KidsAudio.speak(`${r.target.word.toLowerCase()}, ${o.word.toLowerCase()}... não rima. Tente outra!`, { rate: 0.9 });
     }
 }
 
 function nextRound() {
     state.round++;
     if (state.round >= state.items.length) return finish();
-    showRound();
+    showRound(false);
 }
 
 function finish() {
@@ -149,9 +170,10 @@ function finish() {
     const stars = state.hits >= n - 1 ? 3 : state.hits >= n * 0.6 ? 2 : 1;
     document.getElementById('hits').textContent = state.hits;
     document.getElementById('rounds').textContent = n;
-    document.getElementById('stars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
     showScreen('result-screen');
+    Letrinhas.estrelas(document.getElementById('stars'), stars);
     KidsAudio.play('win');
+    setTimeout(() => Efeitos.vitoria(), 250);
     KidsAudio.speak(`Você achou ${state.hits} rimas de primeira! ` +
         (stars === 3 ? 'Parabéns! Você é a rainha das rimas!' : 'Muito bem! Vamos rimar mais?'));
 }

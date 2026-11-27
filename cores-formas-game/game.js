@@ -32,8 +32,67 @@ let gameState = {
     currentQuestion: null,
     correctAnswer: null,
     mistakes: 0,    // erros no nivel (define as estrelas)
+    streak: 0,      // acertos seguidos (notas sobem)
+    tries: 0,       // erros na pergunta atual
     locked: false   // trava os botoes depois do acerto
 };
+
+// ---------- Formas com volume (SVG: gradiente + brilho + sombra no chao) ----------
+// cor: [clara, base, escura]
+const SHAPE_TONES = {
+    red: ['#ff8a80', '#f44336', '#b71c1c'],
+    blue: ['#82c8ff', '#2196f3', '#0d47a1'],
+    yellow: ['#fff9a8', '#ffe03b', '#d4a000'],
+    green: ['#a5e6a8', '#4caf50', '#1b5e20'],
+    purple: ['#e1a6ef', '#9c27b0', '#4a148c'],
+    orange: ['#ffd08a', '#ff9800', '#c25e00'],
+    pink: ['#ff9fc0', '#e91e63', '#880e4f']
+};
+// estrela de 5 pontas centrada em (50,48)
+const STAR_PATH = (() => {
+    const pts = [];
+    for (let i = 0; i < 10; i++) {
+        const r = i % 2 ? 19 : 44;
+        const a = -Math.PI / 2 + i * Math.PI / 5;
+        pts.push((50 + r * Math.cos(a)).toFixed(1) + ' ' + (50 + r * Math.sin(a)).toFixed(1));
+    }
+    return 'M' + pts.join(' L') + ' Z';
+})();
+const SHAPE_GEOM = {
+    circle: '<circle cx="50" cy="47" r="38" %s/>',
+    square: '<rect x="14" y="11" width="72" height="72" rx="11" %s/>',
+    triangle: '<path d="M50 12 L88 80 L12 80 Z" stroke-linejoin="round" stroke-width="9" %s/>',
+    rectangle: '<rect x="5" y="24" width="90" height="50" rx="9" %s/>',
+    diamond: '<path d="M50 6 L88 47 L50 88 L12 47 Z" stroke-linejoin="round" stroke-width="7" %s/>',
+    oval: '<ellipse cx="50" cy="48" rx="45" ry="29" %s/>',
+    star: '<path d="' + STAR_PATH + '" stroke-linejoin="round" stroke-width="5" %s/>'
+};
+
+// Gradientes uma vez so no documento (cada forma usa url(#tom-cor))
+function ensureShapeDefs() {
+    if (document.getElementById('shape3d-defs')) return;
+    const grads = Object.entries(SHAPE_TONES).map(([c, t]) =>
+        `<radialGradient id="tom-${c}" cx="35%" cy="28%" r="80%">` +
+        `<stop offset="0" stop-color="${t[0]}"/><stop offset=".55" stop-color="${t[1]}"/><stop offset="1" stop-color="${t[2]}"/></radialGradient>`
+    ).join('');
+    const svg = `<svg id="shape3d-defs" width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true"><defs>${grads}` +
+        `<radialGradient id="brilho3d" cx="32%" cy="22%" r="45%"><stop offset="0" stop-color="#fff" stop-opacity=".85"/>` +
+        `<stop offset=".5" stop-color="#fff" stop-opacity=".25"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs></svg>`;
+    document.body.insertAdjacentHTML('afterbegin', svg);
+}
+
+// HTML de uma forma 3D (shape: circle/square/...; color: red/blue/...)
+function shape3d(shape, color, cls) {
+    ensureShapeDefs();
+    const g = SHAPE_GEOM[shape] || SHAPE_GEOM.circle;
+    const strokeAttr = /stroke-width/.test(g) ? `stroke="url(#tom-${color})"` : '';
+    const base = g.replace('%s', `fill="url(#tom-${color})" ${strokeAttr}`);
+    const gloss = g.replace('%s', 'fill="url(#brilho3d)" stroke="none"');
+    return `<span class="shape3d ${cls || ''}" data-shape="${shape}" data-color="${color}">` +
+        `<svg viewBox="0 0 100 100" aria-hidden="true"><ellipse cx="50" cy="94" rx="30" ry="4.5" fill="#000" opacity=".2"/>` +
+        `${base}${gloss}</svg></span>`;
+}
+
 
 let lastPrompt = '';
 
@@ -85,6 +144,7 @@ function startGame(mode) {
     gameState.questionsPerLevel = 5;
     gameState.score = 0;
     gameState.mistakes = 0;
+    gameState.streak = 0;
     updateStats();
     updateProgress();
     playSound('start');
@@ -97,6 +157,7 @@ function nextQuestion() {
     document.getElementById('feedback').textContent = '';
     document.getElementById('feedback').className = 'feedback';
     gameState.locked = false;
+    gameState.tries = 0;
 
     // Limpar classes das opcoes
     document.querySelectorAll('.option-btn').forEach(btn => {
@@ -140,7 +201,7 @@ function generateColorQuestion() {
 
     const targetDisplay = document.getElementById('target-display');
     targetDisplay.innerHTML = `
-        <div class="target-shape circle ${targetColor.class}"></div>
+        ${shape3d('circle', targetColor.class, 'alvo-forma')}
         <span style="font-family: 'Fredoka One', cursive; font-size: 1.5rem; margin-left: 15px; color: #333;">
             ${targetColor.ptName}
         </span>
@@ -151,11 +212,12 @@ function generateColorQuestion() {
     optionsArea.innerHTML = '';
     optionsArea.classList.toggle('many', options.length > 6);
 
-    options.forEach(color => {
+    options.forEach((color, i) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
         btn.dataset.answer = color.name;
-        btn.innerHTML = `<div class="option-shape circle ${color.class}"></div>`;
+        btn.style.setProperty('--i', i);
+        btn.innerHTML = shape3d('circle', color.class, 'opcao-forma');
         btn.onclick = () => checkAnswer(color, 'color');
         optionsArea.appendChild(btn);
     });
@@ -215,7 +277,7 @@ function generateShapeQuestion() {
     const displayColor = COLORS[Math.floor(Math.random() * COLORS.length)];
 
     targetDisplay.innerHTML = `
-        <div class="target-shape ${targetShape.class} ${displayColor.class}"></div>
+        ${shape3d(targetShape.class, displayColor.class, 'alvo-forma')}
         <span style="font-family: 'Fredoka One', cursive; font-size: 1.5rem; margin-left: 15px; color: #333;">
             ${targetShape.ptName}
         </span>
@@ -226,12 +288,13 @@ function generateShapeQuestion() {
     optionsArea.innerHTML = '';
     optionsArea.classList.toggle('many', options.length > 6);
 
-    options.forEach(option => {
+    options.forEach((option, i) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
         btn.dataset.shape = option.shape.name;
         btn.dataset.correct = option.isCorrect;
-        btn.innerHTML = `<div class="option-shape ${option.shape.class} ${option.color.class}"></div>`;
+        btn.style.setProperty('--i', i);
+        btn.innerHTML = shape3d(option.shape.class, option.color.class, 'opcao-forma');
         btn.onclick = () => checkAnswer(option, 'shape');
         optionsArea.appendChild(btn);
     });
@@ -266,8 +329,15 @@ function checkAnswer(answer, type) {
     if (isCorrect) {
         // Trava todos os botoes (evita toque duplo somar pontos)
         gameState.locked = true;
-        buttons.forEach(btn => { btn.style.pointerEvents = 'none'; });
+        buttons.forEach(btn => {
+            btn.style.pointerEvents = 'none';
+            if (!btn.classList.contains('correct')) btn.classList.add('fora');
+        });
+        const hit = [...buttons].find(b => b.classList.contains('correct'));
+        if (hit && window.Efeitos) Efeitos.acerto(hit, { emoji: ['⭐', '✨'] });
         playSound('correct');
+        gameState.streak++;
+        if (window.KidsAudio && KidsAudio.note) setTimeout(() => KidsAudio.note(gameState.streak), 150);
         const praise = getRandomPraise();
         feedbackEl.textContent = praise;
         feedbackEl.className = 'feedback correct';
@@ -289,13 +359,28 @@ function checkAnswer(answer, type) {
     } else {
         playSound('wrong');
         gameState.mistakes++;
-        feedbackEl.textContent = 'Tente novamente!';
+        gameState.tries++;
+        gameState.streak = 0;
+        feedbackEl.textContent = 'Quase! Tente de novo!';
         feedbackEl.className = 'feedback wrong';
-        // Desabilita so o botao errado
+        // Aprendizagem sem erro: o botao errado sai de cena (balanca e apaga);
+        // 2o erro tira mais uma opcao errada; 3o destaca a resposta certa
+        const isRight = btn => type === 'color'
+            ? btn.dataset.answer === gameState.correctAnswer.name
+            : btn.dataset.shape === gameState.correctAnswer.name;
         buttons.forEach(btn => {
-            if (btn.classList.contains('wrong')) btn.style.pointerEvents = 'none';
+            if (btn.classList.contains('wrong') && !btn.classList.contains('fora')) {
+                btn.style.pointerEvents = 'none';
+                btn.classList.add('fora');
+                if (window.Efeitos) Efeitos.erro(btn);
+            }
         });
-        speak(`Esse não. ${lastPrompt}`);
+        if (gameState.tries >= 2) {
+            const rest = [...buttons].filter(b => !isRight(b) && !b.classList.contains('fora'));
+            if (rest.length) { rest[0].classList.add('fora'); rest[0].style.pointerEvents = 'none'; }
+        }
+        if (gameState.tries >= 3) buttons.forEach(b => { if (isRight(b)) b.classList.add('dica'); });
+        speak(`Quase! ${lastPrompt}`);
     }
 }
 
@@ -343,6 +428,7 @@ function showWinScreen() {
     });
 
     playSound('win');
+    if (window.Efeitos) setTimeout(() => Efeitos.vitoria(), 200);
     speak(`Muito bem! Você ganhou ${stars} ${stars === 1 ? 'estrela' : 'estrelas'}!`);
     showScreen('win-screen');
 }
@@ -384,5 +470,7 @@ function repeatPrompt() {
 
 // Inicializacao
 document.addEventListener('DOMContentLoaded', () => {
+    const prev = document.querySelector('.shapes-preview');
+    if (prev) prev.innerHTML = shape3d('circle', 'red') + shape3d('square', 'blue') + shape3d('triangle', 'yellow');
     showScreen('start-screen');
 });

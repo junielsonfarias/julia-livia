@@ -183,6 +183,7 @@ function startGame(mode) {
     state.readWords = [];
     state.skippedWords = [];
     state.misheard = [];
+    Letrinhas.serie.zerar();
     state.current = null;
     state.prevWord = null;
     state.locked = false;
@@ -285,7 +286,7 @@ function renderWord(w) {
     const shown = w.word.length + (showSyl ? w.syllables.length - 1 : 0);
     wordEl.style.fontSize = shown > 10 ? 'clamp(1.9rem, 9.5vw, 4.4rem)'
         : shown > 7 ? 'clamp(2.2rem, 11vw, 5rem)' : '';
-    document.getElementById('word-picture').textContent = showPic ? w.emoji : '';
+    document.getElementById('word-picture').innerHTML = showPic ? Letrinhas.fig(w.emoji) : '';
 
     const card = document.getElementById('word-card');
     card.classList.remove('pop', 'good', 'skip', 'bad');
@@ -308,7 +309,10 @@ function correctWord() {
     scoreEl.textContent = state.score;
     scoreEl.classList.remove('bump'); void scoreEl.offsetWidth; scoreEl.classList.add('bump');
     KidsAudio.play('correct');
-    document.getElementById('word-card').classList.add('good');
+    const card = document.getElementById('word-card');
+    card.classList.add('good');
+    // Acertos seguidos: nota sobe e mais estrelinhas (rapido, para nao atrasar a proxima palavra)
+    Letrinhas.serie.acerto(document.getElementById('word'), { emoji: ['⭐', '✨'], atraso: 120 });
     if (state.check === 'mic') setHeard('✅ Leu certinho!', 'good');
     floatPoint();
     setTimeout(() => { state.locked = false; if (state.running) nextWord(); }, state.check === 'mic' ? 180 : 350);
@@ -322,6 +326,7 @@ function wrongAttempt(heardText) {
     state.lastWrongAt = now;
     const heard = heardText.trim();
     state.misheard.push({ word: state.current.word, heard });
+    Letrinhas.serie.erro();
     KidsAudio.play('wrong');
     setHeard(`🤔 Ouvi “<b>${escapeHtml(heard)}</b>”. Tente de novo!`, 'bad');
     const card = document.getElementById('word-card');
@@ -332,6 +337,7 @@ function skipWord() {
     if (!state.running || state.locked) return;
     state.locked = true;
     state.skippedWords.push(state.current.word);
+    Letrinhas.serie.erro();
     KidsAudio.play('flip');
     document.getElementById('word-card').classList.add('skip');
     setTimeout(() => { state.locked = false; if (state.running) nextWord(); }, 250);
@@ -442,6 +448,8 @@ function endGame() {
     showScreen('result-screen');
     setTimeout(() => {
         KidsAudio.play(isRecord ? 'win' : 'star');
+        if (isRecord) Efeitos.vitoria();
+        else if (state.score > 0) Efeitos.estrelas(document.getElementById('final-score'), { quantidade: 20 });
         if (isRecord) KidsAudio.speak(`Novo recorde! ${state.score} palavras!`);
         else if (state.score > 0) KidsAudio.speak(`Você leu ${state.score} ${state.score === 1 ? 'palavra' : 'palavras'}! ${msg}`);
         else KidsAudio.speak(msg);

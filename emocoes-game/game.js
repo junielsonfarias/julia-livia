@@ -120,8 +120,15 @@ let gameState = {
     usedEmotions: [],
     usedSituations: [],
     mistakes: 0,
+    streak: 0,       // acertos seguidos (notas sobem)
+    tries: 0,        // erros na pergunta atual
     locked: false
 };
+
+// Figura 3D (com reserva em texto)
+function fig3d(emoji, cls) {
+    return window.Emoji3D ? Emoji3D.html(emoji, cls || 'fig') : emoji;
+}
 
 let lastPrompt = '';
 let nextTimer = null;   // proxima pergunta/vitoria agendada (cancelada ao sair ou reiniciar)
@@ -173,6 +180,7 @@ function startGame(mode) {
     gameState.usedEmotions = [];
     gameState.usedSituations = [];
     gameState.mistakes = 0;
+    gameState.streak = 0;
     updateStats();
     updateProgress();
     playSound('start');
@@ -190,6 +198,7 @@ function nextQuestion() {
     document.getElementById('feedback').textContent = '';
     document.getElementById('feedback').className = 'feedback';
     gameState.locked = false;
+    gameState.tries = 0;
 
     if (gameState.mode === 'emoji') {
         generateEmojiQuestion();
@@ -215,7 +224,7 @@ function generateEmojiQuestion() {
 
     // Mostrar emoji grande
     const emotionDisplay = document.getElementById('emotion-display');
-    emotionDisplay.innerHTML = `<span class="big-emoji">${gameState.currentEmotion.emoji}</span>`;
+    emotionDisplay.innerHTML = `<span class="big-emoji"><span class="face-breath">${fig3d(gameState.currentEmotion.emoji)}</span></span>`;
 
     // Criar opcoes (emocao correta + 3 aleatorias)
     const options = createEmotionOptions();
@@ -245,7 +254,7 @@ function generateSituationQuestion() {
     const emotionDisplay = document.getElementById('emotion-display');
     emotionDisplay.innerHTML = `
         <div class="situation-card">
-            <span class="situation-icon">📖</span>
+            <span class="situation-icon">${fig3d('📖')}</span>
             <p class="situation-text">${gameState.currentSituation}</p>
         </div>
     `;
@@ -274,12 +283,13 @@ function createEmotionOptions() {
     const shuffledOthers = otherEmotions.sort(() => Math.random() - 0.5).slice(0, 3);
     const options = [gameState.currentEmotion, ...shuffledOthers].sort(() => Math.random() - 0.5);
 
-    options.forEach(emotion => {
+    options.forEach((emotion, i) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
         btn.dataset.name = emotion.name;
+        btn.style.setProperty('--i', i);
         btn.innerHTML = `
-            <span class="option-emoji">${emotion.emoji}</span>
+            <span class="option-emoji">${fig3d(emotion.emoji)}</span>
             <span class="option-name">${emotion.name}</span>
         `;
         btn.onclick = () => checkAnswer(emotion);
@@ -291,25 +301,25 @@ function createEmotionOptions() {
 // Verificar resposta
 function checkAnswer(emotion) {
     if (gameState.locked) return;
-    gameState.locked = true;
     const feedbackEl = document.getElementById('feedback');
-    const buttons = document.querySelectorAll('.option-btn');
+    const buttons = [...document.querySelectorAll('.option-btn')];
     const isCorrect = emotion.name === gameState.currentEmotion.name;
-
-    // Desabilitar botoes
-    buttons.forEach(btn => {
-        btn.style.pointerEvents = 'none';
-        const name = btn.dataset.name;
-        if (name === emotion.name) {
-            btn.classList.add(isCorrect ? 'correct' : 'wrong');
-        }
-        if (name === gameState.currentEmotion.name) {
-            btn.classList.add('correct');
-        }
-    });
+    const chosen = buttons.find(b => b.dataset.name === emotion.name);
+    const right = buttons.find(b => b.dataset.name === gameState.currentEmotion.name);
 
     if (isCorrect) {
+        gameState.locked = true;
+        buttons.forEach(btn => {
+            btn.style.pointerEvents = 'none';
+            if (btn !== right) btn.classList.add('fora');
+        });
+        right.classList.add('correct');
+        if (window.Efeitos) Efeitos.acerto(right, { emoji: ['⭐', '💖'] });
+        const face = document.querySelector('.face-breath');
+        if (face && window.Efeitos) Efeitos.pulo(face);
         playSound('correct');
+        gameState.streak++;
+        if (window.KidsAudio && KidsAudio.note) setTimeout(() => KidsAudio.note(gameState.streak), 150);
         const praise = getRandomPraise();
         feedbackEl.textContent = praise;
         feedbackEl.className = 'feedback correct';
@@ -325,15 +335,25 @@ function checkAnswer(emotion) {
             nextTimer = setTimeout(nextQuestion, 2000);
         }
     } else {
+        // Aprendizagem sem erro: 1o erro balanca e repete; 2o tira mais uma opcao;
+        // 3o destaca a certa. A pergunta continua ate acertar.
         playSound('wrong');
         gameState.mistakes++;
+        gameState.tries++;
+        gameState.streak = 0;
+        chosen.classList.add('fora');
+        chosen.disabled = true;
+        if (window.Efeitos) Efeitos.erro(chosen);
+        if (gameState.tries >= 2) {
+            const rest = buttons.filter(b => b !== right && !b.classList.contains('fora'));
+            if (rest.length) { rest[0].classList.add('fora'); rest[0].disabled = true; }
+        }
+        if (gameState.tries >= 3) right.classList.add('dica');
         const em = gameState.currentEmotion;
-        const lead = gameState.mode === 'situation' ? 'Você se sentiria' : 'Essa pessoa está';
-        feedbackEl.innerHTML = `${lead} <strong>${em.name}</strong>! ${em.description}`;
+        feedbackEl.textContent = 'Quase! Tente de novo!';
         feedbackEl.className = 'feedback wrong';
-        speak(`${lead} ${em.name.toLowerCase()}! ${em.description}.`);
-
-        nextTimer = setTimeout(nextQuestion, 3500);
+        const ask = gameState.mode === 'situation' ? 'Como você se sentiria?' : 'Como essa pessoa está se sentindo?';
+        speak(gameState.tries >= 2 ? `Quase! ${ask} Dica: ${em.description}.` : `Quase! ${ask}`);
     }
 }
 
@@ -381,6 +401,7 @@ function showWinScreen() {
     });
 
     playSound('win');
+    if (window.Efeitos) setTimeout(() => Efeitos.vitoria(), 200);
     speak(`Muito bem! Você conhece as emoções! Ganhou ${stars} ${stars === 1 ? 'estrela' : 'estrelas'}!`);
     showScreen('win-screen');
 }

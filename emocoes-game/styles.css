@@ -622,3 +622,77 @@ body {
     .feedback { grid-area: f; }
     .progress-bar { grid-area: p; }
 }
+
+/* ==========================================
+   Polimento visual: carinhas 3D que respiram,
+   cartoes brilhantes e retorno sem castigo
+   ========================================== */
+@keyframes optIn {
+    from { opacity: 0; transform: translateY(22px) scale(.85); }
+    to { opacity: 1; transform: none; }
+}
+@keyframes faceBreath {
+    0%, 100% { transform: scale(1) rotate(0); }
+    30% { transform: scale(1.035) rotate(-1.5deg); }
+    60% { transform: scale(1.02) rotate(1.5deg); }
+}
+@keyframes faceIn {
+    0% { opacity: 0; transform: scale(.4) translateY(30px); }
+    70% { opacity: 1; transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+@keyframes glowHint {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(255, 193, 7, .9); }
+    50% { box-shadow: 0 0 0 6px rgba(255, 193, 7, 1), 0 0 26px rgba(255, 193, 7, .8); }
+}
+
+.big-emoji { animation: faceIn .55s cubic-bezier(.34, 1.56, .64, 1); display: inline-block; line-height: 1; position: relative; }
+/* sombra no chao embaixo da carinha */
+.big-emoji::after {
+    content: ''; position: absolute; left: 22%; right: 22%; bottom: -4px; height: 12px;
+    border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 0, 0, .2), rgba(0, 0, 0, 0));
+}
+.face-breath { display: inline-block; animation: faceBreath 2.8s ease-in-out infinite; transform-origin: 50% 85%; }
+.face-breath .fig { width: 1.1em; height: 1.1em; filter: drop-shadow(0 10px 8px rgba(0, 0, 0, .22)); }
+
+.situation-card {
+    background:
+        radial-gradient(120% 70% at 30% 0%, rgba(255, 255, 255, .8), rgba(255, 255, 255, 0) 60%),
+        linear-gradient(160deg, #e3f2fd, #bbdefb);
+    box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .7), 0 6px 0 #9cc7ef, 0 12px 22px rgba(30, 80, 140, .18);
+    animation: faceIn .5s cubic-bezier(.34, 1.56, .64, 1);
+}
+.situation-icon .fig { width: 1.15em; height: 1.15em; }
+
+.options-area { contain: layout; }
+.option-btn {
+    border: none;
+    border-radius: 24px;
+    background:
+        radial-gradient(120% 60% at 30% 0%, #ffffff, rgba(255, 255, 255, 0) 60%),
+        linear-gradient(170deg, #ffffff, #fff0f6);
+    box-shadow: inset 0 0 0 3px #fadbe8, inset 0 -5px 0 rgba(0, 0, 0, .05), 0 6px 0 #f1bfd3, 0 10px 18px rgba(140, 30, 80, .15);
+    transition: transform .25s cubic-bezier(.34, 1.56, .64, 1), opacity .3s ease, filter .3s ease, box-shadow .2s ease;
+    animation: optIn .45s cubic-bezier(.34, 1.56, .64, 1) backwards;
+    animation-delay: calc(.12s + var(--i, 0) * 70ms);
+}
+.option-btn:hover { transform: translateY(-3px); border-color: transparent; box-shadow: inset 0 0 0 3px #f7b6d0, 0 6px 0 #ec9fbf, 0 12px 20px rgba(140, 30, 80, .2); }
+.option-emoji .fig { width: 1.2em; height: 1.2em; transition: transform .3s cubic-bezier(.34, 1.56, .64, 1); }
+.option-btn:hover .option-emoji .fig { transform: scale(1.1) rotate(-4deg); }
+.option-btn.correct {
+    background: linear-gradient(170deg, #f1fff2, #d7f7da);
+    box-shadow: inset 0 0 0 4px #4caf50, 0 6px 0 #3d9a41, 0 0 22px rgba(76, 175, 80, .45);
+    animation: none;
+}
+.option-btn.fora { opacity: .28; transform: scale(.92); filter: grayscale(.6); pointer-events: none; animation: none; }
+.option-btn.dica { animation: glowHint 1.2s ease-in-out infinite; }
+.feedback.wrong { color: #ff8f00; }
+
+.preview-emoji .e3d, .mode-icon .e3d, .win-icon .e3d { width: 1.1em; height: 1.1em; }
+.mode-btn { animation: optIn .5s cubic-bezier(.34, 1.56, .64, 1) backwards; }
+.mode-btn:nth-child(2) { animation-delay: .1s; }
+.win-content { animation: optIn .5s cubic-bezier(.34, 1.56, .64, 1); }
+
+@media (prefers-reduced-motion: reduce) {
+    .big-emoji, .face-breath, .situation-card, .option-btn, .option-btn.dica, .mode-btn, .win-content { animation: none !important; }
+}

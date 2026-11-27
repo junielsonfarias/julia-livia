@@ -82,6 +82,22 @@ button { font-family: 'Nunito', sans-serif; touch-action: manipulation; -webkit-
 .paper .r { cursor: pointer; }
 .r.pop { animation: rpop .38s ease; transform-box: fill-box; transform-origin: center; }
 @keyframes rpop { 0% { transform: scale(1); } 40% { transform: scale(1.07); } 100% { transform: scale(1); } }
+/* onda de tinta: pulinho com easeOutBack */
+.wipe.pop { animation: wpop .42s cubic-bezier(.34,1.56,.64,1); transform-box: fill-box; transform-origin: center; }
+@keyframes wpop { 0% { transform: scale(.97); } 45% { transform: scale(1.045); } 100% { transform: scale(1); } }
+/* volume (luz/sombra) aparece suave depois de pintar */
+.paper .sh { transition: opacity .45s ease; }
+.sticker.s3d { filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .28)); }
+.sticker-btn img.e3d { width: 40px; height: 40px; }
+/* brilhinhos ao terminar o desenho */
+.twinkle {
+    position: absolute; pointer-events: none; color: #fff; transform: translate(-50%, -50%) scale(0);
+    text-shadow: 0 0 6px #fff, 0 0 12px #ffd36e, 0 0 18px #ff8fd0; animation: twinkle 1.4s ease-in-out 2 both;
+}
+@keyframes twinkle { 0%, 100% { transform: translate(-50%, -50%) scale(0) rotate(0); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1) rotate(90deg); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+    .wipe.pop, .r.pop, .sticker.new, .twinkle, .big-icon, .badge { animation: none !important; }
+}
 
 .sticker { cursor: grab; user-select: none; -webkit-user-select: none; }
 .sticker.new { animation: stickIn .35s ease; transform-box: fill-box; transform-origin: center; }
@@ -106,6 +122,9 @@ button { font-family: 'Nunito', sans-serif; touch-action: manipulation; -webkit-
     box-shadow: 0 4px 0 rgba(0, 0, 0, .15); transition: transform .12s; display: flex; align-items: center; justify-content: center;
     font-size: 1.6rem; padding: 0;
 }
+/* bolinha de tinta com brilho (gota) */
+.swatch:not(.sticker-btn) { box-shadow: inset 0 5px 6px rgba(255, 255, 255, .55), inset 0 -5px 6px rgba(0, 0, 0, .14), 0 4px 0 rgba(0, 0, 0, .15); }
+.swatch.selected:not(.sticker-btn) { box-shadow: inset 0 5px 6px rgba(255, 255, 255, .55), inset 0 -5px 6px rgba(0, 0, 0, .14), 0 0 0 4px #6c5ce7, 0 4px 10px rgba(0, 0, 0, .25); }
 .swatch.white { border-color: #ccc; }
 .swatch:active { transform: scale(.92); }
 .swatch.selected { transform: scale(1.12); border-color: #fff; box-shadow: 0 0 0 4px #6c5ce7, 0 4px 10px rgba(0, 0, 0, .25); }

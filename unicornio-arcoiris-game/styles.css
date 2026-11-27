@@ -93,23 +93,33 @@ button.mode-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,
     border: 3px solid #fff; box-shadow: 0 3px 8px rgba(80, 40, 120, .2);
 }
 .sticker svg { width: 86%; height: 86%; }
-.sticker .acc { position: absolute; right: -4px; top: -6px; font-size: 1.1rem; }
+.sticker .acc { position: absolute; right: -4px; top: -6px; font-size: 1.1rem; line-height: 1; }
 .sticker.empty { background: #ece6f5; color: #b9a9d4; font-family: 'Fredoka One', cursive; font-size: 1.4rem; border-style: dashed; border-color: #d6c8ec; box-shadow: none; }
 
 /* ---------- Palco do arco-iris ---------- */
 #game-screen.active { max-width: 680px; }
 .stage {
-    position: relative; width: 100%; max-width: 560px; margin: 0 auto;
-    background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.15));
+    position: relative; width: 100%; max-width: 560px; margin: 0 auto; contain: layout paint;
+    background: linear-gradient(180deg, #6ec6ff 0%, #a9dcff 45%, #e6f4ff 100%);
+    box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .6), 0 8px 22px rgba(80, 40, 120, .18);
     border-radius: 26px; padding: 6px 6px 0; overflow: hidden;
 }
 .rainbow { display: block; width: 100%; height: auto; }
-.band-empty { fill: none; stroke: rgba(255, 255, 255, .7); stroke-dasharray: 3 3; }
-.band-fill { fill: none; stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset .9s ease-out; }
-.band-fill.on { stroke-dashoffset: 0; }
+.band-empty { fill: none; stroke: rgba(255, 255, 255, .28); }
+.band path { fill: none; stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset .9s cubic-bezier(.25,.8,.35,1); }
+.band.on path { stroke-dashoffset: 0; }
+.band-halo { opacity: .5; }
+.band-hi { stroke: #fff; opacity: .42; }
+.band-lo { stroke: #2a1050; opacity: .1; }
+/* nuvens do fundo andando devagar */
+.cloud.drift .cloud-in { animation: drift 46s linear infinite; }
+.cloud.d2 .cloud-in { animation-duration: 64s; animation-delay: -30s; }
+@keyframes drift { from { transform: translateX(-140px); } to { transform: translateX(560px); } }
 .band-glow { fill: none; stroke: rgba(255, 255, 255, 0); pointer-events: none; }
 .rainbow.shine .band-glow { animation: shine 1.2s ease-in-out infinite; }
 .rainbow.shine .band-fill { filter: saturate(1.25); }
+.rainbow.shine .band-halo { animation: halo 1.6s ease-in-out infinite; }
+@keyframes halo { 50% { opacity: .9; } }
 @keyframes shine { 0%, 100% { stroke: rgba(255, 255, 255, 0); } 50% { stroke: rgba(255, 255, 255, .35); } }
 .cloud { filter: drop-shadow(0 3px 2px rgba(80, 40, 120, .18)); }
 #uni-use { transform-box: fill-box; transform-origin: 50% 100%; }
@@ -144,29 +154,36 @@ button.mode-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,
     box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .7);
 }
 .balloon {
-    position: absolute; top: 100%; width: 19%; max-width: 92px; min-width: 64px; height: 120px;
+    position: absolute; top: 0; width: 19%; max-width: 92px; min-width: 64px; height: 120px;
     border: none; background: none; padding: 0; cursor: pointer; touch-action: none;
-    animation: rise 10s linear forwards;
+    transform: translateY(600px); will-change: transform;
 }
 .sky-field .balloon { --sway: 1; }
 .balloon-body {
     position: absolute; left: 50%; top: 0; width: 100%; aspect-ratio: 5 / 6; transform: translateX(-50%);
     border-radius: 50% 50% 48% 48% / 55% 55% 45% 45%;
-    background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.75) 0 10%, transparent 11%), var(--c);
-    box-shadow: inset -6px -8px 0 rgba(0, 0, 0, .15), 0 4px 8px rgba(0, 0, 0, .15);
-    animation: sway 2.4s ease-in-out infinite;
+    /* balao de latex: reflexo forte, luz suave e borda mais escura */
+    background:
+        radial-gradient(ellipse 18% 13% at 33% 24%, rgba(255,255,255,.95), rgba(255,255,255,0) 100%),
+        radial-gradient(circle at 36% 30%, rgba(255,255,255,.45) 0, rgba(255,255,255,0) 45%),
+        radial-gradient(circle at 60% 70%, rgba(0,0,0,0) 40%, rgba(0,0,0,.28) 100%),
+        var(--c);
+    box-shadow: inset -4px -6px 10px rgba(0, 0, 0, .12), 0 6px 10px rgba(40, 20, 80, .18);
+    animation: sway var(--sw, 2.4s) ease-in-out infinite;
 }
 .balloon-body::after {
     content: ''; position: absolute; left: 50%; bottom: -7px; transform: translateX(-50%);
     border: 7px solid transparent; border-bottom-color: var(--c); border-top: 0;
     transform: translateX(-50%) rotate(180deg);
 }
-.balloon-string { position: absolute; left: 50%; top: 82%; width: 2px; height: 36px; background: rgba(90, 70, 120, .45); }
-@keyframes rise { from { top: 100%; } to { top: -140px; } }
-@keyframes sway { 0%, 100% { margin-left: -6px; } 50% { margin-left: 6px; } }
+.balloon-body { z-index: 1; }
+.balloon-string { position: absolute; z-index: 0; left: 50%; top: 82%; width: 2px; height: 36px; background: rgba(90, 70, 120, .45); }
+@keyframes sway { 0%, 100% { transform: translateX(calc(-50% - 6px)) rotate(-3deg); } 50% { transform: translateX(calc(-50% + 6px)) rotate(3deg); } }
+.balloon.hint .balloon-body { animation: hint 1s ease-in-out infinite; }
+@keyframes hint { 0%, 100% { transform: translateX(-50%) scale(1); filter: drop-shadow(0 0 0 #fff); } 50% { transform: translateX(-50%) scale(1.1); filter: drop-shadow(0 0 12px #fff); } }
 .balloon.wobble .balloon-body { animation: wobble .6s ease; }
 @keyframes wobble { 20% { transform: translateX(-50%) rotate(-14deg); } 45% { transform: translateX(-50%) rotate(12deg); } 70% { transform: translateX(-50%) rotate(-7deg); } }
-.balloon.popped { pointer-events: none; animation-play-state: paused; }
+.balloon.popped { pointer-events: none; }
 .balloon.popped .balloon-body { animation: pop .4s ease forwards; }
 .balloon.popped .balloon-string { opacity: 0; }
 @keyframes pop { to { transform: translateX(-50%) scale(1.6); opacity: 0; } }
@@ -185,7 +202,10 @@ button.mode-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,
     box-shadow: 0 5px 0 rgba(0, 0, 0, .14); touch-action: none; user-select: none; -webkit-user-select: none;
     transition: transform .15s, opacity .3s; position: relative;
 }
-.chip-swatch { width: 52px; height: 52px; border-radius: 50%; background: var(--c); box-shadow: inset 0 -6px 0 rgba(0, 0, 0, .18); }
+.chip-swatch {
+    width: 52px; height: 52px; border-radius: 50%; box-shadow: inset 0 -5px 8px rgba(0, 0, 0, .2), 0 3px 4px rgba(0, 0, 0, .15);
+    background: radial-gradient(ellipse 30% 22% at 34% 26%, rgba(255,255,255,.9), rgba(255,255,255,0)), radial-gradient(circle at 40% 35%, rgba(255,255,255,.25), rgba(0,0,0,.18) 100%), var(--c);
+}
 .chip-name { font-weight: 800; font-size: .85rem; color: #5a4a72; }
 .chip-color.dragging { z-index: 20; transition: none; cursor: grabbing; box-shadow: 0 12px 24px rgba(0, 0, 0, .25); }
 .chip-color.used { opacity: 0; transform: scale(.4); pointer-events: none; }
@@ -255,4 +275,9 @@ button.mode-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,
 @media (max-height: 700px) and (min-width: 601px) {
     .hero-unicorn { width: 100px; height: 84px; }
     .mode-btn { min-height: 110px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cloud.drift .cloud-in, .balloon-body, .hero-unicorn, .prompt-dot, .rainbow.shine .band-glow, .rainbow.shine .band-halo { animation: none !important; }
+    .band path { transition-duration: .2s; }
 }

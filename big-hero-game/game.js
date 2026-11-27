@@ -525,7 +525,15 @@ const CHARACTER_THEMES = {
 };
 
 // Função para obter cenário modificado pelo personagem
+var modLevelCache = { key: '', value: null };
 function getModifiedLevel(levelId) {
+    const key = levelId + '|' + gameState.selectedCharacter;
+    if (modLevelCache.key === key) return modLevelCache.value;
+    modLevelCache.key = key;
+    modLevelCache.value = buildModifiedLevel(levelId);
+    return modLevelCache.value;
+}
+function buildModifiedLevel(levelId) {
     const baseLevel = { ...LEVELS[levelId] };
     const charId = gameState.selectedCharacter;
 
@@ -682,13 +690,27 @@ function initCanvas() {
     window.addEventListener('resize', resizeCanvas);
 }
 
+// Densidade de pixels (nitido no tablet, limitado a 2 e a ~2,4 milhoes de pixels)
+var DPR = 1;   // var: init() roda antes das declaracoes "let" abaixo
 function resizeCanvas() {
     if (!canvas) return;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    CONFIG.CANVAS_WIDTH = canvas.width;
-    CONFIG.CANVAS_HEIGHT = canvas.height;
-    CONFIG.GROUND_HEIGHT = canvas.height * 0.15;
+    const w = window.innerWidth, h = window.innerHeight;
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    const maxPx = 2400000;
+    if (w * h * DPR * DPR > maxPx) DPR = Math.max(1, Math.sqrt(maxPx / (w * h)));
+    canvas.width = Math.round(w * DPR);
+    canvas.height = Math.round(h * DPR);
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    const oldGround = CONFIG.CANVAS_HEIGHT - CONFIG.GROUND_HEIGHT;
+    CONFIG.CANVAS_WIDTH = w;
+    CONFIG.CANVAS_HEIGHT = h;
+    CONFIG.GROUND_HEIGHT = h * 0.15;
+    // girou o tablet no meio da fase: personagem continua no chao novo
+    if (gameState.isPlaying && player.y >= oldGround - player.height - 1) {
+        player.y = CONFIG.CANVAS_HEIGHT - CONFIG.GROUND_HEIGHT - player.height;
+    }
+    invalidateSceneCache();
 }
 
 function initEventListeners() {
@@ -1017,8 +1039,13 @@ function startGame() {
     civiliansRescued = 0;
     villainsDefeated = 0;
 
+    // relogio agora anda dentro do loop (para junto com a pausa e com a aba escondida)
     if (gameTimer) clearInterval(gameTimer);
-    gameTimer = setInterval(updateGameTimer, 1000);
+    gameTimer = null;
+    stepAcc = 0; clockAcc = 0; hitStopMs = 0;
+    collectStreak = 0; lastCollectAt = -99999;
+    player.squashY = 1; player.wasAirborne = false;
+    buildSceneCache();
 
     lastFrameTime = performance.now();
     const id = ++loopId;
@@ -1095,15 +1122,37 @@ function initBackgroundElements() {
 // GAME LOOP
 // ==========================================
 
+// Passo fixo: a fisica foi feita "por quadro" (60 por segundo). Com o acumulador
+// ela anda na mesma velocidade em tablet de 30, 60 ou 120 Hz.
+const STEP_MS = 1000 / 60;
+var stepAcc = 0;       // tempo acumulado ainda nao simulado
+var clockAcc = 0;      // relogio da fase (substitui o setInterval)
+var hitStopMs = 0;     // pausinha de impacto ao pegar algo (game feel)
+
 function gameLoop(currentTime, id) {
     if (!gameState.isPlaying || id !== loopId) return;
 
-    const deltaTime = currentTime - lastFrameTime;
+    let dt = currentTime - lastFrameTime;
     lastFrameTime = currentTime;
+    if (dt > 50) dt = 50;      // voltou de outra aba / engasgo: nao "teleporta"
+    if (dt < 0) dt = 0;
 
     if (!gameState.isPaused) {
-        update(deltaTime);
-        render();
+        if (hitStopMs > 0) {
+            hitStopMs -= dt;
+        } else {
+            stepAcc += dt;
+            let steps = 0;
+            while (stepAcc >= STEP_MS && steps < 4 && gameState.isPlaying) {
+                update(STEP_MS);
+                stepAcc -= STEP_MS;
+                steps++;
+                clockAcc += STEP_MS;
+                if (clockAcc >= 1000) { clockAcc -= 1000; updateGameTimer(); }
+            }
+            if (steps >= 4) stepAcc = 0;
+        }
+        if (gameState.isPlaying && id === loopId) render();
     }
 
     requestAnimationFrame(t => gameLoop(t, id));
@@ -1162,7 +1211,8 @@ function update(deltaTime) {
     updatePowerups(baseSpeed);
     updateCivilians(baseSpeed);
     updateVillains(baseSpeed);
-    if (userSettings.particles) updateParticles();
+    updateParticles();
+    updateFloaters();
     checkCollisions();
     checkCivilianCollisions();
     updateHUD();
@@ -1254,6 +1304,7 @@ function updatePlayer(char) {
 
     // Chão
     if (player.y >= groundY) {
+        if (player.wasAirborne && player.velocityY > 4) landImpact(player.velocityY);
         player.y = groundY;
         player.velocityY = 0;
         player.isJumping = false;
@@ -1269,6 +1320,23 @@ function updatePlayer(char) {
 
     // Agachar
     player.height = player.isCrouching ? 50 : 90;
+
+    // squash & stretch: no ar estica conforme a velocidade, no chao volta ao normal
+    player.wasAirborne = player.y < groundY - 1;
+    const alvo = player.wasAirborne && !player.isFlying ? 1 + Math.min(0.12, Math.abs(player.velocityY) * 0.006) : 1;
+    player.squashY += (alvo - player.squashY) * 0.25;
+}
+
+function landImpact(vy) {
+    player.squashY = Math.max(0.78, 1 - vy * 0.012);   // amassa no pouso
+    const n = userSettings.particles ? 8 : 0;
+    for (let i = 0; i < n; i++) {
+        const dir = i % 2 ? 1 : -1;
+        addParticle(player.x + player.width / 2 + dir * (6 + Math.random() * 14),
+            CONFIG.CANVAS_HEIGHT - CONFIG.GROUND_HEIGHT - 2,
+            dir * (1.5 + Math.random() * 2.5), -0.5 - Math.random() * 1.5,
+            4 + Math.random() * 5, 'rgba(200, 200, 230, 0.55)', 'dust');
+    }
 }
 
 function createThrusterParticle() {
@@ -1289,6 +1357,8 @@ function jump() {
     const char = CHARACTERS[gameState.selectedCharacter];
     player.isJumping = true;
     player.velocityY = -18 * (char ? char.jumpPower : 1);
+    player.squashY = 1.18;   // estica no impulso
+    sfx('whoosh');
 
     // Partículas de salto
     for (let i = 0; i < 5; i++) {
@@ -1319,6 +1389,7 @@ function activatePower() {
 
     player.isPowerActive = true;
     player.powerCharge = 0;
+    sfx('sparkle');
 
     // Efeito visual
     for (let i = 0; i < 30; i++) {
@@ -1485,6 +1556,7 @@ function checkCivilianCollisions() {
             civiliansRescued++;
             gameState.score += 150; // Pontos por salvar alguém
             createRescueEffect(civ.x, civ.y);
+            onCatch(civ.x + 20, civ.y + 10, '#FF8DC7', 150);
         }
     });
 
@@ -1498,6 +1570,7 @@ function checkCivilianCollisions() {
                     villainsDefeated++;
                     gameState.score += 200; // Pontos por derrotar vilão
                     createDefeatEffect(vil.x, vil.y);
+                    onCatch(vil.x + 25, vil.y + 10, '#FFB347', 200);
                 }
             } else {
                 // Jogador sem poder é empurrado para trás
@@ -1515,8 +1588,8 @@ function createRescueEffect(x, y) {
             y: y + 30,
             vx: (Math.random() - 0.5) * 6,
             vy: -Math.random() * 8 - 2,
-            life: 60,
-            maxLife: 60,
+            size: 6 + Math.random() * 6,
+            life: 1.3,
             type: 'rescue',
             color: Math.random() > 0.5 ? '#FF69B4' : '#FFD700'
         });
@@ -1532,8 +1605,8 @@ function createDefeatEffect(x, y) {
             y: y + 30,
             vx: Math.cos(angle) * (3 + Math.random() * 4),
             vy: Math.sin(angle) * (3 + Math.random() * 4),
-            life: 45,
-            maxLife: 45,
+            size: 6 + Math.random() * 8,
+            life: 1,
             type: 'defeat',
             color: Math.random() > 0.5 ? '#FF4444' : '#FF8800'
         });
@@ -1975,6 +2048,7 @@ function checkCollisions() {
                 player.hasShield = false;
                 document.getElementById('shield-indicator')?.classList.add('hidden');
                 createExplosion(obs.x + obs.width / 2, obs.y + obs.height / 2);
+                sfx('pop');
                 obstacles = obstacles.filter(o => o !== obs);
                 gameState.obstaclesPassed++;
             } else if (player.isPowerActive) {
@@ -2024,6 +2098,10 @@ function collectPowerup(powerup) {
             gameState.score += CONFIG.POINTS_PER_POWERUP;
             break;
     }
+    const puColor = powerup.type === 'speed' ? '#FFC93C' : powerup.type === 'shield' ? '#5DADE2' :
+        powerup.type === 'power' ? '#FF6B6B' : '#C39BD3';
+    onCatch(powerup.x + powerup.width / 2, powerup.y + powerup.height / 2, puColor,
+        powerup.type === 'points' ? CONFIG.POINTS_PER_POWERUP : 0);
 
     // Efeito
     for (let i = 0; i < 15; i++) {
@@ -2057,17 +2135,85 @@ function createExplosion(x, y) {
     }
 }
 
+// Particulas: atualiza no proprio vetor (sem criar vetor novo a cada quadro)
+const MAX_PARTICLES = 260;
+function addParticle(x, y, vx, vy, size, color, type) {
+    if (particles.length >= MAX_PARTICLES) return;
+    particles.push({ x, y, vx, vy, size, life: 1, color, type });
+}
+
+// ---------- Retorno ao pegar algo (som que sobe, pausinha, brilhos, texto) ----------
+var collectStreak = 0, lastCollectAt = -99999;
+var floaters = [];   // textos "+100" que sobem
+function sfx(name) {
+    if (!userSettings.sound) return;
+    try { if (window.KidsAudio) KidsAudio.play(name); } catch (e) {}
+}
+function onCatch(x, y, color, points) {
+    const now = performance.now();
+    collectStreak = now - lastCollectAt < 3500 ? Math.min(collectStreak + 1, 10) : 0;
+    lastCollectAt = now;
+    hitStopMs = 50;   // 50 ms de "congelada" = sensacao de impacto
+    if (userSettings.sound) { try { if (window.KidsAudio) KidsAudio.note(collectStreak); } catch (e) {} }
+    if (userSettings.particles) {
+        for (let i = 0; i < 10; i++) {
+            const a = (i / 10) * Math.PI * 2;
+            addParticle(x, y, Math.cos(a) * (3 + Math.random() * 3), Math.sin(a) * (3 + Math.random() * 3) - 1.5,
+                5 + Math.random() * 5, i % 2 ? '#FFFFFF' : color, 'sparkle');
+        }
+    }
+    if (points) {
+        if (floaters.length > 6) floaters.shift();
+        floaters.push({ x, y, text: '+' + points, life: 1, color });
+    }
+}
+function updateFloaters() {
+    for (let i = 0; i < floaters.length; i++) { floaters[i].y -= 1.2; floaters[i].life -= 0.022; }
+}
+function drawFloaters() {
+    if (!floaters.length) return;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = 'bold 26px "Fredoka One", "Arial Rounded MT Bold", sans-serif';
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+    let w = 0;
+    for (let i = 0; i < floaters.length; i++) {
+        const fl = floaters[i];
+        if (fl.life <= 0) continue;
+        ctx.globalAlpha = Math.min(1, fl.life * 1.6);
+        const k = 1 + (1 - fl.life) * 0.25;
+        ctx.save();
+        ctx.translate(fl.x, fl.y);
+        ctx.scale(k, k);
+        ctx.strokeText(fl.text, 0, 0);
+        ctx.fillStyle = fl.color;
+        ctx.fillText(fl.text, 0, 0);
+        ctx.restore();
+        floaters[w++] = fl;
+    }
+    floaters.length = w;
+    ctx.globalAlpha = 1;
+}
+
 function updateParticles() {
-    particles = particles.filter(p => {
+    let w = 0;
+    for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
         p.x += p.vx;
         p.y += p.vy;
         if (p.type === 'dust' || p.type === 'thruster') {
             p.vy += 0.1;
+        } else if (p.type === 'rescue' || p.type === 'sparkle') {
+            p.vy += 0.15;
+            p.vx *= 0.98;
         }
         p.life -= 0.02;
         p.size *= 0.97;
-        return p.life > 0 && p.size > 0.5;
-    });
+        if (p.life > 0 && p.size > 0.5) particles[w++] = p;
+    }
+    particles.length = w;
+    if (particles.length > MAX_PARTICLES) particles.splice(0, particles.length - MAX_PARTICLES);
 }
 
 // ==========================================
@@ -2076,7 +2222,8 @@ function updateParticles() {
 
 function render() {
     if (!ctx) return;
-    ctx.clearRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    if (!sceneCache.sky || sceneCache.key !== sceneKey()) buildSceneCache();
 
     drawBackground();
     drawBuildings();
@@ -2086,159 +2233,253 @@ function render() {
     drawObstacles();
     drawPowerups();
     drawPlayer();
-    drawParticles();
+    if (userSettings.particles) drawParticles();
+    drawFloaters();
     drawEffects();
+}
+
+// ==========================================
+// CENARIO EM CACHE (ceu, lua, predios e chao desenhados uma vez em canvas fora da tela)
+// ==========================================
+var sceneCache = { key: '', sky: null, ground: null, groundTop: 0 };
+
+function sceneKey() {
+    return gameState.currentLevel + '|' + gameState.selectedCharacter + '|' + CONFIG.CANVAS_WIDTH + 'x' + CONFIG.CANVAS_HEIGHT + '@' + DPR;
+}
+function invalidateSceneCache() { if (sceneCache) sceneCache.key = ''; }
+
+function makeLayer(w, h, scale) {
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.ceil(w * scale));
+    c.height = Math.max(1, Math.ceil(h * scale));
+    const g = c.getContext('2d');
+    g.setTransform(scale, 0, 0, scale, 0, 0);
+    return { c, g };
+}
+
+// cor da lua/brilho por fase
+const MOON_COLORS = { 1: '#FFF4C2', 2: '#BFF6FF', 3: '#D9D9D9', 4: '#FFC2F5', 5: '#FFB199' };
+
+function buildSceneCache() {
+    if (!ctx) return;
+    const level = getModifiedLevel(gameState.currentLevel);
+    const W = CONFIG.CANVAS_WIDTH, H = CONFIG.CANVAS_HEIGHT;
+    const groundY = H - CONFIG.GROUND_HEIGHT;
+    sceneCache.key = sceneKey();
+
+    // --- ceu: degrade de 3 cores + lua com halo radial + neblina no horizonte ---
+    const sky = makeLayer(W, H, DPR);
+    const g = sky.g;
+    const grad = g.createLinearGradient(0, 0, 0, groundY);
+    level.skyColors.forEach((color, i) => grad.addColorStop(i / (level.skyColors.length - 1), color));
+    g.fillStyle = grad;
+    g.fillRect(0, 0, W, H);
+    const mx = W * 0.78, my = Math.min(H * 0.17, 140), mr = Math.max(26, Math.min(W, H) * 0.045);
+    const moon = MOON_COLORS[gameState.currentLevel] || '#FFF4C2';
+    const halo = g.createRadialGradient(mx, my, mr * 0.6, mx, my, mr * 5);
+    halo.addColorStop(0, hexA(moon, 0.35));
+    halo.addColorStop(0.35, hexA(moon, 0.12));
+    halo.addColorStop(1, hexA(moon, 0));
+    g.fillStyle = halo;
+    g.fillRect(mx - mr * 5, my - mr * 5, mr * 10, mr * 10);
+    const disk = g.createRadialGradient(mx - mr * 0.35, my - mr * 0.35, mr * 0.1, mx, my, mr);
+    disk.addColorStop(0, '#FFFFFF');
+    disk.addColorStop(0.6, moon);
+    disk.addColorStop(1, hexA(moon, 0.85));
+    g.fillStyle = disk;
+    g.beginPath(); g.arc(mx, my, mr, 0, Math.PI * 2); g.fill();
+    // crateras suaves
+    g.fillStyle = 'rgba(0,0,0,0.06)';
+    g.beginPath(); g.arc(mx + mr * 0.3, my + mr * 0.15, mr * 0.22, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.arc(mx - mr * 0.25, my + mr * 0.4, mr * 0.13, 0, Math.PI * 2); g.fill();
+    // neblina neon no horizonte (luz da cidade)
+    const haze = g.createLinearGradient(0, groundY - H * 0.35, 0, groundY);
+    haze.addColorStop(0, hexA(level.groundTop, 0));
+    haze.addColorStop(1, hexA(level.groundTop, 0.28));
+    g.fillStyle = haze;
+    g.fillRect(0, groundY - H * 0.35, W, H * 0.35);
+    sceneCache.sky = sky.c;
+
+    // --- chao: degrade + linha neon com brilho (o shadowBlur roda so aqui, uma vez) ---
+    const top = 24;
+    const gh = CONFIG.GROUND_HEIGHT + top;
+    const gr = makeLayer(W, gh, DPR);
+    const gg = gr.g;
+    const groundGrad = gg.createLinearGradient(0, top, 0, gh);
+    groundGrad.addColorStop(0, level.groundTop);
+    groundGrad.addColorStop(0.1, level.groundColor);
+    groundGrad.addColorStop(1, '#000000');
+    gg.fillStyle = groundGrad;
+    gg.fillRect(0, top, W, gh - top);
+    // reflexo de luz no asfalto
+    const shine = gg.createLinearGradient(0, top, 0, top + CONFIG.GROUND_HEIGHT * 0.5);
+    shine.addColorStop(0, 'rgba(255,255,255,0.10)');
+    shine.addColorStop(1, 'rgba(255,255,255,0)');
+    gg.fillStyle = shine;
+    gg.fillRect(0, top, W, CONFIG.GROUND_HEIGHT * 0.5);
+    gg.strokeStyle = level.groundTop;
+    gg.shadowColor = level.groundTop;
+    gg.shadowBlur = 20;
+    gg.lineWidth = 3;
+    gg.beginPath(); gg.moveTo(-20, top); gg.lineTo(W + 20, top); gg.stroke();
+    gg.shadowBlur = 0;
+    sceneCache.ground = gr.c;
+    sceneCache.groundTop = top;
+
+    // --- predios: cada um vira uma figurinha (janelas fixas, sem piscar aleatorio) ---
+    const bScale = Math.min(DPR, 1.5);
+    backgroundElements.buildings.forEach(b => { b.sprite = makeBuildingSprite(b, level, bScale); });
+    backgroundElements.buildings.sort((a, b) => a.layer - b.layer);
+}
+
+// "#rrggbb" + alfa -> rgba()
+function hexA(hex, a) {
+    const n = parseInt(String(hex).replace('#', '').slice(0, 6), 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+}
+
+const BUILD_PAD = 18, BUILD_TOP = 40;   // folga para o brilho neon e a antena
+function makeBuildingSprite(b, level, scale) {
+    const w = b.width, h = b.height;
+    const L = makeLayer(w + BUILD_PAD * 2, h + BUILD_TOP, scale);
+    const g = L.g;
+    const x = BUILD_PAD, y = BUILD_TOP;
+    const body = g.createLinearGradient(x, y, x, y + h);
+    body.addColorStop(0, level.buildingColors[b.layer] || '#1A1A2E');
+    body.addColorStop(1, '#0A0A15');
+    g.fillStyle = body;
+    g.fillRect(x, y, w, h);
+    // luz lateral (volume)
+    const side = g.createLinearGradient(x, 0, x + w, 0);
+    side.addColorStop(0, 'rgba(255,255,255,0.07)');
+    side.addColorStop(0.5, 'rgba(255,255,255,0)');
+    side.addColorStop(1, 'rgba(0,0,0,0.25)');
+    g.fillStyle = side;
+    g.fillRect(x, y, w, h);
+    // janelas com padrao fixo (semente por predio)
+    let seed = (b.seed = b.seed || Math.floor(Math.random() * 1e9));
+    const rnd = () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
+    const rows = Math.floor(h / 25), cols = b.windows;
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            if (rnd() > 0.3) {
+                const wx = x + 10 + c * (w - 20) / cols;
+                const wy = y + 15 + r * 25;
+                if (rnd() > 0.5) {
+                    g.fillStyle = 'rgba(255, 240, 160, ' + (0.35 + rnd() * 0.4).toFixed(2) + ')';
+                    g.fillRect(wx, wy, 12, 15);
+                    g.fillStyle = 'rgba(255,255,255,0.25)';
+                    g.fillRect(wx, wy, 12, 3);
+                } else {
+                    g.fillStyle = 'rgba(50, 50, 80, 0.5)';
+                    g.fillRect(wx, wy, 12, 15);
+                }
+            }
+        }
+    }
+    // letreiro neon no topo (predios da frente)
+    if (b.layer === 2 && rnd() > 0.55) {
+        g.shadowColor = b.neonColor;
+        g.shadowBlur = 15;
+        g.fillStyle = b.neonColor;
+        g.fillRect(x + 5, y - 5, w - 10, 3);
+        g.shadowBlur = 0;
+    }
+    // camadas de tras ficam enevoadas (profundidade da parallax)
+    if (b.layer < 2) {
+        g.globalCompositeOperation = 'source-atop';
+        g.fillStyle = hexA(level.skyColors[level.skyColors.length - 1], b.layer === 0 ? 0.5 : 0.22);
+        g.fillRect(0, 0, w + BUILD_PAD * 2, h + BUILD_TOP);
+        g.globalCompositeOperation = 'source-over';
+    }
+    if (b.hasAntenna && b.layer === 2) {
+        g.strokeStyle = '#666';
+        g.lineWidth = 2;
+        g.beginPath(); g.moveTo(x + w / 2, y); g.lineTo(x + w / 2, y - 30); g.stroke();
+    }
+    return L.c;
 }
 
 function drawBackground() {
     const level = getModifiedLevel(gameState.currentLevel);
+    const W = CONFIG.CANVAS_WIDTH, H = CONFIG.CANVAS_HEIGHT;
+    ctx.drawImage(sceneCache.sky, 0, 0, W, H);
 
-    // Gradiente do céu
-    const skyGrad = ctx.createLinearGradient(0, 0, 0, CONFIG.CANVAS_HEIGHT);
-    level.skyColors.forEach((color, i) => {
-        skyGrad.addColorStop(i / (level.skyColors.length - 1), color);
-    });
-    ctx.fillStyle = skyGrad;
-    ctx.fillRect(0, 0, CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT);
-
-    // Estrelas
+    // Estrelas (quadradinhos com alfa: bem mais barato que arc + rgba novo)
     if (level.hasStars) {
-        backgroundElements.stars.forEach(star => {
-            const brightness = 0.5 + Math.sin(star.twinkle) * 0.5;
-            ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
-            ctx.beginPath();
-            ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-            ctx.fill();
-        });
+        ctx.fillStyle = '#FFFFFF';
+        const stars = backgroundElements.stars;
+        for (let i = 0; i < stars.length; i++) {
+            const star = stars[i];
+            ctx.globalAlpha = 0.3 + (0.5 + Math.sin(star.twinkle) * 0.5) * 0.7;
+            const z = star.size * 1.4;
+            ctx.fillRect(star.x - z / 2, star.y - z / 2, z, z);
+        }
+        ctx.globalAlpha = 1;
     }
 
     // Nuvens
-    backgroundElements.clouds.forEach(cloud => {
+    if (backgroundElements.clouds.length) {
         ctx.fillStyle = level.cloudColor || 'rgba(255, 255, 255, 0.1)';
-        for (let i = 0; i < 3; i++) {
-            ctx.beginPath();
-            ctx.ellipse(cloud.x + i * 40, cloud.y, cloud.width / 3, 30, 0, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    });
+        backgroundElements.clouds.forEach(cloud => {
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.ellipse(cloud.x + i * 40, cloud.y, cloud.width / 3, 30, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        });
+    }
 
     // Efeito de portal
     if (level.hasPortalEffect) {
         const time = gameState.animationFrame * 0.02;
+        ctx.lineWidth = 3;
         for (let i = 0; i < 5; i++) {
-            ctx.strokeStyle = `rgba(${150 + i * 20}, 0, ${200 + i * 10}, ${0.3 - i * 0.05})`;
-            ctx.lineWidth = 3;
+            ctx.strokeStyle = PORTAL_RING_COLORS[i];
             ctx.beginPath();
-            ctx.arc(CONFIG.CANVAS_WIDTH / 2, CONFIG.CANVAS_HEIGHT / 3, 100 + i * 50 + Math.sin(time + i) * 20, 0, Math.PI * 2);
+            ctx.arc(W / 2, H / 3, 100 + i * 50 + Math.sin(time + i) * 20, 0, Math.PI * 2);
             ctx.stroke();
         }
     }
 }
+const PORTAL_RING_COLORS = [0, 1, 2, 3, 4].map(i => 'rgba(' + (150 + i * 20) + ', 0, ' + (200 + i * 10) + ', ' + (0.3 - i * 0.05).toFixed(2) + ')');
 
 function drawBuildings() {
-    const level = getModifiedLevel(gameState.currentLevel);
-
-    // Ordenar por camada
-    const sortedBuildings = [...backgroundElements.buildings].sort((a, b) => a.layer - b.layer);
-
-    sortedBuildings.forEach(building => {
-        const baseY = CONFIG.CANVAS_HEIGHT - CONFIG.GROUND_HEIGHT;
-        const alpha = 0.3 + building.layer * 0.2;
-
-        // Corpo do prédio
-        const buildingGrad = ctx.createLinearGradient(building.x, baseY - building.height, building.x, baseY);
-        buildingGrad.addColorStop(0, level.buildingColors[building.layer] || '#1A1A2E');
-        buildingGrad.addColorStop(1, '#0A0A15');
-        ctx.fillStyle = buildingGrad;
-        ctx.fillRect(building.x, baseY - building.height, building.width, building.height);
-
-        // Janelas
-        const windowRows = Math.floor(building.height / 25);
-        const windowCols = building.windows;
-        ctx.fillStyle = `rgba(255, 255, 200, ${0.1 + Math.random() * 0.2})`;
-
-        for (let row = 0; row < windowRows; row++) {
-            for (let col = 0; col < windowCols; col++) {
-                if (Math.random() > 0.3) {
-                    const wx = building.x + 10 + col * (building.width - 20) / windowCols;
-                    const wy = baseY - building.height + 15 + row * 25;
-
-                    // Janela acesa aleatoriamente
-                    if (Math.random() > 0.5) {
-                        ctx.fillStyle = `rgba(255, 255, 150, ${0.3 + Math.random() * 0.4})`;
-                    } else {
-                        ctx.fillStyle = 'rgba(50, 50, 80, 0.5)';
-                    }
-                    ctx.fillRect(wx, wy, 12, 15);
-                }
-            }
+    const baseY = CONFIG.CANVAS_HEIGHT - CONFIG.GROUND_HEIGHT;
+    const blds = backgroundElements.buildings;
+    const blink = Math.sin(gameState.animationFrame * 0.1) > 0;
+    for (let i = 0; i < blds.length; i++) {
+        const b = blds[i];
+        if (b.x > CONFIG.CANVAS_WIDTH + 20 || b.x + b.width < -20) continue;
+        if (b.sprite) {
+            ctx.drawImage(b.sprite, b.x - BUILD_PAD, baseY - b.height - BUILD_TOP, b.width + BUILD_PAD * 2, b.height + BUILD_TOP);
         }
-
-        // Neon no topo
-        if (building.layer === 2 && Math.random() > 0.7) {
-            ctx.shadowColor = building.neonColor;
-            ctx.shadowBlur = 15;
-            ctx.fillStyle = building.neonColor;
-            ctx.fillRect(building.x + 5, baseY - building.height - 5, building.width - 10, 3);
-            ctx.shadowBlur = 0;
+        // luz da antena piscando (halo sem shadowBlur)
+        if (blink && b.hasAntenna && b.layer === 2) {
+            const ax = b.x + b.width / 2, ay = baseY - b.height - 30;
+            ctx.fillStyle = 'rgba(255, 40, 40, 0.25)';
+            ctx.beginPath(); ctx.arc(ax, ay, 9, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#FF3030';
+            ctx.beginPath(); ctx.arc(ax, ay, 3, 0, Math.PI * 2); ctx.fill();
         }
-
-        // Antena
-        if (building.hasAntenna && building.layer === 2) {
-            ctx.strokeStyle = '#666';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(building.x + building.width / 2, baseY - building.height);
-            ctx.lineTo(building.x + building.width / 2, baseY - building.height - 30);
-            ctx.stroke();
-
-            // Luz piscando
-            if (Math.sin(gameState.animationFrame * 0.1) > 0) {
-                ctx.fillStyle = '#FF0000';
-                ctx.shadowColor = '#FF0000';
-                ctx.shadowBlur = 10;
-                ctx.beginPath();
-                ctx.arc(building.x + building.width / 2, baseY - building.height - 30, 3, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            }
-        }
-    });
+    }
 }
 
 function drawGround() {
     const level = getModifiedLevel(gameState.currentLevel);
     const groundY = CONFIG.CANVAS_HEIGHT - CONFIG.GROUND_HEIGHT;
+    ctx.drawImage(sceneCache.ground, 0, groundY - sceneCache.groundTop, CONFIG.CANVAS_WIDTH, CONFIG.GROUND_HEIGHT + sceneCache.groundTop);
 
-    // Chão principal
-    const groundGrad = ctx.createLinearGradient(0, groundY, 0, CONFIG.CANVAS_HEIGHT);
-    groundGrad.addColorStop(0, level.groundTop);
-    groundGrad.addColorStop(0.1, level.groundColor);
-    groundGrad.addColorStop(1, '#000000');
-    ctx.fillStyle = groundGrad;
-    ctx.fillRect(0, groundY, CONFIG.CANVAS_WIDTH, CONFIG.GROUND_HEIGHT);
-
-    // Linha neon no topo
-    ctx.strokeStyle = level.groundTop;
-    ctx.shadowColor = level.groundTop;
-    ctx.shadowBlur = 20;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(0, groundY);
-    ctx.lineTo(CONFIG.CANVAS_WIDTH, groundY);
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-
-    // Linhas de grade
-    ctx.strokeStyle = `${level.groundTop}33`;
+    // Linhas de grade (um unico caminho)
+    ctx.strokeStyle = level.groundTop + '33';
     ctx.lineWidth = 1;
-    for (let i = 0; i < CONFIG.CANVAS_WIDTH; i += 50) {
-        const offset = (gameState.animationFrame * 3) % 50;
-        ctx.beginPath();
+    const offset = (gameState.animationFrame * 3) % 50;
+    ctx.beginPath();
+    for (let i = 0; i < CONFIG.CANVAS_WIDTH + 80; i += 50) {
         ctx.moveTo(i - offset, groundY);
         ctx.lineTo(i - offset - 30, CONFIG.CANVAS_HEIGHT);
-        ctx.stroke();
     }
+    ctx.stroke();
 }
 
 // ==========================================
@@ -2258,6 +2499,25 @@ function drawPlayer() {
     const pw = player.width;
     const ph = player.height;
 
+    // sombra eliptica no chao (fica no chao e diminui quando sobe)
+    const floorY = CONFIG.CANVAS_HEIGHT - CONFIG.GROUND_HEIGHT;
+    const alt = Math.max(0, floorY - (player.y + ph));
+    const k = Math.max(0.3, 1 - alt / 320);
+    ctx.fillStyle = 'rgba(0,0,0,' + (0.38 * k).toFixed(3) + ')';
+    ctx.beginPath();
+    ctx.ellipse(px + pw / 2, floorY + 4, (pw / 2 + 6 + Math.abs(player.legAngle) * 5) * k, 10 * k, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // squash & stretch a partir dos pes
+    const sy = player.squashY || 1;
+    if (Math.abs(sy - 1) > 0.005) {
+        const footX = px + pw / 2, footY = py + ph;
+        ctx.translate(footX, footY);
+        ctx.scale(1 / Math.sqrt(sy), sy);
+        ctx.translate(-footX, -footY);
+    }
+    drawingShadowless = true;
+
     // Efeitos ativos
     if (player.hasShield) drawShieldEffect(px, py, pw, ph);
     if (player.hasSpeedBoost) drawSpeedTrail(charId, char, px, py, pw, ph);
@@ -2275,8 +2535,10 @@ function drawPlayer() {
     // Efeito de poder ativo
     if (player.isPowerActive) drawPowerAura(px, py, pw, ph, char);
 
+    drawingShadowless = false;
     ctx.restore();
 }
+var drawingShadowless = false;   // a sombra agora e desenhada no chao por drawPlayer
 
 function drawShieldEffect(px, py, pw, ph) {
     const time = gameState.animationFrame * 0.05;
@@ -2332,7 +2594,7 @@ function drawHiroAnimated(char, px, py, pw, ph) {
     ctx.fillStyle = 'rgba(0,0,0,0.4)';
     ctx.beginPath();
     ctx.ellipse(px + pw/2, py + ph + 5, pw/2.2 + Math.abs(legAngle) * 5, 10, 0, 0, Math.PI * 2);
-    ctx.fill();
+    if (!drawingShadowless) ctx.fill();
 
     // === PERNAS com animação detalhada ===
     // Perna esquerda
@@ -2671,7 +2933,7 @@ function drawBaymaxAnimated(char, px, py, pw, ph) {
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.beginPath();
     ctx.ellipse(px + pw/2, py + ph + 8, pw/1.8, 15, 0, 0, Math.PI * 2);
-    ctx.fill();
+    if (!drawingShadowless) ctx.fill();
 
     // === PERNAS robustas ===
     // Perna esquerda
@@ -2973,7 +3235,7 @@ function drawGoGoAnimated(char, px, py, pw, ph) {
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.beginPath();
     ctx.ellipse(px + pw/2, py + ph + 8, pw/2.2 + Math.abs(legAngle) * 8, 10, 0, 0, Math.PI * 2);
-    ctx.fill();
+    if (!drawingShadowless) ctx.fill();
 
     // Linhas de velocidade (quando tem boost)
     if (speedLines) {
@@ -3421,7 +3683,7 @@ function drawWasabiAnimated(char, px, py, pw, ph) {
     ctx.fillStyle = 'rgba(0,0,0,0.4)';
     ctx.beginPath();
     ctx.ellipse(px + pw/2, py + ph + 8, pw/1.7, 12, 0, 0, Math.PI * 2);
-    ctx.fill();
+    if (!drawingShadowless) ctx.fill();
 
     // Brilho das lâminas no chão
     ctx.fillStyle = `rgba(0, 230, 118, ${bladeGlow * 0.3})`;
@@ -3847,7 +4109,7 @@ function drawHoneyAnimated(char, px, py, pw, ph) {
     ctx.fillStyle = 'rgba(0,0,0,0.25)';
     ctx.beginPath();
     ctx.ellipse(px + pw/2, py + ph + 5, pw/2.2 + Math.abs(legAngle) * 5, 10, 0, 0, Math.PI * 2);
-    ctx.fill();
+    if (!drawingShadowless) ctx.fill();
 
     // ========== PERNAS LONGAS E ELEGANTES ==========
     // Perna esquerda
@@ -4397,7 +4659,7 @@ function drawFredAnimated(char, px, py, pw, ph) {
     ctx.fillStyle = 'rgba(0,0,0,0.3)';
     ctx.beginPath();
     ctx.ellipse(px + pw/2, py + ph + 8, pw/2 + 10 + Math.abs(legAngle) * 8, 15, 0, 0, Math.PI * 2);
-    ctx.fill();
+    if (!drawingShadowless) ctx.fill();
 
     // ========== CAUDA DE DRAGÃO ==========
     ctx.save();
@@ -5312,36 +5574,44 @@ function drawPointsPowerup(px, py, size, pulse, rotation) {
 // ==========================================
 
 function drawParticles() {
-    particles.forEach(p => {
-        ctx.save();
-        ctx.globalAlpha = p.life;
-
+    // sem save/restore nem gradiente por particula (era o mais caro no tablet)
+    for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        const a = p.life > 1 ? 1 : p.life;
+        ctx.fillStyle = p.color;
         if (p.type === 'thruster') {
-            const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
-            grad.addColorStop(0, p.color);
-            grad.addColorStop(1, 'rgba(0, 150, 255, 0)');
-            ctx.fillStyle = grad;
+            ctx.globalAlpha = a * 0.35;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+            ctx.globalAlpha = a;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.size * 0.45, 0, Math.PI * 2); ctx.fill();
+        } else if (p.type === 'rescue' || p.type === 'sparkle') {
+            // estrelinha de 4 pontas
+            const z = p.size, t = Math.max(1.2, z * 0.28);
+            ctx.globalAlpha = a;
+            ctx.fillRect(p.x - z, p.y - t / 2, z * 2, t);
+            ctx.fillRect(p.x - t / 2, p.y - z, t, z * 2);
+            ctx.globalAlpha = a * 0.4;
+            ctx.beginPath(); ctx.arc(p.x, p.y, z * 0.6, 0, Math.PI * 2); ctx.fill();
         } else {
-            ctx.fillStyle = p.color;
+            ctx.globalAlpha = a;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
         }
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-    });
+    }
+    ctx.globalAlpha = 1;
 }
 
 function drawEffects() {
     // Efeito de borda quando poder está pronto
     if (player.powerCharge >= 100) {
         const pulse = 0.5 + Math.sin(gameState.animationFrame * 0.1) * 0.3;
-        ctx.strokeStyle = `rgba(46, 204, 113, ${pulse})`;
-        ctx.lineWidth = 5;
-        ctx.shadowColor = '#2ECC71';
-        ctx.shadowBlur = 20;
+        ctx.strokeStyle = '#2ECC71';
+        ctx.globalAlpha = pulse * 0.25;
+        ctx.lineWidth = 16;
         ctx.strokeRect(5, 5, CONFIG.CANVAS_WIDTH - 10, CONFIG.CANVAS_HEIGHT - 10);
-        ctx.shadowBlur = 0;
+        ctx.globalAlpha = pulse;
+        ctx.lineWidth = 5;
+        ctx.strokeRect(5, 5, CONFIG.CANVAS_WIDTH - 10, CONFIG.CANVAS_HEIGHT - 10);
+        ctx.globalAlpha = 1;
     }
 
     // Efeitos especiais por personagem
@@ -5393,7 +5663,7 @@ function drawCharacterEffects() {
                 const startX = Math.sin(time * 3 + i) * 100;
                 ctx.beginPath();
                 ctx.moveTo(startX, y);
-                ctx.lineTo(startX + 100 + Math.random() * 50, y);
+                ctx.lineTo(startX + 100 + ((i * 37) % 50), y);
                 ctx.stroke();
             }
             break;
@@ -5599,6 +5869,8 @@ function levelComplete() {
     }
 
     showScreen('result');
+    sfx('win');
+    try { if (window.Efeitos) Efeitos.vitoria(); } catch (e) {}
 }
 
 function calculateStars() {

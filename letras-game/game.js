@@ -6,7 +6,7 @@
 
 const ROUNDS = 10;
 const VOGAIS = ['A', 'E', 'I', 'O', 'U'];
-const state = { mode: 'inicial', round: 0, items: [], current: null, tries: 0, hits: 0, locked: false };
+const state = { mode: 'inicial', round: 0, items: [], current: null, tries: 0, misses: 0, hits: 0, locked: false };
 
 function goBack() {
     if (window.parent !== window) {
@@ -55,17 +55,27 @@ function startGame(mode) {
         state.items.push({ word: w, kind });
     }
     document.getElementById('total').textContent = state.items.length;
+    Letrinhas.serie.zerar();
     KidsAudio.play('start');
     showScreen('game-screen');
-    showRound();
+    showRound(true);
 }
 
-function showRound() {
+function showRound(first) {
     const item = state.items[state.round];
     state.current = item;
     state.tries = 0;
+    state.misses = 0;
     state.locked = false;
     document.getElementById('round').textContent = state.round + 1;
+    // Primeira rodada monta direto; as outras entram deslizando
+    if (first) renderRound(item);
+    else Letrinhas.trocar([document.getElementById('card'), document.getElementById('options')], () => renderRound(item));
+    // interrupt:false = espera o elogio da rodada anterior terminar antes de perguntar
+    setTimeout(() => { if (state.current === item) sayPrompt(false); }, 350);
+}
+
+function renderRound(item) {
     const w = item.word;
     const pic = document.getElementById('picture');
     const blank = document.getElementById('blank-word');
@@ -77,7 +87,7 @@ function showRound() {
     if (item.kind === 'inicial') {
         item.answer = firstLetter(w);
         prompt.textContent = 'Com que letra começa?';
-        pic.textContent = w.emoji;
+        pic.innerHTML = Letrinhas.fig(w.emoji, 'big-fig breathe');
         blank.innerHTML = `<span class="gap">?</span>${w.word.slice(1)}`;
         const others = shuffle('ABCDEFGJLMNOPRSTUV'.split('').filter(l => l !== item.answer)).slice(0, 2);
         shuffle([item.answer, ...others]).forEach(l => addLetterButton(l));
@@ -91,11 +101,11 @@ function showRound() {
             (letters[i] === 'U' && letters[i - 1] === 'O') ||
             /[ÃÕ]/.test(letters[i - 1] || '');
         const positions = letters.map((ch, i) => VOGAIS.includes(ch) && !silent(i) ? i : -1).filter(i => i >= 0);
-        if (!positions.length) { item.kind = 'inicial'; return showRound(); }
+        if (!positions.length) { item.kind = 'inicial'; return renderRound(item); }
         const pos = positions[Math.floor(Math.random() * positions.length)];
         item.answer = letters[pos];
         prompt.textContent = 'Qual vogal está faltando?';
-        pic.textContent = w.emoji;
+        pic.innerHTML = Letrinhas.fig(w.emoji, 'big-fig breathe');
         blank.innerHTML = letters.map((ch, i) => i === pos ? '<span class="gap">?</span>' : ch).join('');
         VOGAIS.forEach(l => addLetterButton(l));
     } else {
@@ -117,22 +127,21 @@ function showRound() {
         shuffle([w, ...others]).forEach(o => {
             const b = document.createElement('button');
             b.className = 'letter-btn picture-btn';
-            b.textContent = o.emoji;
+            b.innerHTML = Letrinhas.fig(o.emoji);
+            b.dataset.ok = o.word === w.word ? '1' : '0';
             b.setAttribute('aria-label', o.word.toLowerCase());
             b.onclick = () => choose(b, o.word === w.word, o);
             opts.appendChild(b);
         });
     }
-    const card = document.getElementById('card');
-    card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
-    // interrupt:false = espera o elogio da rodada anterior terminar antes de perguntar
-    setTimeout(() => { if (state.current === item) sayPrompt(false); }, 350);
 }
 
 function addLetterButton(letter) {
     const b = document.createElement('button');
     b.className = 'letter-btn';
     b.textContent = letter;
+    b.dataset.v = letter;
+    b.dataset.ok = letter === state.current.answer ? '1' : '0';
     b.onclick = () => choose(b, letter === state.current.answer);
     document.getElementById('options').appendChild(b);
 }
@@ -154,38 +163,51 @@ function choose(btn, ok, pictureWord) {
     if (ok) {
         state.locked = true;
         if (state.tries === 1) state.hits++;
+        btn.classList.remove('dica-certa');
         btn.classList.add('right');
         KidsAudio.play('correct');
+        Letrinhas.serie.acerto(btn, { emoji: ['⭐', '✨'] });
         const w = item.word;
-        document.getElementById('blank-word').textContent = w.word;
-        if (item.kind === 'figura') document.getElementById('picture').innerHTML = `<span class="big-letter">${item.letter}</span> ${w.emoji}`;
+        const blank = document.getElementById('blank-word');
+        blank.textContent = w.word;
+        Efeitos.pulo(blank);
+        if (item.kind === 'figura') document.getElementById('picture').innerHTML = `<span class="big-letter">${item.letter}</span> ${Letrinhas.fig(w.emoji, 'big-fig')}`;
         setTimeout(() => {
             const letter = item.kind === 'vogal' ? item.answer : firstLetter(w);
             KidsAudio.speak(`Isso! ${letter}... ${w.word.toLowerCase()}!`, { rate: 0.85 });
         }, 400);
-        setTimeout(nextRound, 2600);
+        setTimeout(nextRound, 2400);
     } else {
+        state.misses++;
+        Letrinhas.serie.erro();
         btn.classList.add('wrong-pick');
-        btn.disabled = true;
         KidsAudio.play('wrong');
-        if (pictureWord) KidsAudio.speak(`${pictureWord.word.toLowerCase()} começa com ${firstLetter(pictureWord)}. Tente outra!`, { rate: 0.9 });
-        else KidsAudio.speak('Tente de novo!', { rate: 0.95 });
+        // Erro sem frustracao: 1o balanca e repete, 2o apaga uma opcao errada, 3o acende a certa
+        const all = [...document.querySelectorAll('#options .letter-btn')];
+        Letrinhas.ajuda(state.misses, { tocado: btn, erradas: all.filter(b => b.dataset.ok !== '1'), certa: all.find(b => b.dataset.ok === '1') });
+        setTimeout(() => btn.classList.remove('wrong-pick'), 400);
+        if (state.misses >= 3) {
+            const w = item.word.word.toLowerCase();
+            KidsAudio.speak(item.kind === 'figura' ? `Olhe a figura que brilha: ${w}!` : `Olhe a letra que brilha! ${w}.`, { rate: 0.9 });
+        } else if (pictureWord) KidsAudio.speak(`${pictureWord.word.toLowerCase()} começa com ${firstLetter(pictureWord)}. Tente outra!`, { rate: 0.9 });
+        else { KidsAudio.speak('Tente de novo!', { rate: 0.95 }); setTimeout(() => { if (state.current === item && !state.locked) sayPrompt(false); }, 300); }
     }
 }
 
 function nextRound() {
     state.round++;
     if (state.round >= state.items.length) return finish();
-    showRound();
+    showRound(false);
 }
 
 function finish() {
     const stars = state.hits >= 9 ? 3 : state.hits >= 6 ? 2 : 1;
     document.getElementById('hits').textContent = state.hits;
     document.getElementById('rounds').textContent = state.items.length;
-    document.getElementById('stars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
     showScreen('result-screen');
+    Letrinhas.estrelas(document.getElementById('stars'), stars);
     KidsAudio.play('win');
+    setTimeout(() => Efeitos.vitoria(), 250);
     KidsAudio.speak(`Você acertou ${state.hits} de primeira! ` +
         (stars === 3 ? 'Parabéns! Você é craque nas letras!' : 'Muito bem! Vamos jogar de novo?'));
 }

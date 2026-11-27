@@ -9,7 +9,10 @@ let drawState = {
     tool: 'brush',
     sticker: null,
     lastX: 0,
-    lastY: 0
+    lastY: 0,
+    midX: 0,      // fim da ultima curva (ponto medio entre os dois ultimos toques)
+    midY: 0,
+    hue: 0        // cor atual do pincel arco-iris
 };
 
 // Nomes das cores (falados quando a crianca escolhe)
@@ -30,7 +33,9 @@ const TOOL_NAMES = {
     brush: 'Pincel',
     eraser: 'Borracha',
     fill: 'Balde de tinta',
-    spray: 'Spray'
+    spray: 'Spray',
+    rainbow: 'Arco-íris',
+    glitter: 'Purpurina'
 };
 
 const MAX_UNDO = 6; // poucas fotos para nao pesar a memoria do tablet
@@ -148,6 +153,17 @@ function setActiveTool(tool) {
 }
 
 function initControls() {
+    // Carimbos como figuras 3D (o botao guarda o emoji em data-sticker)
+    if (window.Emoji3D) {
+        const lista = [];
+        document.querySelectorAll('.sticker-btn').forEach(b => {
+            lista.push(b.dataset.sticker);
+            b.innerHTML = Emoji3D.html(b.dataset.sticker);
+            b.setAttribute('aria-label', 'carimbo ' + b.dataset.sticker);
+        });
+        Emoji3D.carregar(lista);
+    }
+
     // Cores: escolher uma cor volta para o pincel (se estava no carimbo ou na borracha)
     document.querySelectorAll('.color-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -267,6 +283,8 @@ function startDrawingAt(x, y) {
     drawState.isDrawing = true;
     drawState.lastX = x;
     drawState.lastY = y;
+    drawState.midX = x;
+    drawState.midY = y;
 
     if (drawState.tool === 'sticker' && drawState.sticker) {
         drawSticker(x, y);
@@ -279,8 +297,41 @@ function startDrawingAt(x, y) {
         // Desenhar um ponto inicial
         ctx.beginPath();
         ctx.arc(x, y, drawState.brushSize / 2, 0, Math.PI * 2);
-        ctx.fillStyle = drawState.tool === 'eraser' ? '#FFFFFF' : drawState.currentColor;
+        ctx.fillStyle = strokeColor();
         ctx.fill();
+        if (drawState.tool === 'glitter') glitterAt(x, y, x, y);
+    }
+}
+
+// Cor do traco conforme a ferramenta
+function strokeColor() {
+    if (drawState.tool === 'eraser') return '#FFFFFF';
+    if (drawState.tool === 'rainbow') return 'hsl(' + Math.round(drawState.hue) + ',95%,56%)';
+    return drawState.currentColor;
+}
+
+// Purpurina: estrelinhas e pontinhos claros espalhados pelo traco
+function glitterAt(x0, y0, x1, y1) {
+    const r = drawState.brushSize / 2;
+    const n = Math.max(1, Math.round(Math.hypot(x1 - x0, y1 - y0) / 7));
+    const cores = ['#ffffff', '#fff6b0', '#ffd6f5', '#d8f3ff'];
+    for (let i = 0; i < n; i++) {
+        const t = Math.random();
+        const px = x0 + (x1 - x0) * t + (Math.random() - 0.5) * r * 1.6;
+        const py = y0 + (y1 - y0) * t + (Math.random() - 0.5) * r * 1.6;
+        const s = 1 + Math.random() * Math.max(1.5, r * 0.28);
+        ctx.fillStyle = cores[(Math.random() * cores.length) | 0];
+        if (Math.random() < 0.35) {
+            // estrelinha de 4 pontas
+            ctx.beginPath();
+            ctx.moveTo(px, py - s * 2.2); ctx.lineTo(px + s * 0.5, py - s * 0.5);
+            ctx.lineTo(px + s * 2.2, py); ctx.lineTo(px + s * 0.5, py + s * 0.5);
+            ctx.lineTo(px, py + s * 2.2); ctx.lineTo(px - s * 0.5, py + s * 0.5);
+            ctx.lineTo(px - s * 2.2, py); ctx.lineTo(px - s * 0.5, py - s * 0.5);
+            ctx.closePath(); ctx.fill();
+        } else {
+            ctx.fillRect(px - s / 2, py - s / 2, s, s);
+        }
     }
 }
 
@@ -309,29 +360,66 @@ function drawAt(x, y) {
         return;
     }
 
+    // Traco liso: curva quadratica entre os pontos medios, usando o toque como ponto de controle
+    const lx = drawState.lastX, ly = drawState.lastY;
+    const d = Math.hypot(x - lx, y - ly);
+    if (d < 1.2) return;   // tremidinha do dedo: espera andar mais
+    const mx = (lx + x) / 2, my = (ly + y) / 2;
+    if (drawState.tool === 'rainbow') drawState.hue = (drawState.hue + d * 0.7) % 360;
     ctx.beginPath();
-    ctx.moveTo(drawState.lastX, drawState.lastY);
-    ctx.lineTo(x, y);
-    ctx.strokeStyle = drawState.tool === 'eraser' ? '#FFFFFF' : drawState.currentColor;
+    ctx.moveTo(drawState.midX, drawState.midY);
+    ctx.quadraticCurveTo(lx, ly, mx, my);
+    ctx.strokeStyle = strokeColor();
     ctx.lineWidth = drawState.brushSize;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.stroke();
+    if (drawState.tool === 'glitter') glitterAt(drawState.midX, drawState.midY, mx, my);
 
+    drawState.midX = mx;
+    drawState.midY = my;
     drawState.lastX = x;
     drawState.lastY = y;
 }
 
 function stopDrawing() {
+    // fecha o traco ate o ultimo ponto tocado
+    if (drawState.isDrawing && ['brush', 'eraser', 'rainbow', 'glitter'].includes(drawState.tool) &&
+        (drawState.midX !== drawState.lastX || drawState.midY !== drawState.lastY)) {
+        ctx.beginPath();
+        ctx.moveTo(drawState.midX, drawState.midY);
+        ctx.lineTo(drawState.lastX, drawState.lastY);
+        ctx.strokeStyle = strokeColor();
+        ctx.lineWidth = drawState.brushSize;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+    }
     drawState.isDrawing = false;
 }
 
+// Carimbo: figura 3D quando ja carregou (CORS liberado, nao "suja" o canvas); senao, emoji em texto
 function drawSticker(x, y) {
-    ctx.font = `${drawState.brushSize * 3}px Arial`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#000000';
-    ctx.fillText(drawState.sticker, x, y);
+    const size = drawState.brushSize * 3;
+    const im = window.Emoji3D ? Emoji3D.imagem(drawState.sticker) : null;
+    if (im && Emoji3D.pronta(im)) {
+        const s = size * 1.15;
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,.22)';
+        ctx.shadowBlur = size * 0.08;
+        ctx.shadowOffsetY = size * 0.05;
+        ctx.drawImage(im, x - s / 2, y - s / 2, s, s);
+        ctx.restore();
+    } else {
+        ctx.font = `${size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#000000';
+        ctx.fillText(drawState.sticker, x, y);
+    }
+    if (window.Efeitos) {
+        const r = canvas.getBoundingClientRect();
+        Efeitos.estrelas({ x: r.left + x * r.width / cssW, y: r.top + y * r.height / cssH }, { quantidade: 8, forca: 0.5 });
+    }
 }
 
 // Flood fill (balde de tinta) - trabalha em pixels reais do canvas
@@ -448,7 +536,9 @@ function clearCanvas() {
 }
 
 function saveDrawing() {
-    const dataURL = canvas.toDataURL('image/png');
+    let dataURL;
+    try { dataURL = canvas.toDataURL('image/png'); }
+    catch (e) { playSound('wrong'); return; }   // canvas "sujo" (nao deve acontecer: figuras com CORS)
 
     // Criar modal de preview
     const modal = document.createElement('div');

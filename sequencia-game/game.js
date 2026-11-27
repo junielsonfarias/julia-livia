@@ -14,8 +14,70 @@ let gameState = {
     currentExplain: '',
     difficulty: 1,
     answered: false,
-    levelWrong: 0
+    levelWrong: 0,
+    streak: 0,      // acertos seguidos (notas sobem)
+    tries: 0        // erros na pergunta atual
 };
+
+// ---------- Formas com volume (SVG: gradiente + brilho + sombra no chao) ----------
+// cor: [clara, base, escura]
+const SHAPE_TONES = {
+    red: ['#ff8a80', '#f44336', '#b71c1c'],
+    blue: ['#82c8ff', '#2196f3', '#0d47a1'],
+    yellow: ['#fff9a8', '#ffe03b', '#d4a000'],
+    green: ['#a5e6a8', '#4caf50', '#1b5e20'],
+    purple: ['#e1a6ef', '#9c27b0', '#4a148c'],
+    orange: ['#ffd08a', '#ff9800', '#c25e00'],
+    pink: ['#ff9fc0', '#e91e63', '#880e4f']
+};
+// estrela de 5 pontas centrada em (50,48)
+const STAR_PATH = (() => {
+    const pts = [];
+    for (let i = 0; i < 10; i++) {
+        const r = i % 2 ? 19 : 44;
+        const a = -Math.PI / 2 + i * Math.PI / 5;
+        pts.push((50 + r * Math.cos(a)).toFixed(1) + ' ' + (50 + r * Math.sin(a)).toFixed(1));
+    }
+    return 'M' + pts.join(' L') + ' Z';
+})();
+const SHAPE_GEOM = {
+    circle: '<circle cx="50" cy="47" r="38" %s/>',
+    square: '<rect x="14" y="11" width="72" height="72" rx="11" %s/>',
+    triangle: '<path d="M50 12 L88 80 L12 80 Z" stroke-linejoin="round" stroke-width="9" %s/>',
+    rectangle: '<rect x="5" y="24" width="90" height="50" rx="9" %s/>',
+    diamond: '<path d="M50 6 L88 47 L50 88 L12 47 Z" stroke-linejoin="round" stroke-width="7" %s/>',
+    oval: '<ellipse cx="50" cy="48" rx="45" ry="29" %s/>',
+    star: '<path d="' + STAR_PATH + '" stroke-linejoin="round" stroke-width="5" %s/>'
+};
+
+// Gradientes uma vez so no documento (cada forma usa url(#tom-cor))
+function ensureShapeDefs() {
+    if (document.getElementById('shape3d-defs')) return;
+    const grads = Object.entries(SHAPE_TONES).map(([c, t]) =>
+        `<radialGradient id="tom-${c}" cx="35%" cy="28%" r="80%">` +
+        `<stop offset="0" stop-color="${t[0]}"/><stop offset=".55" stop-color="${t[1]}"/><stop offset="1" stop-color="${t[2]}"/></radialGradient>`
+    ).join('');
+    const svg = `<svg id="shape3d-defs" width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true"><defs>${grads}` +
+        `<radialGradient id="brilho3d" cx="32%" cy="22%" r="45%"><stop offset="0" stop-color="#fff" stop-opacity=".85"/>` +
+        `<stop offset=".5" stop-color="#fff" stop-opacity=".25"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs></svg>`;
+    document.body.insertAdjacentHTML('afterbegin', svg);
+}
+
+// HTML de uma forma 3D (shape: circle/square/...; color: red/blue/...)
+function shape3d(shape, color, cls) {
+    ensureShapeDefs();
+    const g = SHAPE_GEOM[shape] || SHAPE_GEOM.circle;
+    const strokeAttr = /stroke-width/.test(g) ? `stroke="url(#tom-${color})"` : '';
+    const base = g.replace('%s', `fill="url(#tom-${color})" ${strokeAttr}`);
+    const gloss = g.replace('%s', 'fill="url(#brilho3d)" stroke="none"');
+    return `<span class="shape3d ${cls || ''}" data-shape="${shape}" data-color="${color}">` +
+        `<svg viewBox="0 0 100 100" aria-hidden="true"><ellipse cx="50" cy="94" rx="30" ry="4.5" fill="#000" opacity=".2"/>` +
+        `${base}${gloss}</svg></span>`;
+}
+
+// cor do padrao ('pattern-red') -> tom da forma 3D ('red')
+function patternShape(it, cls) { return shape3d(it.shape, it.color.replace('pattern-', ''), cls || 'pattern-3d'); }
+
 
 let starTimers = [];
 function clearStarTimers() {
@@ -83,6 +145,7 @@ function startGame(mode) {
     gameState.score = 0;
     gameState.difficulty = 1;
     gameState.levelWrong = 0;
+    gameState.streak = 0;
     clearStarTimers();
     playSound('start');
     updateStats();
@@ -93,6 +156,7 @@ function startGame(mode) {
 
 function nextQuestion() {
     gameState.answered = false;
+    gameState.tries = 0;
     document.getElementById('feedback').textContent = '';
     document.getElementById('feedback').className = 'feedback';
     document.getElementById('explain').innerHTML = '';
@@ -206,9 +270,10 @@ function showNumberSequence(shown, hole, question) {
     document.getElementById('question-text').innerHTML = question;
     const display = document.getElementById('sequence-display');
     display.innerHTML = '';
-    shown.forEach(num => {
+    shown.forEach((num, i) => {
         const item = document.createElement('div');
         item.className = 'sequence-item' + (num === '?' ? ' mystery' : '');
+        item.style.setProperty('--i', i);
         item.textContent = num;
         display.appendChild(item);
     });
@@ -225,10 +290,12 @@ function generateNumberOptions(correctAnswer, traps) {
     }
     const optionsArea = document.getElementById('options-area');
     optionsArea.innerHTML = '';
-    shuffleList(options.slice(0, 4)).forEach(option => {
+    shuffleList(options.slice(0, 4)).forEach((option, i) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
         btn.textContent = option;
+        btn.dataset.value = option;
+        btn.style.setProperty('--i', i);
         btn.onclick = () => checkAnswer(option);
         optionsArea.appendChild(btn);
     });
@@ -290,15 +357,12 @@ function generatePatternSequence() {
     document.getElementById('question-text').innerHTML = question;
     const display = document.getElementById('sequence-display');
     display.innerHTML = '';
-    sequence.forEach(item => {
+    sequence.forEach((item, i) => {
         const container = document.createElement('div');
         container.className = 'sequence-item' + (item.shape === '?' ? ' mystery' : '');
+        container.style.setProperty('--i', i);
         if (item.shape === '?') container.textContent = '?';
-        else {
-            const shapeEl = document.createElement('div');
-            shapeEl.className = `pattern-item ${item.shape} ${item.color}`;
-            container.appendChild(shapeEl);
-        }
+        else container.innerHTML = patternShape(item);
         display.appendChild(container);
     });
     if (askPosition) {
@@ -324,12 +388,12 @@ function generatePatternSequence() {
 function generatePatternOptions(options, correctAnswer) {
     const optionsArea = document.getElementById('options-area');
     optionsArea.innerHTML = '';
-    shuffleList(options).forEach(option => {
+    shuffleList(options).forEach((option, i) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn pattern-option';
-        const shapeEl = document.createElement('div');
-        shapeEl.className = `pattern-item ${option.shape} ${option.color}`;
-        btn.appendChild(shapeEl);
+        btn.dataset.value = option.shape + '|' + option.color;
+        btn.style.setProperty('--i', i);
+        btn.innerHTML = patternShape(option, 'pattern-3d opt');
         btn.onclick = () => checkPatternAnswer(option, correctAnswer, btn);
         optionsArea.appendChild(btn);
     });
@@ -339,29 +403,51 @@ function generatePatternOptions(options, correctAnswer) {
 function checkAnswer(answer) {
     if (gameState.answered) return;
     const isCorrect = answer === gameState.currentAnswer;
-    document.querySelectorAll('.option-btn').forEach(btn => {
-        btn.disabled = true;
-        if (parseInt(btn.textContent) === answer) btn.classList.add(isCorrect ? 'correct' : 'wrong');
-        if (parseInt(btn.textContent) === gameState.currentAnswer) btn.classList.add('correct');
-    });
-    processAnswer(isCorrect);
+    const buttons = [...document.querySelectorAll('.option-btn')];
+    const chosen = buttons.find(b => b.dataset.value === String(answer));
+    const right = buttons.find(b => b.dataset.value === String(gameState.currentAnswer));
+    answerFeedback(isCorrect, chosen, right, buttons);
+}
+
+// Aprendizagem sem erro: errar nao revela a resposta; a opcao errada sai de cena,
+// no 2o erro sai mais uma, no 3o a certa brilha. A regra aparece quando acertar.
+function answerFeedback(isCorrect, chosen, right, buttons) {
+    if (isCorrect) {
+        buttons.forEach(btn => { btn.disabled = true; if (btn !== right) btn.classList.add('fora'); });
+        right.classList.add('correct');
+        const mystery = document.querySelector('.sequence-item.mystery');
+        if (mystery) {
+            mystery.classList.add('solved');
+            mystery.innerHTML = right.innerHTML;
+        }
+        if (window.Efeitos) Efeitos.acerto(right, { emoji: ['⭐', '✨'] });
+        processAnswer(true);
+        return;
+    }
+    gameState.tries++;
+    gameState.streak = 0;
+    if (gameState.tries === 1) gameState.levelWrong++;   // estrelas: conta a pergunta, nao cada toque
+    playSound('wrong');
+    chosen.disabled = true;
+    chosen.classList.add('fora');
+    if (window.Efeitos) Efeitos.erro(chosen);
+    if (gameState.tries >= 2) {
+        const rest = buttons.filter(b => b !== right && !b.disabled);
+        if (rest.length) { rest[0].disabled = true; rest[0].classList.add('fora'); }
+    }
+    if (gameState.tries >= 3) right.classList.add('dica');
+    const feedbackEl = document.getElementById('feedback');
+    feedbackEl.textContent = gameState.tries >= 2 ? 'Quase! Olhe a sequência de novo com calma.' : 'Quase! Tente de novo.';
+    feedbackEl.className = 'feedback wrong';
 }
 
 // Verificar resposta de padrao
 function checkPatternAnswer(answer, correctAnswer, clickedBtn) {
     if (gameState.answered) return;
     const isCorrect = answer.shape === correctAnswer.shape && answer.color === correctAnswer.color;
-    document.querySelectorAll('.option-btn').forEach(btn => { btn.disabled = true; });
-    clickedBtn.classList.add(isCorrect ? 'correct' : 'wrong');
-    if (!isCorrect) {
-        document.querySelectorAll('.option-btn').forEach(btn => {
-            const shapeEl = btn.querySelector('.pattern-item');
-            if (shapeEl && shapeEl.classList.contains(correctAnswer.shape) && shapeEl.classList.contains(correctAnswer.color)) {
-                btn.classList.add('correct');
-            }
-        });
-    }
-    processAnswer(isCorrect);
+    const buttons = [...document.querySelectorAll('.option-btn')];
+    const right = buttons.find(b => b.dataset.value === correctAnswer.shape + '|' + correctAnswer.color);
+    answerFeedback(isCorrect, clickedBtn, right, buttons);
 }
 
 // Processar resposta: mostra a regra e espera "Proxima"
@@ -370,9 +456,13 @@ function processAnswer(isCorrect) {
     const feedbackEl = document.getElementById('feedback');
     if (isCorrect) {
         playSound('correct');
+        gameState.streak++;
+        try { if (window.KidsAudio && KidsAudio.note) setTimeout(() => KidsAudio.note(gameState.streak), 150); } catch (e) {}
         feedbackEl.textContent = getRandomPraise();
         feedbackEl.className = 'feedback correct';
-        gameState.score += 10 + (gameState.difficulty * 5);
+        // pontos cheios de primeira; depois de tentar de novo, metade (nunca tira)
+        const pts = 10 + (gameState.difficulty * 5);
+        gameState.score += gameState.tries ? Math.round(pts / 2) : pts;
         gameState.questionsAnswered++;
         updateStats();
         updateProgress();
@@ -431,6 +521,7 @@ function showWinScreen() {
     });
     playSound('win');
     showScreen('win-screen');
+    if (window.Efeitos) setTimeout(() => Efeitos.vitoria(), 200);
 }
 
 function nextLevel() {

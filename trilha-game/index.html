@@ -7,7 +7,7 @@
     <base href="/trilha-game/">
     <link rel="stylesheet" href="../shared/duelo.css?v=1de99c64">
     <link rel="stylesheet" href="../shared/dado.css?v=3a3c9597">
-    <link rel="stylesheet" href="styles.css?v=d81be890">
+    <link rel="stylesheet" href="styles.css?v=66ba4423">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -38,9 +38,9 @@
 
             <section id="game-screen" class="screen" data-fit-grow="off">
                 <div class="players">
-                    <div class="player" id="p-julia" style="--pc:#9b59b6"><span class="p-emoji">👸</span><span class="p-name">Julia</span><span class="p-score" id="pos-julia">0</span></div>
+                    <div class="player" id="p-julia" style="--pc:#9b59b6"><span class="p-emoji" data-e3d>👸</span><span class="p-name">Julia</span><span class="p-score" id="pos-julia">0</span></div>
                     <div class="turn-banner" id="turn-banner">Vez da Julia</div>
-                    <div class="player" id="p-livia" style="--pc:#ff6b9d"><span class="p-emoji">🧚</span><span class="p-name">Livia</span><span class="p-score" id="pos-livia">0</span></div>
+                    <div class="player" id="p-livia" style="--pc:#ff6b9d"><span class="p-emoji" data-e3d>🧚</span><span class="p-name">Livia</span><span class="p-score" id="pos-livia">0</span></div>
                 </div>
                 <div class="layout">
                     <div class="board" id="board"></div>
@@ -69,12 +69,14 @@
         </main>
     </div>
 
-    <script src="../shared/kids-audio.js?v=da92b96a"></script>
+    <script src="../shared/kids-audio.js?v=90618a14"></script>
+    <script src="../shared/efeitos.js?v=e296ecbf"></script>
+    <script src="../shared/emoji3d.js?v=fc9306e9"></script>
     <script src="../shared/palavras.js?v=f9361c20"></script>
     <script src="../shared/duelo.js?v=d613fbb0"></script>
     <script src="../shared/duelo-perguntas.js?v=b997e24c"></script>
     <script src="../shared/dado.js?v=9d4b65b1"></script>
-    <script src="game.js?v=fbcd0078"></script>
+    <script src="game.js?v=d366c845"></script>
     <script src="../shared/fit-screen.js?v=0f4dccb7"></script>
 </body>
 </html>

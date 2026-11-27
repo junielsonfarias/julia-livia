@@ -690,3 +690,69 @@ mark.kw { background: #ffeaa7; color: #2d3436; padding: 0 3px; border-radius: 4p
     .result-content:has(.review:not(:empty)) .score-display { margin-bottom: 14px; }
     .result-content:has(.review:not(:empty)) .stars-earned { margin: 10px 0 16px; }
 }
+
+/* ==========================================
+   Polimento visual: respostas em cartoes grandes e brilhantes,
+   entrada em cascata e retorno sem castigo
+   ========================================== */
+@keyframes optIn {
+    from { opacity: 0; transform: translateY(18px) scale(.92); }
+    to { opacity: 1; transform: none; }
+}
+@keyframes glowHint {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(255, 193, 7, .9); }
+    50% { box-shadow: 0 0 0 6px rgba(255, 193, 7, 1), 0 0 26px rgba(255, 193, 7, .8); }
+}
+
+.options-area { contain: layout; }
+.option-btn {
+    border: none;
+    border-radius: 22px;
+    min-height: 76px;
+    font-size: 1.2rem;
+    background:
+        radial-gradient(120% 70% at 20% 0%, #ffffff, rgba(255, 255, 255, 0) 60%),
+        linear-gradient(170deg, #ffffff, #fff1f5);
+    box-shadow: inset 0 0 0 3px #fbe1e8, inset 0 -5px 0 rgba(0, 0, 0, .05), 0 6px 0 #f2c3d1, 0 10px 18px rgba(150, 40, 80, .14);
+    transition: transform .25s cubic-bezier(.34, 1.56, .64, 1), opacity .3s ease, filter .3s ease, box-shadow .2s ease, background-color .2s ease;
+    animation: optIn .4s cubic-bezier(.34, 1.56, .64, 1) backwards;
+    animation-delay: calc(.1s + var(--i, 0) * 70ms);
+}
+.option-btn:hover:not(.disabled) { transform: translateY(-3px); border-color: transparent; }
+.option-btn .option-letter {
+    width: 44px; height: 44px; font-size: 1.15rem;
+    background: radial-gradient(circle at 35% 30%, #ff9db0, #f5576c 60%, #c9304a);
+    box-shadow: inset 0 2px 0 rgba(255, 255, 255, .45), 0 3px 0 #b02a42;
+}
+.option-btn.correct {
+    background: linear-gradient(170deg, #f1fff2, #d7f7da);
+    box-shadow: inset 0 0 0 4px #4caf50, 0 6px 0 #3d9a41, 0 0 22px rgba(76, 175, 80, .45);
+    animation: none;
+}
+.option-btn.correct .option-letter { background: radial-gradient(circle at 35% 30%, #9be59e, #4caf50 60%, #2e7d32); box-shadow: 0 3px 0 #2e7d32; }
+.option-btn.disabled { opacity: 1; }
+.option-btn.disabled:not(.correct) { opacity: .45; }
+.option-btn.fora { opacity: .28 !important; transform: scale(.95); filter: grayscale(.6); pointer-events: none; animation: none; }
+.option-btn.dica { animation: glowHint 1.2s ease-in-out infinite; }
+.feedback.wrong { color: #ff8f00; }
+
+.explain:not(:empty) { animation: optIn .4s ease; }
+.next-btn {
+    background: linear-gradient(#ff8aa0, #f5576c);
+    box-shadow: inset 0 3px 0 rgba(255, 255, 255, .45), inset 0 -4px 0 rgba(0, 0, 0, .15), 0 6px 0 #c23a52, 0 10px 18px rgba(0, 0, 0, .2);
+}
+.next-btn:active { transform: translateY(4px); box-shadow: inset 0 3px 0 rgba(255, 255, 255, .45), 0 2px 0 #c23a52; }
+.category-btn { animation: optIn .45s cubic-bezier(.34, 1.56, .64, 1) backwards; }
+.category-btn:nth-child(2) { animation-delay: .05s; }
+.category-btn:nth-child(3) { animation-delay: .1s; }
+.category-btn:nth-child(4) { animation-delay: .15s; }
+.category-btn:nth-child(5) { animation-delay: .2s; }
+.category-btn:nth-child(6) { animation-delay: .25s; }
+.result-content { animation: optIn .5s cubic-bezier(.34, 1.56, .64, 1); }
+.cat-icon .e3d, .game-icon .e3d { width: 1.1em; height: 1.1em; }
+
+@media (prefers-reduced-motion: reduce) {
+    .option-btn, .option-btn.dica, .explain, .category-btn, .result-content { animation: none !important; }
+}
+.next-btn:not([hidden]) { margin-bottom: 8px; }
+#opt-no-timer { width: 34px; height: 34px; min-width: 34px; }

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jogo da Memoria - Mundo de Julia & Livia</title>
     <base href="/memoria-game/">
-    <link rel="stylesheet" href="styles.css?v=f8df7fcf">
+    <link rel="stylesheet" href="styles.css?v=9a62984d">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -24,7 +24,7 @@
             <div id="start-screen" class="screen active">
                 <div class="start-content">
                     <div class="start-col start-intro">
-                    <div class="game-icon">🧠</div>
+                    <div class="game-icon" data-e3d>🧠</div>
                     <h2>Jogo da Memoria!</h2>
                     <p>Encontre os pares e divirta-se!</p>
                     <button class="intro-hear" type="button" onclick="speakIntro()">🔊 Ouvir como joga</button>
@@ -144,8 +144,10 @@
         </main>
     </div>
 
-    <script src="../shared/kids-audio.js?v=da92b96a"></script>
-    <script src="game.js?v=04d53c40"></script>
+    <script src="../shared/kids-audio.js?v=90618a14"></script>
+    <script src="../shared/efeitos.js?v=e296ecbf"></script>
+    <script src="../shared/emoji3d.js?v=fc9306e9"></script>
+    <script src="game.js?v=6082455a"></script>
     <script src="../shared/fit-screen.js?v=0f4dccb7"></script>
 </body>
 </html>

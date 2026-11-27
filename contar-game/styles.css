@@ -710,3 +710,94 @@ body {
     .compare-btn { height: auto; flex-direction: row; justify-content: center; gap: 10px; }
     .feedback { min-height: 36px; margin-bottom: 10px; }
 }
+
+/* ==========================================
+   VISUAL NOVO: figuras 3D, botoes brilhantes e transicoes suaves
+   ========================================== */
+body { background: radial-gradient(circle at 20% 10%, #fff3e0 0%, #ffd8b8 45%, #fcb69f 100%); }
+
+/* Area das figuras: "mesa" com luz suave */
+.objects-display {
+    background: radial-gradient(ellipse at 50% 20%, #fffaf5 0%, #ffeede 70%, #ffe1c8 100%);
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.8), inset 0 -6px 14px rgba(214,120,60,.12);
+    contain: layout paint;
+}
+.object-item {
+    position: relative; font-size: 3.2rem; line-height: 1; cursor: pointer;
+    animation: objIn .38s cubic-bezier(.34,1.56,.64,1) backwards;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.objects-display.many .object-item { font-size: 2.5rem; }
+.compare-group .object-item { font-size: 2.4rem; }
+.object-item .obj3d { filter: drop-shadow(0 5px 3px rgba(0,0,0,.22)); animation: breathe 2.6s ease-in-out infinite; }
+.object-item:nth-child(3n+2) .obj3d { animation-delay: -.9s; }
+.object-item:nth-child(3n) .obj3d { animation-delay: -1.7s; }
+@keyframes objIn {
+    0% { opacity: 0; transform: scale(.2) translateY(14px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+
+/* Figura contada: numerozinho em cima */
+.object-item.counted::after {
+    content: attr(data-count); position: absolute; top: -6px; right: -8px;
+    min-width: 26px; height: 26px; padding: 0 5px; border-radius: 13px;
+    background: linear-gradient(#ffd86b, #ff9f1c); color: #5a3000;
+    font: 700 .95rem/26px 'Fredoka One', cursive; text-align: center;
+    box-shadow: 0 2px 0 #c46d00, 0 4px 8px rgba(0,0,0,.2);
+    animation: badgeIn .3s cubic-bezier(.34,1.56,.64,1);
+}
+.object-item.lit .obj3d { filter: drop-shadow(0 0 8px rgba(255,214,90,.95)) drop-shadow(0 5px 3px rgba(0,0,0,.2)); }
+@keyframes badgeIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+/* Botoes de numero: brilhantes, grandes, com "afundar" */
+.option-btn {
+    border: none; border-radius: 22px; color: #6b3200;
+    background: linear-gradient(#fff6dc, #ffd36b);
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.75), inset 0 -4px 0 rgba(0,0,0,.08), 0 6px 0 #e19a2a, 0 10px 18px rgba(0,0,0,.18);
+    transition: transform .15s ease, box-shadow .15s ease, opacity .3s ease;
+    animation: btnIn .34s cubic-bezier(.34,1.56,.64,1) backwards;
+    text-shadow: 0 1px 0 rgba(255,255,255,.6);
+    min-height: 64px;
+}
+.option-btn:hover { border-color: transparent; transform: translateY(-2px); }
+.option-btn:active { transform: translateY(4px); box-shadow: inset 0 3px 0 rgba(255,255,255,.75), 0 2px 0 #e19a2a, 0 4px 8px rgba(0,0,0,.15); }
+@keyframes btnIn { from { opacity: 0; transform: translateY(14px) scale(.9); } to { opacity: 1; transform: none; } }
+.option-btn.correct {
+    border: none; color: #fff; text-shadow: 0 1px 0 rgba(0,0,0,.2);
+    background: linear-gradient(#7be38a, #34b54a);
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.5), 0 6px 0 #23863a, 0 10px 18px rgba(0,0,0,.2);
+    animation: none;
+}
+/* errada: so apaga (sem vermelho nem tremedeira forte) */
+.option-btn.faded, .option-btn.wrong { opacity: .28; filter: grayscale(.7); animation: none; background: linear-gradient(#fff, #eee); border: none; }
+.option-btn.hint-glow { animation: hintGlow 1.1s ease-in-out infinite; }
+@keyframes hintGlow {
+    0%, 100% { box-shadow: inset 0 3px 0 rgba(255,255,255,.75), 0 6px 0 #e19a2a, 0 0 0 0 rgba(255,200,60,.7); }
+    50% { box-shadow: inset 0 3px 0 rgba(255,255,255,.75), 0 6px 0 #e19a2a, 0 0 0 12px rgba(255,200,60,0); transform: scale(1.06); }
+}
+.compare-btn .e3d { font-size: 1.1em; }
+.compare-emoji .e3d { font-size: 1.2em; }
+.feedback.wrong { color: #c26a00; }
+
+/* Troca de pergunta: sai descendo/sumindo, entra subindo */
+.game-content .objects-display, .game-content .options-area, .game-content .question-text {
+    transition: opacity .22s ease, transform .22s ease;
+}
+.game-content.leaving .objects-display, .game-content.leaving .options-area, .game-content.leaving .question-text {
+    opacity: 0; transform: translateY(10px) scale(.98);
+}
+.mode-icon .e3d { width: 1.2em; height: 1.2em; }
+.win-icon .e3d { width: 1.3em; height: 1.3em; }
+.stars-earned .star .e3d { width: 1.1em; height: 1.1em; }
+.mode-btn { box-shadow: 0 5px 0 rgba(214,120,60,.25), 0 8px 16px rgba(0,0,0,.08); }
+.counting-preview span { box-shadow: inset 0 3px 0 rgba(255,255,255,.45), 0 5px 0 #c4501b, 0 8px 14px rgba(0,0,0,.2); }
+.next-btn, .menu-btn { box-shadow: inset 0 3px 0 rgba(255,255,255,.4), 0 5px 0 rgba(0,0,0,.2); min-height: 56px; }
+
+@media (prefers-reduced-motion: reduce) {
+    .object-item, .object-item .obj3d, .option-btn, .option-btn.hint-glow, .counting-preview span, .win-icon { animation: none !important; }
+    .game-content .objects-display, .game-content .options-area, .game-content .question-text { transition: none; }
+}
+.compare-btn { font-size: 1.35rem; }
+.compare-btn > span:last-child { white-space: nowrap; }
+@media (max-width: 600px) { .compare-btn { font-size: 1.05rem; } }

@@ -751,3 +751,75 @@ mark.kw { background: #ffeaa7; color: #2d3436; padding: 0 3px; border-radius: 4p
     .options-area:not(.compare-options) { grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
     .option-btn { min-height: 90px; padding: 14px 10px; }
 }
+
+/* ==========================================
+   VISUAL NOVO: pizza com volume, barra de chocolate, botoes brilhantes
+   ========================================== */
+.pizza-svg { width: 210px; height: 220px; overflow: visible; filter: drop-shadow(0 6px 6px rgba(0,0,0,.12)); }
+.pizza-svg .slice { transform-box: view-box; transform-origin: 56px 56px; animation: sliceIn .45s cubic-bezier(.34,1.56,.64,1) var(--t, 0ms) backwards; }
+.pizza-svg .slice.on { animation: sliceIn .45s cubic-bezier(.34,1.56,.64,1) var(--t, 0ms) backwards, sliceOut .5s cubic-bezier(.34,1.56,.64,1) calc(var(--t, 0ms) + 450ms) forwards; }
+.served .pizza-svg .slice.on { animation: servePop .5s cubic-bezier(.34,1.56,.64,1) forwards; }
+@keyframes sliceIn { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: scale(1); } }
+@keyframes sliceOut { from { transform: translate(0, 0); } to { transform: translate(var(--dx), var(--dy)); } }
+@keyframes servePop {
+    from { transform: translate(var(--dx), var(--dy)); }
+    to { transform: translate(calc(var(--dx) * 2.2), calc(var(--dy) * 2.2)); }
+}
+
+/* Barra de chocolate */
+.bar-visual {
+    width: 240px; height: 50px; border: none; border-radius: 10px; gap: 3px; padding: 4px;
+    background: linear-gradient(#e9d9c4, #d6bfa1);
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.6), 0 5px 0 #b89a76, 0 8px 14px rgba(0,0,0,.18);
+}
+.bar-segment {
+    border: none !important; border-radius: 5px; background: linear-gradient(#fbf3e6, #efe2cc);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+    animation: segIn .35s cubic-bezier(.34,1.56,.64,1) backwards;
+}
+.bar-segment.filled {
+    background: linear-gradient(#a0623c 0%, #7a4122 55%, #5c2e15 100%);
+    box-shadow: inset 0 2px 0 rgba(255,220,180,.45), inset 0 -3px 0 rgba(0,0,0,.25);
+}
+@keyframes segIn { from { opacity: 0; transform: scaleY(.3); } to { opacity: 1; transform: none; } }
+
+/* Botoes de resposta brilhantes */
+.option-btn {
+    border: none; border-radius: 22px;
+    background: linear-gradient(#ffffff, #eef0ff);
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.9), inset 0 -4px 0 rgba(102,126,234,.12), 0 6px 0 #b7c0ee, 0 10px 18px rgba(0,0,0,.14);
+    transition: transform .15s ease, box-shadow .15s ease, opacity .3s ease;
+    animation: btnIn .34s cubic-bezier(.34,1.56,.64,1) backwards;
+}
+.option-btn:hover { border-color: transparent; transform: translateY(-2px); box-shadow: inset 0 3px 0 rgba(255,255,255,.9), 0 8px 0 #b7c0ee, 0 12px 20px rgba(0,0,0,.14); }
+.option-btn:active { transform: translateY(4px); box-shadow: inset 0 3px 0 rgba(255,255,255,.9), 0 2px 0 #b7c0ee, 0 4px 8px rgba(0,0,0,.12); }
+@keyframes btnIn { from { opacity: 0; transform: translateY(14px) scale(.92); } to { opacity: 1; transform: none; } }
+.option-btn.correct {
+    border: none; background: linear-gradient(#8ff0a0, #3cc25a); color: #fff;
+    box-shadow: inset 0 3px 0 rgba(255,255,255,.5), 0 6px 0 #26903f, 0 10px 18px rgba(0,0,0,.18);
+    animation: none;
+}
+.option-btn.correct .fraction-display-small, .option-btn.correct .frac-num, .option-btn.correct .frac-den { color: #fff; }
+.option-btn.correct .frac-bar { background: #fff; }
+.option-btn.faded, .option-btn.wrong { opacity: .3; filter: grayscale(.8); animation: none; background: #f4f4f8; border: none; }
+.option-btn.hint-glow { animation: hintGlow 1.1s ease-in-out infinite; }
+@keyframes hintGlow {
+    0%, 100% { box-shadow: inset 0 3px 0 rgba(255,255,255,.9), 0 6px 0 #b7c0ee, 0 0 0 0 rgba(255,200,60,.8); }
+    50% { box-shadow: inset 0 3px 0 rgba(255,255,255,.9), 0 6px 0 #b7c0ee, 0 0 0 12px rgba(255,200,60,0); transform: scale(1.05); }
+}
+.feedback.wrong { color: #b05a00; background: #fff4e6; }
+.next-btn, .play-again-btn, .menu-btn { box-shadow: inset 0 3px 0 rgba(255,255,255,.35), 0 5px 0 rgba(0,0,0,.18); }
+
+/* Troca de pergunta suave */
+.game-content .question-text, .game-content .fraction-display, .game-content .options-area {
+    transition: opacity .22s ease, transform .22s ease;
+}
+.game-content.leaving .question-text, .game-content.leaving .fraction-display, .game-content.leaving .options-area {
+    opacity: 0; transform: translateY(10px) scale(.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pizza-svg .slice, .bar-segment, .option-btn, .option-btn.hint-glow, .question-mark { animation: none !important; }
+    .game-content .question-text, .game-content .fraction-display, .game-content .options-area { transition: none; }
+}
+.next-btn { margin-bottom: 14px; }

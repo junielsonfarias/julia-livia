@@ -235,9 +235,10 @@ function startGame(mode) {
     gameState.totalQuestions = Math.min(10, gameState.questions.length);
 
     playSound('start');
+    if (window.Letrinhas) Letrinhas.serie.zerar();
     updateStats();
     showScreen('game-screen');
-    nextQuestion();
+    nextQuestion(true);
 }
 
 // Embaralhar array (Fisher-Yates, sem alterar o original)
@@ -263,8 +264,18 @@ function updateProgress() {
     document.getElementById('progress-fill').style.width = progress + '%';
 }
 
-// Proxima pergunta
-function nextQuestion() {
+// Proxima pergunta (a partir da 2a, entra deslizando)
+function nextQuestion(first) {
+    gameState.answered = false;
+    if (!first && window.Letrinhas) {
+        gameState.answered = true;   // nada de toque durante a troca
+        Letrinhas.trocar(['word-display', 'hint-text', 'options-area'].map(id => document.getElementById(id)), () => renderQuestion());
+        return;
+    }
+    renderQuestion();
+}
+
+function renderQuestion() {
     gameState.answered = false;
     document.getElementById('feedback').textContent = '';
     document.getElementById('feedback').className = 'feedback';
@@ -287,7 +298,7 @@ function nextQuestion() {
     wordDisplay.classList.toggle('long-word', gameState.currentWord.word.length >= 9);
 
     // Mostrar dica
-    document.getElementById('hint-text').textContent = `Dica: ${gameState.currentWord.hint}`;
+    document.getElementById('hint-text').innerHTML = `<button class="say-btn" type="button" onclick="sayHint()" aria-label="Ouvir a dica">${window.Letrinhas ? Letrinhas.fig('🔊') : '🔊'}</button> <span>Dica: ${gameState.currentWord.hint}</span>`;
 
     // Criar opcoes
     createOptions();
@@ -334,16 +345,21 @@ function checkAnswer(answer) {
 
     // Atualizar palavra com resposta
     const wordDisplay = document.getElementById('word-display');
-    wordDisplay.innerHTML = `<span class="complete-word ${isCorrect ? 'correct-word' : 'wrong-word'}">${current.word}</span>`;
+    wordDisplay.innerHTML = `<span class="complete-word ${isCorrect ? 'correct-word' : 'wrong-word'}">${markAnswer(current)}</span>`;
+    const wordEl = wordDisplay.firstElementChild;
 
+    const chosenBtn = [...buttons].find(b => b.dataset.value === answer);
     if (isCorrect) {
         playSound('correct');
+        if (window.Letrinhas) Letrinhas.serie.acerto(wordEl, { emoji: ['⭐', '✨'] });
         feedbackEl.textContent = getRandomPraise();
         feedbackEl.className = 'feedback correct';
         gameState.score += 10;
         gameState.correctAnswers++;
     } else {
         playSound('wrong');
+        if (window.Letrinhas) Letrinhas.serie.erro();
+        if (window.Efeitos) Efeitos.erro(chosenBtn);
         feedbackEl.textContent = `A palavra certa é: ${current.word}`;
         feedbackEl.className = 'feedback wrong';
         gameState.wrongAnswers++;
@@ -351,6 +367,8 @@ function checkAnswer(answer) {
     }
 
     document.getElementById('explain').textContent = '💡 ' + (RULES[current.answer] || '');
+    // Fala a palavra certa (acertando ou nao): ouvir + ver a grafia juntas
+    setTimeout(() => { try { KidsAudio.speak((isCorrect ? 'Isso! ' : 'Se escreve assim: ') + current.word.toLowerCase(), { rate: 0.9 }); } catch (e) {} }, 350);
 
     gameState.currentQuestion++;
     document.getElementById('score').textContent = gameState.score;
@@ -424,6 +442,7 @@ function showResults() {
     renderReview();
     playSound('win');
     showScreen('result-screen');
+    if (window.Efeitos && percentage >= 50) setTimeout(() => Efeitos.vitoria(), 250);
 }
 
 // Lista de palavras erradas com a grafia certa e a regra
@@ -438,6 +457,20 @@ function renderReview() {
             <p><b>${m.word}</b> — você escolheu <s>${m.chosen}</s>, o certo é <b class="review-ok">${m.answer}</b></p>
             <p class="review-exp">💡 ${RULES[m.answer] || ''}</p>
         </div>`).join('');
+}
+
+// Palavra completa com as letras da lacuna destacadas (PÁ<b>SS</b>ARO)
+function markAnswer(w) {
+    const pre = w.blank.split(/_+/)[0];
+    const ans = w.word.slice(pre.length, pre.length + w.answer.length);
+    return pre + `<b class="ans">${ans}</b>` + w.word.slice(pre.length + w.answer.length);
+}
+
+// Botao 🔊: le a dica e a palavra (ouvir o som ajuda: S de "casa" soa como Z)
+function sayHint() {
+    const w = gameState.currentWord;
+    if (!w || !window.KidsAudio) return;
+    KidsAudio.speak(gameState.answered ? w.word.toLowerCase() : `${w.hint}. ${w.word.toLowerCase()}`, { rate: 0.85 });
 }
 
 // Jogar novamente

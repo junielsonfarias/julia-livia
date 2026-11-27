@@ -41,19 +41,50 @@
     }
     UNLOCK_EVENTS.forEach(ev => window.addEventListener(ev, unlock, true));
 
+    // Saida comum: compressor (evita estourar com varios sons juntos) + um eco curto
+    // bem baixinho, que deixa os sons "redondos" (sensacao de sala, nao de bip seco)
+    let bus = null;
+    function out(c) {
+        if (bus && bus.ctx === c) return bus.input;
+        const input = c.createGain();
+        const comp = c.createDynamicsCompressor();
+        comp.threshold.value = -18; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.15;
+        const delay = c.createDelay(0.5); delay.delayTime.value = 0.11;
+        const fb = c.createGain(); fb.gain.value = 0.22;
+        const wet = c.createGain(); wet.gain.value = 0.18;
+        const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 3200;
+        input.connect(comp);
+        input.connect(delay); delay.connect(lp); lp.connect(fb); fb.connect(delay); lp.connect(wet); wet.connect(comp);
+        comp.connect(c.destination);
+        bus = { ctx: c, input };
+        return input;
+    }
+
+    // Nota com envelope (ataque rapido, decaimento suave) e um harmonico leve:
+    // soa mais "instrumento" (xilofone/sininho) e menos bip de computador
     function tone(freq, start, dur, type, peak) {
         const c = getCtx(); if (!c) return;
         const vol = getVolume(); if (vol <= 0) return;
         const t0 = c.currentTime + start;
-        const osc = c.createOscillator();
+        const p = (peak || 0.25) * vol;
         const g = c.createGain();
-        osc.type = type || 'sine';
-        osc.frequency.setValueAtTime(freq, t0);
         g.gain.setValueAtTime(0.0001, t0);
-        g.gain.exponentialRampToValueAtTime((peak || 0.25) * vol, t0 + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-        osc.connect(g); g.connect(c.destination);
-        osc.start(t0); osc.stop(t0 + dur + 0.05);
+        g.gain.exponentialRampToValueAtTime(p, t0 + 0.012);
+        g.gain.exponentialRampToValueAtTime(p * 0.45, t0 + Math.min(0.08, dur * 0.5));
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur + 0.08);
+        g.connect(out(c));
+        const osc = c.createOscillator();
+        osc.type = type || "sine";
+        osc.frequency.setValueAtTime(freq, t0);
+        osc.connect(g);
+        osc.start(t0); osc.stop(t0 + dur + 0.12);
+        if (!type || type === "sine" || type === "triangle") {
+            const h = c.createOscillator(), hg = c.createGain();
+            h.type = "sine"; h.frequency.setValueAtTime(freq * 2, t0);
+            hg.gain.value = 0.18;
+            h.connect(hg); hg.connect(g);
+            h.start(t0); h.stop(t0 + dur * 0.6 + 0.05);
+        }
     }
 
     function slide(from, to, start, dur, type, peak) {
@@ -62,14 +93,22 @@
         const t0 = c.currentTime + start;
         const osc = c.createOscillator();
         const g = c.createGain();
-        osc.type = type || 'sine';
+        osc.type = type || "sine";
         osc.frequency.setValueAtTime(from, t0);
         osc.frequency.exponentialRampToValueAtTime(to, t0 + dur);
         g.gain.setValueAtTime(0.0001, t0);
         g.gain.exponentialRampToValueAtTime((peak || 0.25) * vol, t0 + 0.02);
         g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-        osc.connect(g); g.connect(c.destination);
+        osc.connect(g); g.connect(out(c));
         osc.start(t0); osc.stop(t0 + dur + 0.05);
+    }
+
+    // Escala pentatonica (do-re-mi-sol-la): qualquer sequencia soa bonita.
+    // KidsAudio.note(i) toca a i-esima nota (para acertos seguidos subirem de tom)
+    const PENTA = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51, 1567.98, 1760, 2093];
+    function note(i, dur) {
+        const n = PENTA[Math.max(0, Math.min(PENTA.length - 1, i | 0))];
+        tone(n, 0, dur || 0.22, "triangle", 0.26);
     }
 
     const SOUNDS = {
@@ -98,6 +137,9 @@
              [784, .9, .15], [659, 1.05, .15], [784, 1.2, .15], [1047, 1.35, .45]]
                 .forEach(n => tone(n[0], n[1], n[2], 'triangle', 0.28));
         },
+        pop:     () => slide(380, 900, 0, 0.09, "sine", 0.22),
+        sparkle: () => { [2093, 2637, 3136, 2637, 3520].forEach((f, i) => tone(f, i * 0.045, 0.12, "sine", 0.07)); },
+        whoosh:  () => slide(220, 880, 0, 0.18, "triangle", 0.08),
         timeup: () => { tone(784, 0, 0.2); tone(659, 0.2, 0.2); tone(523, 0.4, 0.45); }
     };
 
@@ -145,5 +187,5 @@
         try { if (window.parent.closeGameModal) window.parent.closeGameModal(); } catch (err) {}
     });
 
-    window.KidsAudio = { play, speak, getVolume, stop: stopSpeaking };
+    window.KidsAudio = { note, play, speak, getVolume, stop: stopSpeaking };
 })();

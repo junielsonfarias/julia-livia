@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aprender a Contar - Mundo de Julia & Livia</title>
     <base href="/contar-game/">
-    <link rel="stylesheet" href="styles.css?v=a48afe82">
+    <link rel="stylesheet" href="styles.css?v=ce5502eb">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -39,17 +39,17 @@
                     <h3 class="section-title">Modo Contar:</h3>
                     <div class="mode-select">
                         <button class="mode-btn" onclick="startGame('easy')">
-                            <span class="mode-icon">🐣</span>
+                            <span class="mode-icon" data-e3d>🐣</span>
                             <span class="mode-name">Fácil</span>
                             <span class="mode-desc">1 a 5</span>
                         </button>
                         <button class="mode-btn" onclick="startGame('medium')">
-                            <span class="mode-icon">🐥</span>
+                            <span class="mode-icon" data-e3d>🐥</span>
                             <span class="mode-name">Médio</span>
                             <span class="mode-desc">1 a 10</span>
                         </button>
                         <button class="mode-btn" onclick="startGame('hard')">
-                            <span class="mode-icon">🦅</span>
+                            <span class="mode-icon" data-e3d>🦅</span>
                             <span class="mode-name">Difícil</span>
                             <span class="mode-desc">1 a 20</span>
                         </button>
@@ -58,12 +58,12 @@
                     <h3 class="section-title">Modo Comparar:</h3>
                     <div class="mode-select">
                         <button class="mode-btn compare" onclick="startCompareGame('easy')">
-                            <span class="mode-icon">🤔</span>
+                            <span class="mode-icon" data-e3d>🤔</span>
                             <span class="mode-name">Qual tem mais?</span>
                             <span class="mode-desc">Fácil</span>
                         </button>
                         <button class="mode-btn compare" onclick="startCompareGame('medium')">
-                            <span class="mode-icon">🧐</span>
+                            <span class="mode-icon" data-e3d>🧐</span>
                             <span class="mode-name">Qual tem mais?</span>
                             <span class="mode-desc">Médio</span>
                         </button>
@@ -97,7 +97,7 @@
             <!-- Tela de Vitoria -->
             <div id="win-screen" class="screen">
                 <div class="win-content">
-                    <div class="win-icon">🎉</div>
+                    <div class="win-icon" data-e3d>🎉</div>
                     <h2>Muito Bem!</h2>
                     <p>Você sabe contar!</p>
                     <div class="final-score">
@@ -105,9 +105,9 @@
                         <span class="score-value" id="final-score">0</span>
                     </div>
                     <div class="stars-earned" id="stars-display">
-                        <span class="star">⭐</span>
-                        <span class="star">⭐</span>
-                        <span class="star">⭐</span>
+                        <span class="star" data-e3d>⭐</span>
+                        <span class="star" data-e3d>⭐</span>
+                        <span class="star" data-e3d>⭐</span>
                     </div>
                     <div class="win-buttons">
                         <button class="next-btn" onclick="playAgain()">Jogar de Novo</button>
@@ -118,8 +118,10 @@
         </main>
     </div>
 
-    <script src="../shared/kids-audio.js?v=da92b96a"></script>
-    <script src="game.js?v=02de8264"></script>
+    <script src="../shared/kids-audio.js?v=90618a14"></script>
+    <script src="../shared/efeitos.js?v=e296ecbf"></script>
+    <script src="../shared/emoji3d.js?v=fc9306e9"></script>
+    <script src="game.js?v=e0f925a8"></script>
     <script src="../shared/fit-screen.js?v=0f4dccb7"></script>
 </body>
 </html>

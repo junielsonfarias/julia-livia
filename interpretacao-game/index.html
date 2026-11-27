@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detetive das Questões - Mundo de Julia & Livia</title>
     <base href="/interpretacao-game/">
-    <link rel="stylesheet" href="styles.css?v=6fd0b4b7">
+    <link rel="stylesheet" href="styles.css?v=3a99807f">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -66,7 +66,7 @@
                 <div class="panel left">
                     <div class="badge-row">
                         <span class="badge" id="math-theme">Problema</span>
-                        <button class="speak-btn" onclick="readAloud('math')" title="Ler em voz alta">🔊 Ouvir</button>
+                        <button class="speak-btn" onclick="readAloud('math')" title="Ler em voz alta"><span data-e3d>🔊</span> Ouvir</button>
                     </div>
                     <div class="problem-text" id="problem-text"></div>
 
@@ -93,7 +93,7 @@
                 <div class="panel left">
                     <div class="badge-row">
                         <span class="badge" id="text-genre">Gênero</span>
-                        <button class="speak-btn" onclick="readAloud('text')" title="Ler em voz alta">🔊 Ouvir</button>
+                        <button class="speak-btn" onclick="readAloud('text')" title="Ler em voz alta"><span data-e3d>🔊</span> Ouvir</button>
                     </div>
                     <h3 class="text-title" id="text-title"></h3>
                     <div class="text-body" id="text-body"></div>
@@ -140,9 +140,12 @@
         </main>
     </div>
 
-    <script src="../shared/kids-audio.js?v=da92b96a"></script>
+    <script src="../shared/kids-audio.js?v=90618a14"></script>
+    <script src="../shared/efeitos.js?v=e296ecbf"></script>
+    <script src="../shared/emoji3d.js?v=fc9306e9"></script>
+    <script src="../leitura-game/letrinhas.js?v=3357e8ff"></script>
     <script src="data.js?v=779d1533"></script>
-    <script src="game.js?v=1873ca19"></script>
+    <script src="game.js?v=aceacb0f"></script>
     <script src="../shared/fit-screen.js?v=0f4dccb7"></script>
 </body>
 </html>

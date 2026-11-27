@@ -90,6 +90,7 @@ function startGame(difficulty, mode = 'count') {
     gameState.score = 0;
     gameState.questionsAnswered = 0;
     gameState.mistakes = 0;
+    gameState.streak = 0;
     updateStats();
     updateProgress();
     playSound('start');
@@ -103,17 +104,67 @@ function startCompareGame(difficulty) {
 }
 
 // Proxima pergunta
+// Saida suave da pergunta atual (opacity/transform) e entrada da nova
+let turnTimer = null;
 function nextQuestion() {
-    document.getElementById('feedback').textContent = '';
-    document.getElementById('feedback').className = 'feedback';
-    gameState.triesLeft = 2;
-    gameState.locked = false;
+    const content = document.querySelector('#game-screen .game-content');
+    clearTimeout(turnTimer);
+    const render = () => {
+        document.getElementById('feedback').textContent = '';
+        document.getElementById('feedback').className = 'feedback';
+        gameState.wrongTries = 0;
+        gameState.streakQ = 0;
+        gameState.locked = false;
+        if (gameState.mode === 'compare') generateCompareQuestion();
+        else generateCountQuestion();
+        if (content) {
+            content.classList.remove('leaving');
+            content.classList.add('entering');
+            turnTimer = setTimeout(() => content.classList.remove('entering'), 420);
+        }
+    };
+    // primeira pergunta (tela acabou de abrir) entra direto
+    if (!content || !document.getElementById('game-screen').classList.contains('active') ||
+        !document.getElementById('options-area').children.length) return render();
+    content.classList.add('leaving');
+    turnTimer = setTimeout(render, 230);
+}
 
-    if (gameState.mode === 'compare') {
-        generateCompareQuestion();
-    } else {
-        generateCountQuestion();
+// Figuras 3D com entrada escalonada (50 ms cada). "offset" continua a contagem do atraso
+function objectsHTML(emoji, n, offset) {
+    const fig = window.Emoji3D ? Emoji3D.html(emoji, 'obj3d') : emoji;
+    let out = '';
+    for (let i = 0; i < n; i++) {
+        out += `<span class="object-item" style="animation-delay:${((offset || 0) + i) * 50}ms">${fig}</span>`;
     }
+    return out;
+}
+
+// Tocar nas figuras para contar: cada toque marca o numero e toca uma nota que sobe
+function wireCounting(box) {
+    let count = 0;
+    box.querySelectorAll('.object-item').forEach(el => {
+        el.addEventListener('pointerdown', () => {
+            if (el.dataset.count) { if (window.Efeitos) Efeitos.pulo(el, 0.5); return; }
+            count++;
+            el.dataset.count = count;
+            el.classList.add('counted');
+            if (window.KidsAudio) KidsAudio.note(count - 1);
+            if (window.Efeitos) Efeitos.pulo(el, 0.8);
+        });
+    });
+}
+
+// Ajuda: conta sozinho, uma figura por vez, com notas subindo (sem dar a resposta em botao)
+function countWave(box, done) {
+    const items = [...box.querySelectorAll('.object-item')];
+    items.forEach(el => { el.classList.remove('counted', 'lit'); delete el.dataset.count; });
+    items.forEach((el, i) => setTimeout(() => {
+        el.dataset.count = i + 1;
+        el.classList.add('counted', 'lit');
+        if (window.KidsAudio) KidsAudio.note(Math.min(i, 10));
+        if (i === items.length - 1 && done) done();
+    }, 140 + i * 160));
 }
 
 // Gerar pergunta de contagem
@@ -124,20 +175,13 @@ function generateCountQuestion() {
 
     // Mostrar objetos
     const objectsDisplay = document.getElementById('objects-display');
-    objectsDisplay.innerHTML = '';
-    objectsDisplay.className = 'objects-display';
-
-    for (let i = 0; i < gameState.currentNumber; i++) {
-        const obj = document.createElement('span');
-        obj.className = 'object-item';
-        obj.textContent = gameState.currentObject;
-        obj.style.animationDelay = `${i * 0.1}s`;
-        objectsDisplay.appendChild(obj);
-    }
+    objectsDisplay.className = 'objects-display' + (gameState.currentNumber > 10 ? ' many' : '');
+    objectsDisplay.innerHTML = objectsHTML(gameState.currentObject, gameState.currentNumber);
+    wireCounting(objectsDisplay);
 
     // Atualizar pergunta
     const emoji = gameState.currentObject;
-    document.getElementById('question-text').textContent = `Quantos ${emoji} tem?`;
+    document.getElementById('question-text').innerHTML = `Quantos ${window.Emoji3D ? Emoji3D.html(emoji) : emoji} tem?`;
     sayPrompt('Quantos tem? Conte e toque no número!');
 
     // Criar opcoes
@@ -169,20 +213,13 @@ function generateCompareQuestion() {
     const objectsDisplay = document.getElementById('objects-display');
     objectsDisplay.innerHTML = `
         <div class="compare-container">
-            <div class="compare-group" id="left-group">
-                ${Array(gameState.leftCount).fill(gameState.leftObject).map((o, i) =>
-                    `<span class="object-item" style="animation-delay: ${i * 0.1}s">${o}</span>`
-                ).join('')}
-            </div>
+            <div class="compare-group" id="left-group">${objectsHTML(gameState.leftObject, gameState.leftCount)}</div>
             <div class="compare-vs">OU</div>
-            <div class="compare-group" id="right-group">
-                ${Array(gameState.rightCount).fill(gameState.rightObject).map((o, i) =>
-                    `<span class="object-item" style="animation-delay: ${i * 0.1}s">${o}</span>`
-                ).join('')}
-            </div>
+            <div class="compare-group" id="right-group">${objectsHTML(gameState.rightObject, gameState.rightCount, gameState.leftCount)}</div>
         </div>
     `;
     objectsDisplay.className = 'objects-display compare-mode';
+    objectsDisplay.querySelectorAll('.compare-group').forEach(wireCounting);
 
     // Atualizar pergunta
     document.getElementById('question-text').textContent = 'Qual grupo tem MAIS?';
@@ -224,9 +261,10 @@ function createOptions() {
     }
 
     if (options.length === 6) optionsArea.classList.add('six');
-    options.forEach(num => {
+    options.forEach((num, i) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
+        btn.style.animationDelay = (120 + i * 40) + 'ms';
         btn.textContent = num;
         btn.dataset.value = num;
         btn.onclick = () => checkAnswer(num);
@@ -240,15 +278,17 @@ function createCompareOptions() {
     optionsArea.innerHTML = '';
     optionsArea.className = 'options-area compare-options';
 
+    const e3 = ch => window.Emoji3D ? Emoji3D.html(ch) : ch;
     const options = [
-        { value: 'left', text: `${gameState.leftObject} Esquerda`, emoji: '👈' },
-        { value: 'equal', text: 'São Iguais', emoji: '🤝' },
-        { value: 'right', text: `Direita ${gameState.rightObject}`, emoji: '👉' }
+        { value: 'left', text: `${e3(gameState.leftObject)} Esquerda`, emoji: e3('👈') },
+        { value: 'equal', text: 'São Iguais', emoji: e3('🤝') },
+        { value: 'right', text: `Direita ${e3(gameState.rightObject)}`, emoji: e3('👉') }
     ];
 
-    options.forEach(opt => {
+    options.forEach((opt, i) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn compare-btn';
+        btn.style.animationDelay = (120 + i * 60) + 'ms';
         btn.innerHTML = `<span class="compare-emoji">${opt.emoji}</span><span>${opt.text}</span>`;
         btn.dataset.value = opt.value;
         btn.onclick = () => checkCompareAnswer(opt.value);
@@ -288,57 +328,72 @@ function handleAnswer(answer, correct, isCorrect, correctText, spokenCorrect) {
 
     if (isCorrect) {
         gameState.locked = true;
+        const first = !gameState.wrongTries;
+        let rightBtn = null;
         buttons.forEach(btn => {
             btn.style.pointerEvents = 'none';
-            if (btn.dataset.value === correct) btn.classList.add('correct');
+            btn.classList.remove('hint-glow');
+            if (btn.dataset.value === correct) { btn.classList.add('correct'); rightBtn = btn; }
         });
         playSound('correct');
+        gameState.streak = first ? (gameState.streak || 0) + 1 : 0;
+        if (window.Efeitos && rightBtn) Efeitos.acerto(rightBtn, { texto: first ? '+10' : '+5', emoji: ['⭐', '💖', '✨'] });
         const praise = getRandomPraise();
         feedbackEl.textContent = `${praise} ${correctText}`;
         feedbackEl.className = 'feedback correct';
-        speak(`${praise} ${spokenCorrect}`);
-        gameState.score += 10;
+        // elogio falado um pouco depois do som (nao atropela)
+        setTimeout(() => speak(`${praise} ${spokenCorrect}`), 300);
+        // as figuras "acendem" uma a uma, contando junto
+        if (gameState.mode !== 'compare') {
+            document.querySelectorAll('#objects-display .object-item').forEach((el, i) =>
+                setTimeout(() => el.classList.add('lit'), i * 45));
+        }
+        gameState.score += first ? 10 : 5;
         gameState.questionsAnswered++;
         updateStats();
         updateProgress();
-
-        if (gameState.questionsAnswered >= gameState.questionsPerLevel) {
-            setTimeout(showWinScreen, 1800);
-        } else {
-            setTimeout(nextQuestion, 1800);
-        }
+        const wait = gameState.mode !== 'compare' && gameState.currentNumber > 10 ? 1900 : 1600;
+        setTimeout(gameState.questionsAnswered >= gameState.questionsPerLevel ? showWinScreen : nextQuestion, wait);
         return;
     }
 
-    playSound('wrong');
-    gameState.mistakes++;
-    gameState.triesLeft--;
-
-    // Marca o botao errado e desabilita so ele
+    // Erro sem punir (aprendizagem sem erro):
+    // 1º: balanca e repete a instrucao | 2º: some uma parte das erradas e conta junto | 3º: brilha a certa
+    gameState.wrongTries = (gameState.wrongTries || 0) + 1;
+    if (gameState.wrongTries <= 2) gameState.mistakes++;
+    gameState.streak = 0;
+    const wrongs = [...buttons].filter(b => b.dataset.value !== correct && !b.classList.contains('faded'));
     buttons.forEach(btn => {
         if (btn.dataset.value === answer) {
-            btn.classList.add('wrong');
+            btn.classList.add('faded');
             btn.style.pointerEvents = 'none';
+            if (window.Efeitos) Efeitos.erro(btn);
         }
     });
+    if (window.KidsAudio) KidsAudio.play('pop');
+    feedbackEl.className = 'feedback wrong';
 
-    if (gameState.triesLeft > 0) {
-        feedbackEl.textContent = 'Quase! Tente de novo!';
-        feedbackEl.className = 'feedback wrong';
-        speak(gameState.mode === 'compare' ? 'Quase! Olhe de novo e tente outra vez!' : 'Quase! Conte de novo e tente outra vez!');
+    if (gameState.wrongTries === 1) {
+        feedbackEl.textContent = gameState.mode === 'compare' ? 'Quase! Olhe de novo 👀' : 'Quase! Toque em cada figura para contar 👆';
+        speak(gameState.mode === 'compare' ? 'Quase! Olhe de novo e tente outra vez!' : 'Quase! Toque em cada figura para contar, e tente outra vez!');
         return;
     }
-
-    // Segundo erro: mostra a resposta certa e segue
-    gameState.locked = true;
-    buttons.forEach(btn => {
-        btn.style.pointerEvents = 'none';
-        if (btn.dataset.value === correct) btn.classList.add('correct');
-    });
-    feedbackEl.textContent = gameState.mode === 'compare' ? correctText : `Não! ${correctText}`;
-    feedbackEl.className = 'feedback wrong';
-    speak(spokenCorrect);
-    setTimeout(nextQuestion, 2800);
+    if (gameState.wrongTries === 2) {
+        // tira metade das erradas que sobraram
+        const rest = wrongs.filter(b => b.dataset.value !== answer);
+        rest.sort(() => Math.random() - 0.5).slice(0, Math.ceil(rest.length / 2)).forEach(b => {
+            b.classList.add('faded'); b.style.pointerEvents = 'none';
+        });
+        feedbackEl.textContent = 'Vamos contar juntas! 🎵';
+        speak('Vamos contar juntas!');
+        if (gameState.mode === 'compare') document.querySelectorAll('#objects-display .compare-group').forEach(g => countWave(g));
+        else countWave(document.getElementById('objects-display'));
+        return;
+    }
+    // 3º erro em diante: a resposta certa brilha
+    buttons.forEach(btn => { if (btn.dataset.value === correct) btn.classList.add('hint-glow'); });
+    feedbackEl.textContent = `Olha aqui! ✨ ${correctText}`;
+    speak(`${spokenCorrect} Toque no que está brilhando!`);
 }
 
 // Frases de elogio
@@ -388,6 +443,7 @@ function showWinScreen() {
     });
 
     playSound('win');
+    if (window.Efeitos) setTimeout(() => Efeitos.vitoria(), 200);
     speak(`Muito bem! Você ganhou ${stars} ${stars === 1 ? 'estrela' : 'estrelas'}!`);
     showScreen('win-screen');
 }

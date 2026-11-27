@@ -54,6 +54,7 @@ function shuffle(arr) {
     }
     return a;
 }
+const e3d = ch => window.Emoji3D ? Emoji3D.html(ch) : ch;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 function loadJSON(k, d) { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } }
@@ -85,6 +86,7 @@ function renderStart() {
 }
 
 function startGame(mode, topic) {
+    document.getElementById('q-options').innerHTML = '';   // 1a questao entra direto (sem a troca suave)
     state.mode = mode;
     state.topic = topic || null;
     state.index = 0;
@@ -136,11 +138,20 @@ function renderClock() {
     const m = Math.floor(state.timeLeft / 60), s = state.timeLeft % 60;
     const v = document.getElementById('clock-value');
     v.textContent = `${m}:${String(s).padStart(2, '0')}`;
-    v.style.color = state.timeLeft <= 120 ? '#d63031' : '';
+    v.style.color = state.timeLeft <= 120 ? '#e17000' : '';
 }
 
 // ---------- Questao ----------
+let turnTimer = null;
 function showQuestion() {
+    const panel = document.querySelector('#question-screen .panel');
+    clearTimeout(turnTimer);
+    if (!panel || !document.getElementById('q-options').children.length) return renderQuestion();
+    panel.classList.add('leaving');
+    turnTimer = setTimeout(() => { renderQuestion(); panel.classList.remove('leaving'); }, 200);
+}
+
+function renderQuestion() {
     const q = state.questions[state.index];
     const sim = state.mode === 'simulado';
     state.tries = 0;
@@ -170,6 +181,7 @@ function showQuestion() {
         const b = document.createElement('button');
         b.className = 'option' + (o.text === chosen ? ' chosen' : '');
         b.dataset.ok = o.ok ? '1' : '0';
+        b.style.animationDelay = (120 + i * 45) + 'ms';
         b.innerHTML = `<span class="letter">${LETTERS[i]}</span>${esc(o.text)}`;
         b.onclick = () => sim ? chooseSimulado(b, o.text) : answerTreino(b, o.ok);
         box.appendChild(b);
@@ -200,17 +212,18 @@ function answerTreino(btn, ok) {
         if (first) state.correct++;
         state.points += first ? (state.usedHint ? 5 : 10) : 3;
         KidsAudio.play('correct');
+        if (window.Efeitos) Efeitos.acerto(btn, { texto: first ? '+10' : '+3', emoji: ['🥇', '⭐', '✨'] });
         revealSolution(first ? '✅ Muito bem!' : '✅ Agora sim!');
     } else {
         btn.classList.add('wrong');
         btn.disabled = true;
-        btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');
-        KidsAudio.play('wrong');
+        if (window.Efeitos) Efeitos.erro(btn);
+        KidsAudio.play('pop');
         if (state.tries >= 2) {
             record(q.tema, false);
             const right = document.querySelector('#q-options .option[data-ok="1"]');
             if (right) right.classList.add('correct', 'revealed');
-            revealSolution('A resposta certa está em verde.');
+            revealSolution('A resposta certa é a que está brilhando. Leia a resolução:');
         } else {
             fb.className = 'feedback bad';
             // Se ela ja pediu a dica, a dica continua visivel (antes era apagada por esta mensagem)
@@ -249,6 +262,7 @@ function chooseSimulado(btn, text) {
     if (!state.running) return;
     document.querySelectorAll('#q-options .option').forEach(b => b.classList.remove('chosen'));
     btn.classList.add('chosen');
+    if (window.Efeitos) Efeitos.pulo(btn, 0.5);
     state.answers[state.index] = { q: state.questions[state.index], chosen: text };
     state.submitArmed = false;
     renderSimBar();
@@ -318,7 +332,7 @@ function finishTreino() {
     document.getElementById('final-score').textContent = `${state.correct}/${total}`;
     document.getElementById('final-label').textContent = 'acertos de primeira';
     const pct = state.correct / total;
-    document.getElementById('result-icon').textContent = pct >= .8 ? '🥇' : pct >= .5 ? '🥈' : '🥉';
+    document.getElementById('result-icon').innerHTML = e3d(pct >= .8 ? '🥇' : pct >= .5 ? '🥈' : '🥉');
     document.getElementById('result-title').textContent = pct >= .8 ? 'Medalha de ouro!' : pct >= .5 ? 'Muito bem!' : 'Continue treinando!';
     document.getElementById('result-msg').textContent =
         `Você fez ${state.points} pontos. Nas olimpíadas, quem treina estratégias vai cada vez melhor!`;
@@ -326,6 +340,7 @@ function finishTreino() {
     document.getElementById('progress-label').textContent = '';
     showScreen('result-screen');
     KidsAudio.play('win');
+    if (window.Efeitos) setTimeout(() => Efeitos.vitoria(), 200);
 }
 
 function finishSimulado(timeUp) {
@@ -351,7 +366,7 @@ function finishSimulado(timeUp) {
     const used = SIM_SECONDS - state.timeLeft;
     document.getElementById('final-score').textContent = `${score}/10`;
     document.getElementById('final-label').textContent = 'acertos no simulado';
-    document.getElementById('result-icon').textContent = score >= 8 ? '🥇' : score >= 6 ? '🥈' : score >= 4 ? '🥉' : '📚';
+    document.getElementById('result-icon').innerHTML = e3d(score >= 8 ? '🥇' : score >= 6 ? '🥈' : score >= 4 ? '🥉' : '📚');
     document.getElementById('result-title').textContent = timeUp ? '⏰ Tempo esgotado!' : 'Prova entregue!';
     document.getElementById('result-msg').textContent =
         (isRecord && score > 0 ? '🏆 Novo recorde! ' : '') +
@@ -362,6 +377,7 @@ function finishSimulado(timeUp) {
     document.getElementById('sim-bar').hidden = true;
     showScreen('result-screen');
     KidsAudio.play(score >= 6 ? 'win' : 'star');
+    if (window.Efeitos) setTimeout(() => score >= 6 ? Efeitos.vitoria() : Efeitos.estrelas(document.getElementById('result-icon'), { quantidade: 16 }), 200);
 }
 
 // ---------- Estrategias e progresso ----------

@@ -698,3 +698,53 @@ body {
     .result-content:has(.review:not(:empty)) .score-display { margin-bottom: 14px; }
     .result-content:has(.review:not(:empty)) .stars-earned { margin: 10px 0 16px; }
 }
+
+/* ==========================================
+   Pecas "fisicas", feedback gentil e sem pulos de layout
+   ========================================== */
+.option-btn {
+    --top: #ffffff; --bot: #eef7f5; --edge: #b8d8d2;
+    position: relative; border: none; border-radius: 22px; min-width: 120px; min-height: 84px;
+    background: linear-gradient(var(--top), var(--bot));
+    box-shadow: inset 0 3px 0 #fff, inset 0 -4px 0 rgba(0, 0, 0, .05), 0 7px 0 var(--edge), 0 12px 18px rgba(0, 0, 0, .14);
+    transition: transform .08s ease, box-shadow .08s ease;
+}
+.option-btn:hover { border-color: transparent; transform: translateY(-2px); box-shadow: inset 0 3px 0 #fff, 0 9px 0 var(--edge), 0 14px 20px rgba(0, 0, 0, .14); }
+.option-btn:active { transform: translateY(5px); box-shadow: inset 0 3px 0 #fff, 0 2px 0 var(--edge), 0 4px 8px rgba(0, 0, 0, .12); }
+.letter-btn { font-size: 2.4rem; color: #0b7a70; }
+.option-btn.correct { --top: #e6fcf5; --bot: #b2f2bb; --edge: #2f9e44; color: #2b8a3e; background: linear-gradient(var(--top), var(--bot)); animation: correctPulse .45s cubic-bezier(.34, 1.56, .64, 1); }
+/* Errou: sem vermelho; a opcao fica cinza e a certa brilha */
+.option-btn.wrong { --top: #f1f3f5; --bot: #dee2e6; --edge: #adb5bd; color: #868e96; background: linear-gradient(var(--top), var(--bot)); animation: none; }
+.option-btn.correct.wrong { --top: #e6fcf5; --bot: #b2f2bb; --edge: #2f9e44; color: #2b8a3e; }
+.options-area:has(.wrong) .option-btn.correct { outline: 5px solid #ffd43b; outline-offset: 4px; }
+.option-btn:disabled:hover { transform: none; box-shadow: inset 0 3px 0 #fff, 0 7px 0 var(--edge), 0 12px 18px rgba(0, 0, 0, .14); }
+
+.complete-word { box-shadow: 0 6px 0 rgba(0, 0, 0, .08); letter-spacing: .04em; }
+.complete-word .ans { color: #0b7285; text-decoration: underline; text-decoration-thickness: 5px; text-underline-offset: 8px; }
+.wrong-word { color: #d9480f; background: #fff4e6; }
+.feedback.wrong { color: #d9480f; background: #fff4e6; }
+
+/* Botao de ouvir a dica */
+.hint-text { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.say-btn {
+    width: 56px; height: 56px; border: none; border-radius: 50%; cursor: pointer; font-size: 1.6rem; font-style: normal;
+    background: linear-gradient(#8cc8ff, #2d8ff0); color: #fff;
+    box-shadow: inset 0 3px 0 rgba(255, 255, 255, .45), 0 5px 0 #1f6fc0, 0 8px 14px rgba(0, 0, 0, .15);
+    transition: transform .08s ease, box-shadow .08s ease; flex: none;
+}
+.say-btn:active { transform: translateY(4px); box-shadow: inset 0 3px 0 rgba(255, 255, 255, .45), 0 1px 0 #1f6fc0; }
+
+/* Espaco da resposta reservado desde o inicio: a tela nao "pula" (nem muda o zoom) ao responder */
+.feedback:empty { visibility: hidden; }
+.explain:empty { display: block; visibility: hidden; }
+.explain { min-height: 4.4em; }
+.next-btn[hidden] { display: block; visibility: hidden; }
+.next-btn { box-shadow: inset 0 3px 0 rgba(255, 255, 255, .35), 0 6px 0 #0b7a70, 0 10px 16px rgba(0, 0, 0, .15); transition: transform .08s; }
+.next-btn:active { transform: translateY(4px); box-shadow: inset 0 3px 0 rgba(255, 255, 255, .35), 0 2px 0 #0b7a70; }
+.next-btn:not([hidden]) { animation: nextIn .35s cubic-bezier(.34, 1.56, .64, 1); }
+@keyframes nextIn { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+    .option-btn.correct, .next-btn:not([hidden]) { animation: none; }
+}
+.say-btn img.e3d { width: 1.15em; height: 1.15em; }

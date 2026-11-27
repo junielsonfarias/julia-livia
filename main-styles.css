@@ -1587,3 +1587,72 @@ body.is-app { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-ar
 @media (pointer: coarse) {
     .audio-control input[type=range] { height: 40px; width: 140px; }
 }
+
+/* ==========================================
+   PORTAL MAIS VIVO: figuras 3D, cartoes com luz e entrada em cascata, fundo com nuvens e brilhos
+   ========================================== */
+/* Figuras 3D dos icones (Emoji3D) */
+.icon-3d { display: inline-flex; align-items: center; justify-content: center; gap: .05em; line-height: 1; }
+.icon-3d img.card-fig { width: 1.15em; height: 1.15em; filter: drop-shadow(0 .07em .05em rgba(0,0,0,.28)); }
+/* luz suave atras do icone e sombra eliptica no "chao" do cartao */
+.game-thumbnail { overflow: hidden; }
+.game-thumbnail::before {
+    content: ''; position: absolute; left: 50%; top: 50%; width: 150px; height: 150px; transform: translate(-50%, -55%);
+    border-radius: 50%; background: radial-gradient(closest-side, rgba(255,255,255,.45), rgba(255,255,255,0)); pointer-events: none;
+}
+.game-thumbnail::after {
+    content: ''; position: absolute; left: 50%; bottom: 16%; width: 96px; height: 14px; transform: translateX(-50%);
+    border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,0,.22), rgba(0,0,0,0)); pointer-events: none;
+}
+.game-thumbnail > * { position: relative; z-index: 1; }
+
+/* cartao: brilho que passa ao tocar/passar o mouse e "afundar" ao apertar */
+.game-card { position: relative; will-change: auto; }
+.game-card::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 2; border-radius: inherit;
+    background: linear-gradient(110deg, transparent 35%, rgba(255,255,255,.45) 50%, transparent 65%);
+    transform: translateX(-110%); opacity: 0;
+}
+.game-card:hover::after { animation: cardShine .8s ease-out; }
+@keyframes cardShine { 0% { transform: translateX(-110%); opacity: 1; } 100% { transform: translateX(110%); opacity: 1; } }
+.game-card:active:not(.coming-soon) { transform: translateY(-2px) scale(.97); transition-duration: .1s; box-shadow: 0 8px 20px rgba(0,0,0,.2); }
+.play-btn { box-shadow: inset 0 3px 0 rgba(255,255,255,.25), inset 0 -4px 0 rgba(0,0,0,.15); }
+.menu-card:active { transform: translateY(2px) scale(.97); transition-duration: .1s; }
+
+/* entrada em cascata (--i vem do script) */
+.games-container.enter .game-card { animation: cardEnter .5s cubic-bezier(.34, 1.56, .64, 1) backwards; animation-delay: calc(var(--i, 0) * 45ms); }
+@keyframes cardEnter { from { opacity: 0; transform: translateY(26px) scale(.94); } to { opacity: 1; transform: none; } }
+
+/* fundo vivo: camada fixa atras do conteudo (o fundo da tela continua sendo o gradiente) */
+#main-menu, #games-section { position: relative; }
+#main-menu > :not(.ambient), #games-section > :not(.ambient) { position: relative; z-index: 1; }
+.ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+/* jogo aberto por cima (iframe): o fundo do portal para de animar */
+body.modal-open .ambient { display: none; }
+.amb-cloud {
+    position: absolute; left: 0; width: 180px; height: 56px; border-radius: 40px; background: rgba(255,255,255,.55);
+    animation: cloudDrift 46s linear infinite; will-change: transform;
+}
+.amb-cloud::before, .amb-cloud::after { content: ''; position: absolute; border-radius: 50%; background: inherit; }
+.amb-cloud::before { width: 80px; height: 80px; left: 26px; top: -38px; }
+.amb-cloud::after { width: 64px; height: 64px; left: 88px; top: -26px; }
+.amb-cloud.c1 { transform: scale(.7); opacity: .8; }
+.amb-cloud.c2 { opacity: .65; }
+#games-section .amb-cloud { background: rgba(255,255,255,.75); box-shadow: 0 8px 20px rgba(100,120,170,.12); }
+@keyframes cloudDrift { from { transform: translateX(-220px); } to { transform: translateX(calc(100vw + 40px)); } }
+.amb-spark {
+    position: absolute; width: 20px; height: 20px; opacity: 0;
+    background: radial-gradient(circle, #fff 0 20%, rgba(255,240,180,.9) 35%, transparent 70%);
+    clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+    animation: sparkTwinkle 4s ease-in-out infinite;
+}
+#games-section .amb-spark { background: radial-gradient(circle, #fff 0 15%, #ffcf5c 40%, transparent 72%); }
+@keyframes sparkTwinkle { 0%, 100% { opacity: 0; transform: scale(.4) rotate(0); } 50% { opacity: .9; transform: scale(1) rotate(45deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+    .amb-cloud, .amb-spark, .games-container.enter .game-card, .game-card:hover::after { animation: none; }
+    .amb-spark { opacity: .5; }
+    .amb-cloud { transform: translateX(20vw); }
+    .amb-cloud.c1 { transform: translateX(60vw) scale(.7); }
+    .amb-cloud.c2 { transform: translateX(35vw); }
+}

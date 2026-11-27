@@ -3,12 +3,14 @@
 // Cada uma responde perguntas do seu nivel. 60 segundos. Errou = 1,5 s parada.
 // Sem voz durante o jogo (as duas jogando juntas = vozes se atropelariam):
 // por isso o nivel Facil usa so figuras e numeros.
+// Sem castigo pesado: errou = pausa curtinha (1 s) com ampulheta respirando.
+// Acertos seguidos viram combo (🔥) com nota subindo.
 // ==========================================
 
 const SECONDS = 60;
-const FREEZE_MS = 1500;
+const FREEZE_MS = 1000;
 const IDS = ['julia', 'livia'];
-const state = { scores: { julia: 0, livia: 0 }, timeLeft: SECONDS, timer: null, countdown: null, startDelay: null, running: false, pos: 'lado', gameId: 0, exitArmed: null };
+const state = { streak: { julia: 0, livia: 0 }, scores: { julia: 0, livia: 0 }, timeLeft: SECONDS, timer: null, countdown: null, startDelay: null, running: false, pos: 'lado', gameId: 0, exitArmed: null };
 
 function goBack() {
     stopGame();
@@ -33,7 +35,7 @@ function setCountdown(text) {
     const cd = document.getElementById('countdown');
     const frente = state.pos === 'frente';
     cd.classList.toggle('frente', frente);
-    cd.innerHTML = frente ? `<span class="cd-flip">${text}</span><span>${text}</span>` : `<span>${text}</span>`;
+    cd.innerHTML = frente ? `<span class="cd-flip"><i>${text}</i></span><span><i>${text}</i></span>` : `<span><i>${text}</i></span>`;
 }
 
 // Sair pede dois toques (o botao fica perto das maos das duas; evita sair sem querer)
@@ -55,12 +57,14 @@ function startGame() {
     stopGame();
     state.gameId++;
     state.scores = { julia: 0, livia: 0 };
+    state.streak = { julia: 0, livia: 0 };
     state.timeLeft = SECONDS;
     document.getElementById('arena').className = 'arena ' + state.pos;
     IDS.forEach(id => {
         document.getElementById('score-' + id).textContent = '0';
         document.getElementById('q-' + id).innerHTML = '';
         document.getElementById('freeze-' + id).hidden = true;
+        renderCombo(id);
     });
     const clock = document.getElementById('clock');
     clock.textContent = SECONDS;
@@ -104,6 +108,15 @@ function nextQuestion(pid) {
     DueloPerguntas.render(box, q, ok => onAnswer(pid, ok));
 }
 
+// Combo de acertos seguidos de cada jogadora
+function renderCombo(pid) {
+    const el = document.getElementById('combo-' + pid);
+    if (!el) return;
+    const n = state.streak[pid];
+    el.textContent = n >= 2 ? '🔥' + n : '';
+    el.classList.toggle('on', n >= 2);
+}
+
 function onAnswer(pid, ok) {
     if (!state.running) return;
     const id = state.gameId;
@@ -113,10 +126,16 @@ function onAnswer(pid, ok) {
         const el = document.getElementById('score-' + pid);
         el.textContent = state.scores[pid];
         el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
-        KidsAudio.play('correct');
+        state.streak[pid]++;
+        renderCombo(pid);
+        // nota sobe com o combo (cada uma ouve a sua sequencia crescer)
+        if (state.streak[pid] >= 2) KidsAudio.note(Math.min(state.streak[pid] - 1, 10)); else KidsAudio.play('correct');
+        if (window.Efeitos) Efeitos.acerto(el, { texto: state.streak[pid] >= 3 ? '🔥' + state.streak[pid] : '+1', emoji: ['⭐', '⚡'] });
         setTimeout(() => { if (alive()) nextQuestion(pid); }, 350);
     } else {
-        KidsAudio.play('wrong');
+        KidsAudio.play('pop');
+        state.streak[pid] = 0;
+        renderCombo(pid);
         const fr = document.getElementById('freeze-' + pid);
         // Timers de uma partida que ja acabou (ou foi trocada) nao mexem na tela nova
         setTimeout(() => {
@@ -149,10 +168,10 @@ function endGame() {
     document.getElementById('final-julia').textContent = julia;
     document.getElementById('final-livia').textContent = livia;
     if (winner === 'empate') {
-        document.getElementById('winner-emoji').textContent = '🤝';
+        document.getElementById('winner-emoji').innerHTML = window.Emoji3D ? Emoji3D.html('🤝') : '🤝';
         document.getElementById('winner-title').textContent = 'Empate!';
     } else {
-        document.getElementById('winner-emoji').textContent = Duelo.PLAYERS[winner].emoji;
+        document.getElementById('winner-emoji').innerHTML = window.Emoji3D ? Emoji3D.html(Duelo.PLAYERS[winner].emoji) : Duelo.PLAYERS[winner].emoji;
         document.getElementById('winner-title').textContent = `${Duelo.PLAYERS[winner].name} venceu! 🏆`;
     }
     document.getElementById('score-line-end').innerHTML = Duelo.scoreText('relampago');
@@ -162,6 +181,7 @@ function endGame() {
         if (id !== state.gameId || !document.getElementById('game-screen').classList.contains('active')) return;
         showScreen('result-screen');
         KidsAudio.play('win');
+        if (window.Efeitos) Efeitos.vitoria();
         KidsAudio.speak(winner === 'empate' ? 'Empate! As duas foram incríveis!' : `${Duelo.PLAYERS[winner].name} venceu!`);
     }, 800);
 }

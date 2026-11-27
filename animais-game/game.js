@@ -71,8 +71,70 @@ let gameState = {
     usedAnimals: [],
     gameMode: 'sounds', // 'sounds' ou 'habitat'
     mistakes: 0,
+    streak: 0,       // acertos seguidos (notas sobem)
+    tries: 0,        // erros na pergunta atual
     locked: false
 };
+
+// Figura 3D (com reserva em texto)
+function fig3d(emoji) {
+    return window.Emoji3D ? Emoji3D.html(emoji, 'fig') : emoji;
+}
+
+// Aprendizagem sem erro: 1o erro balanca e repete; 2o some com outra opcao errada;
+// 3o destaca a resposta certa. A pergunta continua ate acertar.
+function tryAgain(chosen, right, buttons, spoken) {
+    gameState.mistakes++;
+    gameState.tries++;
+    gameState.streak = 0;
+    playSound('wrong');
+    if (chosen) {
+        chosen.classList.add('fora');
+        chosen.disabled = true;
+        if (window.Efeitos) Efeitos.erro(chosen);
+    }
+    const feedbackEl = document.getElementById('feedback');
+    feedbackEl.textContent = 'Quase! Tente de novo!';
+    feedbackEl.className = 'feedback wrong';
+    if (gameState.tries >= 2) {
+        const rest = buttons.filter(b => b !== right && !b.classList.contains('fora'));
+        if (rest.length) { rest[0].classList.add('fora'); rest[0].disabled = true; }
+    }
+    if (gameState.tries >= 3 && right) right.classList.add('dica');
+    speak(`Quase! ${spoken}`);
+}
+
+// Animal pula da pergunta para dentro da casa certa
+function jumpHome(animal, btn) {
+    const src = document.querySelector('.highlight-animal .hl-fig');
+    const done = () => {
+        const home = document.createElement('span');
+        home.className = 'habitat-resident';
+        home.innerHTML = fig3d(animal.emoji);
+        btn.appendChild(home);
+        if (window.Efeitos) Efeitos.acerto(btn, { emoji: ['⭐', '💚', '✨'] });
+    };
+    if (!src || !btn.animate || (window.Efeitos && Efeitos.reduzir())) { done(); return; }
+    const a = src.getBoundingClientRect();
+    const b = btn.getBoundingClientRect();
+    const size = Math.max(40, a.height * 1.2);
+    const flyer = document.createElement('div');
+    flyer.className = 'jump-flyer';
+    flyer.innerHTML = fig3d(animal.emoji);
+    flyer.style.cssText = `left:${a.left + a.width / 2 - size / 2}px;top:${a.top + a.height / 2 - size / 2}px;width:${size}px;height:${size}px;font-size:${size * 0.8}px`;
+    document.body.appendChild(flyer);
+    src.style.visibility = 'hidden';
+    const dx = b.left + b.width / 2 - (a.left + a.width / 2);
+    const dy = b.top + b.height * 0.62 - (a.top + a.height / 2);
+    const peak = Math.min(-60, dy * 0.5 - 140);
+    flyer.animate([
+        { transform: 'translate(0,0) scale(1,1)' },
+        { transform: 'translate(0,6px) scale(1.2,.8)', offset: .12 },
+        { transform: `translate(${dx * .5}px,${peak}px) scale(1.5) rotate(-12deg)`, offset: .5 },
+        { transform: `translate(${dx}px,${dy}px) scale(1.6,1.1)`, offset: .88 },
+        { transform: `translate(${dx}px,${dy}px) scale(1.25)` }
+    ], { duration: 750, easing: 'ease-in-out' }).onfinish = () => { flyer.remove(); done(); };
+}
 
 let lastPrompt = '';
 
@@ -116,6 +178,7 @@ function startGame(mode) {
     gameState.questionsAnswered = 0;
     gameState.usedAnimals = [];
     gameState.mistakes = 0;
+    gameState.streak = 0;
     updateStats();
     updateProgress();
     playSound('start');
@@ -164,6 +227,7 @@ function nextQuestion() {
 
     gameState.currentAnimal = availableAnimals[Math.floor(Math.random() * availableAnimals.length)];
     gameState.usedAnimals.push(gameState.currentAnimal.name);
+    gameState.tries = 0;
 
     if (gameState.gameMode === 'habitat') {
         setupHabitatQuestion();
@@ -184,12 +248,13 @@ function setupSoundQuestion() {
     grid.innerHTML = '';
     grid.className = 'animals-grid';
 
-    options.forEach(animal => {
+    options.forEach((animal, i) => {
         const btn = document.createElement('button');
         btn.className = 'animal-btn';
         btn.dataset.name = animal.name;
+        btn.style.setProperty('--i', i);
         btn.innerHTML = `
-            <span class="animal-emoji">${animal.emoji}</span>
+            <span class="animal-emoji">${fig3d(animal.emoji)}</span>
             <span class="animal-name">${animal.name}</span>
         `;
         btn.onclick = () => checkAnswer(animal);
@@ -206,7 +271,7 @@ function setupSoundQuestion() {
 function setupHabitatQuestion() {
     const questionText = document.getElementById('question-text');
     const animal = gameState.currentAnimal;
-    questionText.innerHTML = `Onde vive ${animal.article} <span class="highlight-animal">${animal.emoji} ${animal.name}</span>?`;
+    questionText.innerHTML = `Onde vive ${animal.article} <span class="highlight-animal"><span class="hl-fig">${fig3d(animal.emoji)}</span> ${animal.name}</span>?`;
     sayPrompt(`Onde vive ${withArticle(animal)}? Na fazenda, na floresta, no mar ou no jardim?`);
 
     // Criar grid de habitats
@@ -217,13 +282,15 @@ function setupHabitatQuestion() {
     // Embaralhar habitats
     const shuffledHabitats = [...HABITATS].sort(() => Math.random() - 0.5);
 
-    shuffledHabitats.forEach(habitat => {
+    shuffledHabitats.forEach((habitat, i) => {
         const btn = document.createElement('button');
-        btn.className = 'habitat-btn';
+        btn.className = 'habitat-btn hab-' + habitat.id;
         btn.dataset.id = habitat.id;
+        btn.style.setProperty('--i', i);
         btn.style.setProperty('--habitat-color', habitat.color);
         btn.innerHTML = `
-            <span class="habitat-emoji">${habitat.emoji}</span>
+            <span class="habitat-scene" aria-hidden="true"></span>
+            <span class="habitat-emoji">${fig3d(habitat.emoji)}</span>
             <span class="habitat-name">${habitat.name}</span>
         `;
         btn.onclick = () => checkHabitatAnswer(habitat);
@@ -250,61 +317,59 @@ function playAnimalSound() {
 // Verificar resposta (modo som)
 function checkAnswer(animal) {
     if (gameState.locked) return;
-    gameState.locked = true;
     const feedbackEl = document.getElementById('feedback');
-    const buttons = document.querySelectorAll('.animal-btn');
+    const buttons = [...document.querySelectorAll('.animal-btn')];
     const current = gameState.currentAnimal;
     const isCorrect = animal.name === current.name;
+    const chosen = buttons.find(b => b.dataset.name === animal.name);
+    const right = buttons.find(b => b.dataset.name === current.name);
 
-    // Desabilitar botoes
-    buttons.forEach(btn => {
-        btn.style.pointerEvents = 'none';
-        const name = btn.dataset.name;
-        if (name === animal.name) {
-            btn.classList.add(isCorrect ? 'correct' : 'wrong');
-        }
-        if (name === current.name) {
-            btn.classList.add('correct');
-        }
-    });
+    if (!isCorrect) {
+        tryAgain(chosen, right, buttons, `Ouça de novo: ${current.say}`);
+        return;
+    }
+    gameState.locked = true;
+    buttons.forEach(btn => { btn.style.pointerEvents = 'none'; });
+    right.classList.add('correct');
+    buttons.forEach(b => { if (b !== right) b.classList.add('fora'); });
+    if (window.Efeitos) Efeitos.acerto(right, { emoji: ['⭐', '💚'] });
 
-    handleAnswerResult(isCorrect, feedbackEl, `Era ${withArticle(current)}!`,
-        `É ${withArticle(current)}! ${current.say}`,
-        `Era ${withArticle(current)}! ${current.say}`);
+    handleAnswerResult(true, feedbackEl, '', `É ${withArticle(current)}! ${current.say}`, '');
 }
 
 // Verificar resposta (modo habitat)
 function checkHabitatAnswer(habitat) {
     if (gameState.locked) return;
-    gameState.locked = true;
     const feedbackEl = document.getElementById('feedback');
-    const buttons = document.querySelectorAll('.habitat-btn');
+    const buttons = [...document.querySelectorAll('.habitat-btn')];
     const current = gameState.currentAnimal;
     const isCorrect = habitat.id === current.habitat;
 
     // Encontrar o habitat correto
     const correctHabitat = HABITATS.find(h => h.id === current.habitat);
+    const chosen = buttons.find(b => b.dataset.id === habitat.id);
+    const right = buttons.find(b => b.dataset.id === correctHabitat.id);
 
-    // Desabilitar botoes
-    buttons.forEach(btn => {
-        btn.style.pointerEvents = 'none';
-        const id = btn.dataset.id;
-        if (id === habitat.id) {
-            btn.classList.add(isCorrect ? 'correct' : 'wrong');
-        }
-        if (id === correctHabitat.id) {
-            btn.classList.add('correct');
-        }
-    });
+    if (!isCorrect) {
+        tryAgain(chosen, right, buttons, `${withArticle(current, true)} não vive ${habitat.prep}. Onde vive ${withArticle(current)}?`);
+        return;
+    }
+    gameState.locked = true;
+    buttons.forEach(btn => { btn.style.pointerEvents = 'none'; });
+    right.classList.add('correct');
+    buttons.forEach(b => { if (b !== right) b.classList.add('fora'); });
+    jumpHome(current, right);
 
     const sentence = `${withArticle(current, true)} vive ${correctHabitat.prep}!`;
-    handleAnswerResult(isCorrect, feedbackEl, sentence, sentence, sentence);
+    handleAnswerResult(true, feedbackEl, sentence, sentence, sentence);
 }
 
 // Processar resultado da resposta
 function handleAnswerResult(isCorrect, feedbackEl, wrongMessage, spokenCorrect, spokenWrong) {
     if (isCorrect) {
         playSound('correct');
+        gameState.streak++;
+        if (window.KidsAudio && KidsAudio.note) setTimeout(() => KidsAudio.note(gameState.streak), 150);
         const praise = getRandomPraise();
         feedbackEl.textContent = praise;
         feedbackEl.className = 'feedback correct';
@@ -315,9 +380,9 @@ function handleAnswerResult(isCorrect, feedbackEl, wrongMessage, spokenCorrect, 
         updateProgress();
 
         if (gameState.questionsAnswered >= gameState.questionsPerLevel) {
-            setTimeout(showWinScreen, 2500);
+            setTimeout(showWinScreen, 2000);
         } else {
-            setTimeout(nextQuestion, 2500);
+            setTimeout(nextQuestion, 2000);
         }
     } else {
         playSound('wrong');
@@ -382,6 +447,7 @@ function showWinScreen() {
     });
 
     playSound('win');
+    if (window.Efeitos) setTimeout(() => Efeitos.vitoria(), 200);
     speak(`Parabéns! ${winMessage.textContent} Você ganhou ${stars} ${stars === 1 ? 'estrela' : 'estrelas'}!`);
     showScreen('win-screen');
 }

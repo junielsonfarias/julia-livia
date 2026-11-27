@@ -44,6 +44,49 @@
     }
     window.goBack = goBack;
 
+    const NIVEIS = ['easy','medium','hard'];
+    const NOME_NIVEL = { easy:'Fácil', medium:'Médio', hard:'Difícil' };
+    const playerId = ()=> (($('player-select')||{}).value || 'julia');
+    function loadAdaptLevel(){ try{ const v = localStorage.getItem('tabuada_nivel_' + playerId()); return NIVEIS.includes(v) ? v : null; }catch(e){ return null; } }
+    function saveAdaptLevel(v){ try{ localStorage.setItem('tabuada_nivel_' + playerId(), v); }catch(e){} }
+    function clearAdaptLevel(){ try{ ['julia','livia'].forEach(p=>localStorage.removeItem('tabuada_nivel_' + p)); }catch(e){} }
+
+    // Mostra nivel e sequencia (combo) na barra de status
+    function renderLevelStreak(){
+        const lv = $('level-badge'); if (lv) lv.textContent = 'Nível: ' + NOME_NIVEL[state.difficulty];
+        const st = $('streak-badge');
+        if (st){
+            st.textContent = state.streak >= 2 ? '🔥 ' + state.streak : '';
+            st.classList.toggle('on', state.streak >= 2);
+        }
+    }
+
+    // Ajusta o nivel e refaz as perguntas que ainda nao apareceram
+    function adapt(firstTryCorrect){
+        if (firstTryCorrect){ state.adaptUp++; state.adaptDown = 0; }
+        else { state.adaptDown++; state.adaptUp = 0; }
+        const i = NIVEIS.indexOf(state.difficulty);
+        let novo = null;
+        if (state.adaptUp >= 3 && i < NIVEIS.length - 1) novo = NIVEIS[i + 1];
+        if (state.adaptDown >= 2 && i > 0) novo = NIVEIS[i - 1];
+        if (!novo) return;
+        const subiu = NIVEIS.indexOf(novo) > i;
+        state.difficulty = novo;
+        state.adaptUp = 0; state.adaptDown = 0;
+        saveAdaptLevel(novo);
+        for (let k = state.current + 1; k < state.total; k++){
+            const q = generateQuestionWithOps(state.base, state.opsUsed);
+            applyKind(q, state.kindChoice);
+            state.questions[k] = q;
+        }
+        renderLevelStreak();
+        const lv = $('level-badge');
+        if (lv && window.Efeitos){
+            Efeitos.pulo(lv, 1);
+            Efeitos.texto(lv, subiu ? 'Nível subiu! ⬆️' : 'Mais fácil 💛', { cor: subiu ? '#7c3aed' : '#e17000' });
+        }
+    }
+
     function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min }
 
     function difficultyRange(diff){
@@ -165,6 +208,10 @@
             state.avoidRepeat = true;
         }
 
+        const salvo = loadAdaptLevel();
+        if (salvo) state.difficulty = salvo;
+        state.adaptUp = 0;
+        state.adaptDown = 0;
         state.current = 0;
         state.correct = 0;
         state.questions = [];
@@ -202,6 +249,7 @@
         // Tipo de pergunta (4º ano): conta, numero que falta, problemas ou misturado
         const kindSel = $('kind-select');
         const kindChoice = kindSel ? kindSel.value : 'conta';
+        state.kindChoice = kindChoice;
         state.questions.forEach(q => applyKind(q, kindChoice));
         // evitar repetir exatamente a mesma sequência da última vez, se configurado
         const sig = state.questions.map(q=>`${q.a}${q.op}${q.b}`).join('|');
@@ -226,6 +274,7 @@
     state.sessionTotal = sessSec;
     startSessionTimer(sessSec);
         renderAchievements();
+        renderLevelStreak();
         renderQuestion();
         playSfx('enter');
     }
@@ -266,6 +315,7 @@
                 choices.forEach(c => {
                     const btn = document.createElement('button');
                     btn.className = 'choice-btn';
+                    btn.dataset.value = c;
                     btn.textContent = c;
                     btn.onclick = ()=> chooseAnswer(c, btn);
                     container.appendChild(btn);
@@ -317,6 +367,8 @@
             $('hint-area').classList.add('hidden');
             $('next-btn').classList.add('hidden');
             $('hint-btn').disabled = false;
+            q.wrongTries = 0;
+            renderLevelStreak();
 
             // start timer if enabled
             if (state.timePerQuestion > 0){
@@ -345,93 +397,112 @@
         }
     }
 
+    // Tempo acabou: sem castigo. Para o relogio e mostra uma dica; ela continua respondendo.
+    function timeUpGently(){
+        const q = state.question;
+        if (!q || q.answered || state.finished) return;
+        const bar = document.getElementById('question-timer-bar'); if (bar) bar.style.width = '0%';
+        if ($('hint-btn') && !$('hint-btn').disabled) showHint(q);
+        const p = $('progress'); if (p) p.textContent = `Pergunta ${state.current+1} / ${state.total} — sem pressa 😊`;
+    }
+
     function chooseAnswer(value, btn){
         if (!state.question || state.question.answered || state.finished) return;
-        state.question.answered = true;
-        clearTimer();
-        const correct = state.question.answer;
-        // disable all interactive elements
-        // So os controles da pergunta: '.primary' tambem pegava Começar, Jogar novamente, Teste de
-        // Memorização, Progresso e Configurações, que ficavam desabilitados depois da ultima pergunta.
-        document.querySelectorAll('#choices button, #choices input').forEach(b=>b.disabled=true);
-        // calcular tempo de resposta
         const qobj = state.question;
-        const respMs = qobj.startTime ? (Date.now() - qobj.startTime) : null;
-        qobj.responseTime = respMs;
+        const correct = qobj.answer;
+        const isCorrect = (parseInt(value,10) === correct);
 
-        let isCorrect = (parseInt(value,10) === correct);
-        if (isCorrect){
-            state.correct++;
-            state.streak++;
-            markElement(btn, 'correct');
-            playSfx('correct');
-            provideFeedback(true);
-        } else {
-            state.streak = 0;
-            markElement(btn, 'wrong');
-            // highlight correct option if present
-            document.querySelectorAll('.choice-btn').forEach(b=>{
-                if (parseInt(b.textContent,10)===correct) b.classList.add('correct');
-            });
-            playSfx('wrong');
-            provideFeedback(false);
-        }
-
-        qobj.correct = !!isCorrect;
-
-        // explanation always shown
-        showExplanation(state.question);
-
-        // update score
-        $('score').textContent = `Pontos: ${state.correct}`;
-        $('hint-btn').disabled = true;
-        // Acertou: avanca sozinho. Errou: espera "Proxima" para ler a explicacao com calma.
-        if (!isCorrect) {
+        // ---- Errou: a opcao apaga, a dica aparece; no 2º erro a certa brilha ----
+        if (!isCorrect){
+            qobj.wrongTries = (qobj.wrongTries || 0) + 1;
+            if (qobj.wrongTries === 1) { state.streak = 0; adapt(false); }
+            renderLevelStreak();
+            playSfx('pop');
+            if (state.mode === 'mcq'){
+                if (btn){ btn.disabled = true; btn.classList.add('faded'); if (window.Efeitos) Efeitos.erro(btn); }
+                if (qobj.wrongTries === 1){
+                    showHint(qobj);
+                    return;
+                }
+                const btns = [...document.querySelectorAll('#choices .choice-btn')];
+                const rest = btns.filter(b2 => !b2.disabled && parseInt(b2.dataset.value,10) !== correct);
+                if (rest.length > 1){ rest[0].disabled = true; rest[0].classList.add('faded'); }
+                const right = btns.find(b2 => parseInt(b2.dataset.value,10) === correct);
+                if (right) right.classList.add('hint-glow');
+                showExplanation(qobj);
+                clearTimer();
+                return;
+            }
+            // modo digitar: 1º erro = dica e tenta de novo; 2º = mostra a conta e o botao Proxima
+            const inp = document.querySelector('#choices .choice-input');
+            if (inp && window.Efeitos) Efeitos.erro(inp.parentNode);
+            if (qobj.wrongTries === 1){
+                showHint(qobj);
+                if (inp){ inp.value = ''; inp.focus(); }
+                return;
+            }
+            qobj.answered = true;
+            qobj.correct = false;
+            clearTimer();
+            document.querySelectorAll('#choices button, #choices input').forEach(b2=>b2.disabled=true);
+            showExplanation(qobj);
+            $('hint-btn').disabled = true;
             const nb = $('next-btn');
             nb.classList.remove('hidden');
             nb.disabled = false;
             checkAchievements();
             return;
         }
-        $('next-btn').classList.add('hidden');
 
-        // achievements check
+        // ---- Acertou ----
+        qobj.answered = true;
+        clearTimer();
+        // So os controles da pergunta: '.primary' tambem pegava Começar, Jogar novamente, Teste de
+        // Memorização, Progresso e Configurações, que ficavam desabilitados depois da ultima pergunta.
+        document.querySelectorAll('#choices button, #choices input').forEach(b2=>b2.disabled=true);
+        document.querySelectorAll('#choices .hint-glow').forEach(b2=>b2.classList.remove('hint-glow'));
+        qobj.responseTime = qobj.startTime ? (Date.now() - qobj.startTime) : null;
+        const first = !qobj.wrongTries;
+        qobj.correct = first;
+        if (first){
+            state.correct++;
+            state.streak++;
+            adapt(true);
+        }
+        markElement(btn, 'correct');
+        playSfx('correct');
+        // nota que sobe a cada acerto seguido (combo)
+        if (first && state.sound && window.KidsAudio) setTimeout(()=>KidsAudio.note(Math.min(state.streak - 1, 10)), 320);
+        provideFeedback(true, btn, first);
+        renderLevelStreak();
+
+        $('score').textContent = `Pontos: ${state.correct}`;
+        $('hint-btn').disabled = true;
+        $('next-btn').classList.add('hidden');
         checkAchievements();
 
-        // avançar automaticamente de forma mais suave:
-        // - toca feedback (visual/som)
-        // - aguarda a animação de feedback, aplica fade-out no cartão
-        // - após fade, avança para próxima pergunta e renderiza com fade-in
+        // avanca sozinho: feedback, fade-out do cartao e a proxima entra
         const advGen = state.gen;
-        (function scheduleAdvance(correct){
-            const feedbackMs = correct ? 600 : 1000; // tempo para feedback (pop/shake/confetti)
-            const fadeMs = 260; // deve combinar com .fade-out CSS timing
-            // agendar início do fade depois do feedback
+        const feedbackMs = first ? 900 : 1300;
+        const fadeMs = 260; // deve combinar com .fade-out CSS timing
+        setTimeout(()=>{
+            if (advGen !== state.gen || state.finished) return;
+            const card = document.getElementById('question-card');
+            if (card) card.classList.add('fade-out');
             setTimeout(()=>{
-                if (advGen !== state.gen || state.finished) return;
-                const card = document.getElementById('question-card');
-                if (card){
-                    card.classList.add('fade-out');
+                if (advGen !== state.gen || state.finished) return;   // jogo reiniciado/encerrado
+                try{
+                    if (sessionRemaining <= 0) return finishGame();
+                    state.current++;
+                    if (state.current >= state.total) return finishGame();
+                    const card2 = document.getElementById('question-card'); if (card2) card2.classList.remove('fade-out');
+                    renderQuestion();
+                }catch(err){
+                    console.error('Erro ao avançar para proxima pergunta:', err);
+                    try{ state.current++; if (state.current < state.total) renderQuestion(); else finishGame(); }catch(e2){ finishGame(); }
                 }
-                // depois do fade, avançar e renderizar (com tolerância a erros)
-                setTimeout(()=>{
-                    if (advGen !== state.gen || state.finished) return;   // jogo reiniciado/encerrado
-                    try{
-                        if (sessionRemaining <= 0) return finishGame();
-                        state.current++;
-                        if (state.current >= state.total) return finishGame();
-                        // garantir que o fade-out seja removido no render
-                        const card2 = document.getElementById('question-card'); if (card2) card2.classList.remove('fade-out');
-                        // (nao reabilita os botoes antigos: durante o fade de 200ms eles responderiam a pergunta NOVA)
-                        renderQuestion();
-                    }catch(err){
-                        console.error('Erro ao avançar para proxima pergunta:', err);
-                        // tentativa de recuperacao simples
-                        try{ state.current++; if (state.current < state.total) renderQuestion(); else finishGame(); }catch(e2){ finishGame(); }
-                    }
-                }, fadeMs);
-            }, feedbackMs);
-        })(isCorrect);
+            }, fadeMs);
+        }, feedbackMs);
     }
 
     function markElement(el, kind){
@@ -461,14 +532,19 @@
     }
 
     // visual feedback (confetti, glow, vibration)
-    function provideFeedback(isCorrect){
+    function provideFeedback(isCorrect, btn, first){
         const card = document.getElementById('question-card');
         const scoreEl = $('score');
         if (isCorrect){
             if (scoreEl){ scoreEl.classList.add('pulse'); setTimeout(()=>scoreEl.classList.remove('pulse'),900); }
             if (card){ card.classList.add('correct-glow'); setTimeout(()=>card.classList.remove('correct-glow'),900); }
-            createConfetti(12);
-            try{ if (navigator.vibrate) navigator.vibrate(120); }catch(e){}
+            if (window.Efeitos){
+                const alvo = (btn && btn.isConnected) ? btn : card;
+                const combo = first && state.streak >= 3;
+                Efeitos.acerto(alvo, { texto: combo ? '🔥 ' + state.streak + ' seguidas!' : (first ? '+1' : '👍'), emoji: combo ? ['🔥','⭐','✨'] : ['⭐','✨'] });
+            } else {
+                createConfetti(12);
+            }
         } else {
             if (card){ card.classList.add('shake','wrong-glow'); setTimeout(()=>card.classList.remove('shake','wrong-glow'),800); }
             try{ if (navigator.vibrate) navigator.vibrate([80,40,80]); }catch(e){}
@@ -613,7 +689,7 @@
         clearSessionTimer();
         // visual + som feedback de final de sessão
         try{
-            createConfetti(18);
+            if (window.Efeitos) Efeitos.vitoria(); else createConfetti(18);
             const percent = Math.round((state.correct / state.total) * 100);
             playSfx(percent === 100 ? 'perfect' : 'win');
             try{ if (navigator.vibrate) navigator.vibrate(160); }catch(e){}
@@ -653,8 +729,8 @@
             renderTimer();
             if (state.remainingMs <= 0){
                 clearTimer();
-                // marcar como erro por tempo
-                chooseAnswer(null, null);
+                // tempo acabou: nao conta como erro, so oferece uma dica
+                timeUpGently();
             }
         }, 100);
     }
@@ -998,7 +1074,7 @@
             const correct = (val === state.question.answer);
             state.memTest.times.push(respMs);
             if (correct) state.memTest.correct++;
-            playSfx(correct ? 'correct' : 'wrong');
+            playSfx(correct ? 'correct' : 'pop');
             state.memTest.index++;
             renderMemQuestion();
         };
@@ -1049,6 +1125,9 @@
         const cs = $('cancel-settings'); if (cs) cs.addEventListener('click', closeSettings);
         // when difficulty changes, update per-question timer default to match difficulty
         const diffSel = document.getElementById('difficulty-select');
+        if (diffSel) diffSel.addEventListener('change', clearAdaptLevel);
+        const setLv = document.getElementById('settings-default-level');
+        if (setLv) setLv.addEventListener('change', clearAdaptLevel);
         const timerSel = document.getElementById('timer-select');
         if (diffSel && timerSel){
             diffSel.addEventListener('change', (e)=>{

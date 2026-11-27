@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sequência Lógica - Mundo de Julia & Livia</title>
     <base href="/sequencia-game/">
-    <link rel="stylesheet" href="styles.css?v=950b1055">
+    <link rel="stylesheet" href="styles.css?v=fc2357f3">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -23,23 +23,23 @@
             <!-- Tela de Inicio -->
             <div id="start-screen" class="screen active">
                 <div class="start-content">
-                    <div class="game-icon">🧩</div>
+                    <div class="game-icon" data-e3d>🧩</div>
                     <h2>Sequência Lógica!</h2>
                     <p>Descubra a regra escondida, como nas olimpíadas de matemática!</p>
 
                     <div class="mode-select">
                         <button class="mode-btn" onclick="startGame('numbers')">
-                            <span class="mode-icon">🔢</span>
+                            <span class="mode-icon" data-e3d>🔢</span>
                             <span class="mode-name">Números</span>
                             <span class="mode-desc">Sequências numéricas</span>
                         </button>
                         <button class="mode-btn" onclick="startGame('patterns')">
-                            <span class="mode-icon">🎨</span>
+                            <span class="mode-icon" data-e3d>🎨</span>
                             <span class="mode-name">Padrões</span>
                             <span class="mode-desc">Padrões de formas</span>
                         </button>
                         <button class="mode-btn" onclick="startGame('mixed')">
-                            <span class="mode-icon">🌟</span>
+                            <span class="mode-icon" data-e3d>🌟</span>
                             <span class="mode-name">Desafio</span>
                             <span class="mode-desc">Tudo misturado!</span>
                         </button>
@@ -71,7 +71,7 @@
             <!-- Tela de Vitoria -->
             <div id="win-screen" class="screen">
                 <div class="win-content">
-                    <div class="win-icon">🏆</div>
+                    <div class="win-icon" data-e3d>🏆</div>
                     <h2>Fantástico!</h2>
                     <p id="level-message">Você completou o nível!</p>
                     <div class="final-score">
@@ -92,8 +92,10 @@
         </main>
     </div>
 
-    <script src="../shared/kids-audio.js?v=da92b96a"></script>
-    <script src="game.js?v=994277f6"></script>
+    <script src="../shared/kids-audio.js?v=90618a14"></script>
+    <script src="../shared/efeitos.js?v=e296ecbf"></script>
+    <script src="../shared/emoji3d.js?v=fc9306e9"></script>
+    <script src="game.js?v=687e0935"></script>
     <script src="../shared/fit-screen.js?v=0f4dccb7"></script>
 </body>
 </html>

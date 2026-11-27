@@ -95,10 +95,10 @@ function showCard(p, type, card, buttons) {
             <div class="card-who">${p.emoji} ${esc(p.name)} tira uma carta da selva...</div>
             <div class="jcard">
                 <div class="jcard-inner">
-                    <div class="jcard-back"><span>🌴</span><b>SELVA</b></div>
+                    <div class="jcard-back"><span>${fig('🌴')}</span><b>SELVA</b></div>
                     <div class="jcard-front" style="--cc:${t.color}">
                         <div class="jcard-type">${t.icon} ${t.label}</div>
-                        <div class="jcard-emoji">${card.emoji}</div>
+                        <div class="jcard-emoji">${fig(card.emoji)}</div>
                         <p class="jcard-text"></p>
                     </div>
                 </div>

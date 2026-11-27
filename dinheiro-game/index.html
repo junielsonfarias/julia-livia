@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mercadinho - Mundo de Julia & Livia</title>
     <base href="/dinheiro-game/">
-    <link rel="stylesheet" href="../interpretacao-game/styles.css?v=6fd0b4b7">
-    <link rel="stylesheet" href="styles.css?v=a37ef6c4">
+    <link rel="stylesheet" href="../interpretacao-game/styles.css?v=3a99807f">
+    <link rel="stylesheet" href="styles.css?v=4246c4be">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="mercadinho">
@@ -23,22 +23,22 @@
         <main class="game-area">
             <section id="start-screen" class="screen active">
                 <div class="panel">
-                    <div class="big-icon">🛒</div>
+                    <div class="big-icon" data-e3d>🛒</div>
                     <h2>Mercadinho</h2>
                     <p class="lead">Use notas e moedas de verdade (do Real) para pagar, calcular o troco e descobrir quanto falta!</p>
                     <div class="mode-grid">
                         <button class="mode-btn math" onclick="startGame('pagar')">
-                            <span class="mode-icon">💵</span>
+                            <span class="mode-icon" data-e3d>💵</span>
                             <span class="mode-name">Pague certinho</span>
                             <span class="mode-desc">Monte o valor exato</span>
                         </button>
                         <button class="mode-btn port" onclick="startGame('troco')">
-                            <span class="mode-icon">🪙</span>
+                            <span class="mode-icon" data-e3d>🪙</span>
                             <span class="mode-name">Troco</span>
                             <span class="mode-desc">Quanto vou receber?</span>
                         </button>
                         <button class="mode-btn mix" onclick="startGame('misturado')">
-                            <span class="mode-icon">🎯</span>
+                            <span class="mode-icon" data-e3d>🎯</span>
                             <span class="mode-name">Misturado</span>
                             <span class="mode-desc">Pagar, troco e quanto falta</span>
                         </button>
@@ -92,8 +92,10 @@
         </main>
     </div>
 
-    <script src="../shared/kids-audio.js?v=da92b96a"></script>
-    <script src="game.js?v=2b1822d6"></script>
+    <script src="../shared/kids-audio.js?v=90618a14"></script>
+    <script src="../shared/efeitos.js?v=e296ecbf"></script>
+    <script src="../shared/emoji3d.js?v=fc9306e9"></script>
+    <script src="game.js?v=0adadf18"></script>
     <script src="../shared/fit-screen.js?v=0f4dccb7"></script>
 </body>
 </html>

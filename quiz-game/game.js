@@ -266,7 +266,9 @@ let gameState = {
     totalQuestions: 10,
     timer: null,
     timeLeft: 40,
-    mistakes: []
+    mistakes: [],
+    streak: 0,      // acertos seguidos (notas sobem)
+    tries: 0        // erros na pergunta atual
 };
 
 // Tempo maior para dar tempo de LER o enunciado com calma (4º ano)
@@ -412,9 +414,11 @@ function showQuestion() {
     optionsArea.innerHTML = '';
 
     const letters = ['A', 'B', 'C', 'D'];
+    gameState.tries = 0;
     question.options.forEach((option, index) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
+        btn.style.setProperty('--i', index);
         btn.innerHTML = `
             <span class="option-letter">${letters[index]}</span>
             <span class="option-text">${escapeHtml(option)}</span>
@@ -476,13 +480,18 @@ function timeUp() {
     // Marcar resposta correta
     const buttons = document.querySelectorAll('.option-btn');
     buttons[question.correct].classList.add('correct');
+    buttons[question.correct].classList.remove('dica');
     buttons.forEach(btn => btn.classList.add('disabled'));
 
     feedbackEl.textContent = 'Tempo esgotado! Veja a resposta certa em verde.';
-    recordMistake(question, null);
     feedbackEl.className = 'feedback wrong';
+    gameState.streak = 0;
 
-    gameState.wrongAnswers++;
+    // Se ja tinha errado esta pergunta, o erro ja foi contado
+    if (!gameState.tries) {
+        recordMistake(question, null);
+        gameState.wrongAnswers++;
+    }
     playSound('wrong');
 
     showExplanation(question);
@@ -498,39 +507,62 @@ function showExplanation(question) {
 }
 
 // Selecionar resposta
+// Aprendizagem sem erro: errar nao revela a resposta. A opcao errada sai de cena,
+// no 2o erro sai mais uma e no 3o a certa brilha. A pergunta errada de primeira
+// conta como erro (placar e revisao no final), mas a crianca termina acertando.
 function selectAnswer(index) {
     if (!document.getElementById('next-btn').hidden) return;
-    clearTimer();
 
     const question = gameState.questions[gameState.currentQuestion];
-    const buttons = document.querySelectorAll('.option-btn');
+    const buttons = [...document.querySelectorAll('.option-btn')];
     const feedbackEl = document.getElementById('feedback');
-
-    // Desabilitar todos os botoes
-    buttons.forEach(btn => btn.classList.add('disabled'));
-
-    // Marcar resposta correta
-    buttons[question.correct].classList.add('correct');
+    const right = buttons[question.correct];
+    if (buttons[index].classList.contains('fora')) return;
 
     if (index === question.correct) {
-        // Resposta correta
+        clearTimer();
+        buttons.forEach(btn => {
+            btn.classList.add('disabled');
+            if (btn !== right) btn.classList.add('fora');
+        });
+        right.classList.add('correct');
+        right.classList.remove('dica');
+        if (window.Efeitos) Efeitos.acerto(right, { emoji: ['⭐', '✨'] });
         playSound('correct');
-        feedbackEl.textContent = getRandomPraise();
+        gameState.streak++;
+        if (window.KidsAudio && KidsAudio.note) setTimeout(() => KidsAudio.note(gameState.streak), 150);
+        if (gameState.tries === 0) {
+            feedbackEl.textContent = getRandomPraise();
+            gameState.score += noTimer() ? 10 : 10 + Math.floor(gameState.timeLeft / 4);
+            gameState.correctAnswers++;
+        } else {
+            feedbackEl.textContent = 'Isso! Agora você encontrou!';
+        }
         feedbackEl.className = 'feedback correct';
-        gameState.score += noTimer() ? 10 : 10 + Math.floor(gameState.timeLeft / 4);
-        gameState.correctAnswers++;
-    } else {
-        // Resposta errada
-        playSound('wrong');
-        buttons[index].classList.add('wrong');
-        recordMistake(question, index);
-        feedbackEl.textContent = 'Não foi dessa vez! Veja a resposta certa em verde.';
-        feedbackEl.className = 'feedback wrong';
-        gameState.wrongAnswers++;
+        updateStats();
+        showExplanation(question);
+        return;
     }
 
+    // Errou: o tempo continua, a opcao sai e ela tenta de novo
+    playSound('wrong');
+    gameState.tries++;
+    gameState.streak = 0;
+    const chosen = buttons[index];
+    chosen.classList.add('fora');
+    if (window.Efeitos) Efeitos.erro(chosen);
+    if (gameState.tries === 1) {
+        recordMistake(question, index);
+        gameState.wrongAnswers++;
+    }
+    if (gameState.tries >= 2) {
+        const rest = buttons.filter(b => b !== right && !b.classList.contains('fora'));
+        if (rest.length) rest[0].classList.add('fora');
+    }
+    if (gameState.tries >= 3) right.classList.add('dica');
+    feedbackEl.textContent = gameState.tries >= 2 ? 'Quase! Leia a pergunta de novo com calma.' : 'Quase! Tente de novo.';
+    feedbackEl.className = 'feedback wrong';
     updateStats();
-    showExplanation(question);
 }
 
 // Guarda a pergunta errada para a revisao no final
@@ -611,6 +643,7 @@ function showResults() {
     renderReview();
     playSound('win');
     showScreen('result-screen');
+    if (window.Efeitos) setTimeout(() => Efeitos.vitoria(), 200);
 }
 
 // Lista das perguntas erradas, com a resposta certa e a explicacao

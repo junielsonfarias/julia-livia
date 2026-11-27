@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Treino Olímpico - Mundo de Julia & Livia</title>
     <base href="/olimpiada-game/">
-    <link rel="stylesheet" href="../interpretacao-game/styles.css?v=6fd0b4b7">
-    <link rel="stylesheet" href="styles.css?v=2869081a">
+    <link rel="stylesheet" href="../interpretacao-game/styles.css?v=3a99807f">
+    <link rel="stylesheet" href="styles.css?v=cfc8a101">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="olimpiada">
@@ -24,23 +24,23 @@
             <!-- INICIO -->
             <section id="start-screen" class="screen active">
                 <div class="panel">
-                    <div class="big-icon">🥇</div>
+                    <div class="big-icon" data-e3d>🥇</div>
                     <h2>Treino para a Olimpíada</h2>
                     <p class="lead">Questões de raciocínio no estilo da <b>OBMEP Mirim 2</b> e do <b>Canguru</b> (4º e 5º ano). Aqui o mais importante é <b>pensar</b>, não fazer conta rápida!</p>
 
                     <div class="mode-grid">
                         <button class="mode-btn math" onclick="startGame('treino')">
-                            <span class="mode-icon">🧠</span>
+                            <span class="mode-icon" data-e3d>🧠</span>
                             <span class="mode-name">Treino</span>
                             <span class="mode-desc">Com dica e resolução explicada</span>
                         </button>
                         <button class="mode-btn port" onclick="startGame('simulado')">
-                            <span class="mode-icon">📝</span>
+                            <span class="mode-icon" data-e3d>📝</span>
                             <span class="mode-name">Simulado</span>
                             <span class="mode-desc">10 questões · 20 minutos · como na prova</span>
                         </button>
                         <button class="mode-btn mix" onclick="showStrategies()">
-                            <span class="mode-icon">🧰</span>
+                            <span class="mode-icon" data-e3d>🧰</span>
                             <span class="mode-name">Estratégias</span>
                             <span class="mode-desc">As ferramentas do olímpico</span>
                         </button>
@@ -108,7 +108,7 @@
             <!-- ESTRATEGIAS -->
             <section id="strategies-screen" class="screen">
                 <div class="panel">
-                    <div class="big-icon">🧰</div>
+                    <div class="big-icon" data-e3d>🧰</div>
                     <h2>Ferramentas do olímpico</h2>
                     <div class="strategies" id="strategies"></div>
                     <button class="big-btn primary" onclick="goHome()">Voltar</button>
@@ -118,7 +118,7 @@
             <!-- PROGRESSO -->
             <section id="report-screen" class="screen">
                 <div class="panel">
-                    <div class="big-icon">📊</div>
+                    <div class="big-icon" data-e3d>📊</div>
                     <h2>Progresso por tema</h2>
                     <p class="lead">Acertos de primeira em cada tema (todas as partidas).</p>
                     <div class="skills" id="report"></div>
@@ -131,9 +131,11 @@
         </main>
     </div>
 
-    <script src="../shared/kids-audio.js?v=da92b96a"></script>
+    <script src="../shared/kids-audio.js?v=90618a14"></script>
+    <script src="../shared/efeitos.js?v=e296ecbf"></script>
+    <script src="../shared/emoji3d.js?v=fc9306e9"></script>
     <script src="data.js?v=87763617"></script>
-    <script src="game.js?v=62098494"></script>
+    <script src="game.js?v=b85438fc"></script>
     <script src="../shared/fit-screen.js?v=0f4dccb7"></script>
 </body>
 </html>

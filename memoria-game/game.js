@@ -176,6 +176,7 @@ function startGame(level) {
     gameState.moves = 0;
     gameState.flippedCards = [];
     gameState.isLocked = true;
+    gameState.streak = 0;
     gameState.totalPairs = LEVELS[level].pairs;
     gameState.startTime = Date.now();
     gameState.scores = { julia: 0, livia: 0 };
@@ -217,7 +218,7 @@ function startGame(level) {
             gameState.isLocked = false;
             if (isDuel) announceTurn();
         }, 2000);
-    }, 300);
+    }, 300 + gameState.cards.length * 40);   // espera as cartas chegarem
 }
 
 function createCards() {
@@ -237,11 +238,14 @@ function createCards() {
         card.className = 'memory-card';
         card.dataset.index = index;
         card.dataset.item = item;
+        card.style.setProperty('--i', index);
         const textClass = isTextTheme ? ' text-theme' : '';
+        // figura 3D na frente (a comparacao usa data-item, nao o texto)
+        const face = (!isTextTheme && window.Emoji3D) ? Emoji3D.html(item, 'card-e3d') : item;
         card.innerHTML = `
             <div class="card-inner">
                 <div class="card-back"></div>
-                <div class="card-front${textClass}">${item}</div>
+                <div class="card-front${textClass}">${face}</div>
             </div>
         `;
         card.addEventListener('click', () => flipCard(card));
@@ -285,6 +289,15 @@ function checkMatch() {
 
     if (match) {
         playSound('correct');
+        gameState.streak = (gameState.streak || 0) + 1;
+        if (window.KidsAudio && KidsAudio.note) setTimeout(() => KidsAudio.note(gameState.streak), 120);
+        if (window.Efeitos) {
+            // pop + particulas saindo das duas cartas
+            setTimeout(() => {
+                Efeitos.acerto(card1, { emoji: ['⭐', '✨'] });
+                Efeitos.estrelas(card2, { quantidade: 10, emoji: ['⭐', '💖'] });
+            }, 180);
+        }
         const owner = 'by-' + (isDuel ? player : 'solo');
         card1.classList.add('matched', owner);
         card2.classList.add('matched', owner);
@@ -318,6 +331,7 @@ function checkMatch() {
         }, 1000);
     } else {
         playSound('wrong');
+        gameState.streak = 0;
         card1.classList.add('miss');
         card2.classList.add('miss');
         showToast(rand(TRY_AGAIN), 'bad');
@@ -430,6 +444,7 @@ function showWinScreen() {
 
     setTimeout(() => playSound('win'), 200);
     showScreen('win-screen');
+    if (window.Efeitos) setTimeout(() => Efeitos.vitoria(), 250);
 }
 
 function restartGame() {

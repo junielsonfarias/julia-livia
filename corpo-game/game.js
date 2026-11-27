@@ -60,8 +60,25 @@ let gameState = {
     usedParts: [],
     gameMode: 'identify', // 'identify' ou 'name'
     mistakes: 0,
+    streak: 0,       // acertos seguidos (notas sobem)
+    tries: 0,        // erros na pergunta atual
     locked: false
 };
+
+// Aprendizagem sem erro: 1o erro balanca e repete a instrucao;
+// 2o/3o erro destaca onde esta a resposta. A pergunta continua ate acertar.
+function tryAgain(touchedEl, rightEls, spoken) {
+    gameState.mistakes++;
+    gameState.tries++;
+    gameState.streak = 0;
+    playSound('wrong');
+    if (touchedEl && window.Efeitos) Efeitos.erro(touchedEl);
+    const feedbackEl = document.getElementById('feedback');
+    feedbackEl.textContent = 'Quase! Tente de novo!';
+    feedbackEl.className = 'feedback wrong';
+    if (gameState.tries >= 2) rightEls.forEach(el => el && el.classList.add('dica'));
+    speak(`Quase! ${spoken}`);
+}
 
 let lastPrompt = '';
 let nextTimer = null;   // proxima pergunta/vitoria agendada (cancelada ao sair ou reiniciar)
@@ -111,6 +128,7 @@ function startGame(mode) {
     gameState.questionsAnswered = 0;
     gameState.usedParts = [];
     gameState.mistakes = 0;
+    gameState.streak = 0;
     updateStats();
     updateProgress();
     playSound('start');
@@ -139,6 +157,7 @@ function nextQuestion() {
 
     gameState.currentPart = availableParts[Math.floor(Math.random() * availableParts.length)];
     gameState.usedParts.push(gameState.currentPart.id);
+    gameState.tries = 0;
 
     const questionText = document.getElementById('question-text');
     const bodyArea = document.getElementById('body-area');
@@ -170,44 +189,72 @@ function renderBodyForIdentify(container) {
     // SVG simplificado de pessoa
     bodyFigure.innerHTML = `
         <svg viewBox="0 0 200 350" preserveAspectRatio="none" class="body-svg">
+            <!-- Luz e volume (gradientes): o desenho e as areas continuam iguais -->
+            <defs>
+                <radialGradient id="pele" cx="35%" cy="30%" r="75%">
+                    <stop offset="0" stop-color="#FFE7C2"/><stop offset=".6" stop-color="#FFD699"/><stop offset="1" stop-color="#EDB872"/>
+                </radialGradient>
+                <linearGradient id="peleV" x1="0" x2="1">
+                    <stop offset="0" stop-color="#FFE3B8"/><stop offset=".55" stop-color="#FFD699"/><stop offset="1" stop-color="#E9B26C"/>
+                </linearGradient>
+                <linearGradient id="camisa" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#90CAF9"/><stop offset=".5" stop-color="#64B5F6"/><stop offset="1" stop-color="#3D8FD8"/>
+                </linearGradient>
+                <linearGradient id="calca" x1="0" x2="1">
+                    <stop offset="0" stop-color="#7B5A4E"/><stop offset=".5" stop-color="#5D4037"/><stop offset="1" stop-color="#432C25"/>
+                </linearGradient>
+                <radialGradient id="sapato" cx="40%" cy="30%" r="80%">
+                    <stop offset="0" stop-color="#666"/><stop offset="1" stop-color="#222"/>
+                </radialGradient>
+                <linearGradient id="cabelo" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#6B4F3A"/><stop offset="1" stop-color="#3E2C20"/>
+                </linearGradient>
+            </defs>
+            <!-- Sombra no chao -->
+            <ellipse cx="100" cy="343" rx="62" ry="6" fill="#000" opacity=".12"/>
             <!-- Cabeca -->
-            <circle cx="100" cy="40" r="35" fill="#FFD699" stroke="#333" stroke-width="2"/>
+            <circle cx="100" cy="40" r="35" fill="url(#pele)" stroke="#333" stroke-width="2"/>
             <!-- Cabelo -->
-            <path d="M65 30 Q100 0 135 30" fill="#4A3728" stroke="#333" stroke-width="1"/>
+            <path d="M65 30 Q100 0 135 30" fill="url(#cabelo)" stroke="#333" stroke-width="1"/>
             <!-- Olhos -->
             <circle cx="85" cy="35" r="5" fill="#333"/>
             <circle cx="115" cy="35" r="5" fill="#333"/>
+            <circle cx="83.5" cy="33" r="1.6" fill="#fff"/>
+            <circle cx="113.5" cy="33" r="1.6" fill="#fff"/>
+            <!-- Bochechas -->
+            <circle cx="78" cy="56" r="6" fill="#FF8A80" opacity=".35"/>
+            <circle cx="122" cy="56" r="6" fill="#FF8A80" opacity=".35"/>
             <!-- Nariz -->
             <path d="M100 42 L95 55 L105 55 Z" fill="#E6B87A"/>
             <!-- Boca -->
             <path d="M85 65 Q100 75 115 65" stroke="#E57373" stroke-width="3" fill="none"/>
             <!-- Orelhas -->
-            <ellipse cx="60" cy="40" rx="8" ry="12" fill="#FFD699" stroke="#333" stroke-width="1"/>
-            <ellipse cx="140" cy="40" rx="8" ry="12" fill="#FFD699" stroke="#333" stroke-width="1"/>
+            <ellipse cx="60" cy="40" rx="8" ry="12" fill="url(#pele)" stroke="#333" stroke-width="1"/>
+            <ellipse cx="140" cy="40" rx="8" ry="12" fill="url(#pele)" stroke="#333" stroke-width="1"/>
             <!-- Pescoco -->
-            <rect x="90" y="75" width="20" height="25" fill="#FFD699" stroke="#333" stroke-width="1"/>
+            <rect x="90" y="75" width="20" height="25" fill="url(#pele)" stroke="#333" stroke-width="1"/>
             <!-- Corpo/Tronco -->
-            <rect x="60" y="100" width="80" height="100" rx="10" fill="#64B5F6" stroke="#333" stroke-width="2"/>
+            <rect x="60" y="100" width="80" height="100" rx="10" fill="url(#camisa)" stroke="#333" stroke-width="2"/>
             <!-- Ombros -->
-            <ellipse cx="55" cy="110" rx="15" ry="10" fill="#64B5F6" stroke="#333" stroke-width="1"/>
-            <ellipse cx="145" cy="110" rx="15" ry="10" fill="#64B5F6" stroke="#333" stroke-width="1"/>
+            <ellipse cx="55" cy="110" rx="15" ry="10" fill="url(#camisa)" stroke="#333" stroke-width="1"/>
+            <ellipse cx="145" cy="110" rx="15" ry="10" fill="url(#camisa)" stroke="#333" stroke-width="1"/>
             <!-- Bracos -->
-            <rect x="25" y="110" width="25" height="80" rx="10" fill="#FFD699" stroke="#333" stroke-width="2"/>
-            <rect x="150" y="110" width="25" height="80" rx="10" fill="#FFD699" stroke="#333" stroke-width="2"/>
+            <rect x="25" y="110" width="25" height="80" rx="10" fill="url(#peleV)" stroke="#333" stroke-width="2"/>
+            <rect x="150" y="110" width="25" height="80" rx="10" fill="url(#peleV)" stroke="#333" stroke-width="2"/>
             <!-- Maos -->
-            <circle cx="37" cy="200" r="15" fill="#FFD699" stroke="#333" stroke-width="2"/>
-            <circle cx="163" cy="200" r="15" fill="#FFD699" stroke="#333" stroke-width="2"/>
+            <circle cx="37" cy="200" r="15" fill="url(#pele)" stroke="#333" stroke-width="2"/>
+            <circle cx="163" cy="200" r="15" fill="url(#pele)" stroke="#333" stroke-width="2"/>
             <!-- Barriga (marca na camiseta) -->
             <ellipse cx="100" cy="160" rx="20" ry="15" fill="#4A90D9" opacity="0.5"/>
             <!-- Pernas -->
-            <rect x="65" y="200" width="28" height="120" rx="10" fill="#5D4037" stroke="#333" stroke-width="2"/>
-            <rect x="107" y="200" width="28" height="120" rx="10" fill="#5D4037" stroke="#333" stroke-width="2"/>
+            <rect x="65" y="200" width="28" height="120" rx="10" fill="url(#calca)" stroke="#333" stroke-width="2"/>
+            <rect x="107" y="200" width="28" height="120" rx="10" fill="url(#calca)" stroke="#333" stroke-width="2"/>
             <!-- Joelhos -->
             <ellipse cx="79" cy="280" rx="12" ry="8" fill="#4E342E" opacity="0.3"/>
             <ellipse cx="121" cy="280" rx="12" ry="8" fill="#4E342E" opacity="0.3"/>
             <!-- Pes -->
-            <ellipse cx="79" cy="330" rx="20" ry="12" fill="#333" stroke="#222" stroke-width="2"/>
-            <ellipse cx="121" cy="330" rx="20" ry="12" fill="#333" stroke="#222" stroke-width="2"/>
+            <ellipse cx="79" cy="330" rx="20" ry="12" fill="url(#sapato)" stroke="#222" stroke-width="2"/>
+            <ellipse cx="121" cy="330" rx="20" ry="12" fill="url(#sapato)" stroke="#222" stroke-width="2"/>
         </svg>
     `;
 
@@ -239,9 +286,13 @@ function renderBodyForIdentify(container) {
         { id: 'feet', x: 99, y: 316, w: 44, h: 30 }
     ];
 
+    // A parte pedida ganha uma folga invisivel em volta (::before) e fica por cima:
+    // tocar perto do nariz/olhos/joelhos tambem vale. O desenho nao muda.
+    const target = gameState.currentPart.id;
     clickAreas.forEach(area => {
         const clickZone = document.createElement('div');
-        clickZone.className = 'click-zone';
+        clickZone.className = 'click-zone' + (area.id === target ? ' alvo' : '') +
+            (area.w * area.h < 900 ? ' pequena' : '');
         clickZone.dataset.partId = area.id;
         clickZone.style.cssText = `
             position: absolute;
@@ -272,7 +323,7 @@ function renderOptionsForName(container) {
     // Mostrar emoji grande da parte (cada parte tem um emoji unico)
     const partDisplay = document.createElement('div');
     partDisplay.className = 'part-display';
-    partDisplay.innerHTML = `<span class="big-emoji">${gameState.currentPart.emoji}</span>`;
+    partDisplay.innerHTML = `<span class="big-emoji">${window.Emoji3D ? Emoji3D.html(gameState.currentPart.emoji, 'fig') : gameState.currentPart.emoji}</span>`;
     container.appendChild(partDisplay);
 
     // Criar opcoes
@@ -286,9 +337,10 @@ function renderOptionsForName(container) {
     const shuffledOthers = otherParts.sort(() => Math.random() - 0.5).slice(0, 3);
     const options = [gameState.currentPart, ...shuffledOthers].sort(() => Math.random() - 0.5);
 
-    options.forEach(part => {
+    options.forEach((part, i) => {
         const btn = document.createElement('button');
         btn.className = 'name-btn';
+        btn.style.setProperty('--i', i);
         btn.dataset.partId = part.id;
         // O botao mostra so o NOME (o emoji ja esta na pergunta)
         btn.innerHTML = `<span class="name-text">${part.name}</span>`;
@@ -309,56 +361,73 @@ function renderOptionsForName(container) {
 // Verificar resposta (modo identificar)
 function checkIdentifyAnswer(partId) {
     if (gameState.locked) return;
-    gameState.locked = true;
     const feedbackEl = document.getElementById('feedback');
     const target = gameState.currentPart.id;
     // Vale tocar na propria parte ou numa parte que fica dentro dela
     const isCorrect = partId === target || (PART_PARENTS[partId] || []).includes(target);
+    const targetZones = [...document.querySelectorAll(`.click-zone[data-part-id="${target}"]`)];
+
+    if (!isCorrect) {
+        // Sem castigo: marca leve na area tocada e tenta de novo
+        const touched = [...document.querySelectorAll(`.click-zone[data-part-id="${partId}"]`)];
+        touched.forEach(z => {
+            z.classList.remove('wrong'); void z.offsetWidth; z.classList.add('wrong');
+            setTimeout(() => z.classList.remove('wrong'), 700);
+        });
+        const part = gameState.currentPart;
+        tryAgain(touched[0], targetZones, `${touchPhrase(part)} ${part.hint}`);
+        return;
+    }
+    gameState.locked = true;
 
     // Trava todas as areas
     document.querySelectorAll('.click-zone').forEach(z => { z.style.pointerEvents = 'none'; });
-
-    // Destacar area clicada (e o par, ex.: as duas orelhas)
-    if (!isCorrect) {
-        document.querySelectorAll(`.click-zone[data-part-id="${partId}"]`)
-            .forEach(z => z.classList.add('wrong'));
-    }
     // Mostrar a(s) area(s) correta(s)
-    document.querySelectorAll(`.click-zone[data-part-id="${target}"]`)
-        .forEach(z => z.classList.add('correct'));
+    targetZones.forEach(z => z.classList.add('correct'));
+    if (window.Efeitos && targetZones[0]) Efeitos.estrelas(targetZones[0], { quantidade: 16, emoji: ['⭐', '💜'] });
 
     const msg = thisIsPhrase(gameState.currentPart);
-    handleAnswerResult(isCorrect, feedbackEl, msg, msg);
+    handleAnswerResult(true, feedbackEl, msg, msg);
 }
 
 // Verificar resposta (modo nome)
 function checkNameAnswer(part) {
     if (gameState.locked) return;
-    gameState.locked = true;
     const feedbackEl = document.getElementById('feedback');
-    const buttons = document.querySelectorAll('.name-btn');
+    const buttons = [...document.querySelectorAll('.name-btn')];
     const isCorrect = part.id === gameState.currentPart.id;
+    const chosen = buttons.find(b => b.dataset.partId === part.id);
+    const right = buttons.find(b => b.dataset.partId === gameState.currentPart.id);
 
-    // Desabilitar botoes
+    if (!isCorrect) {
+        chosen.classList.add('fora');
+        chosen.disabled = true;
+        // 2o erro: some com mais uma opcao errada
+        if (gameState.tries >= 1) {
+            const rest = buttons.filter(b => b !== right && !b.classList.contains('fora'));
+            if (rest.length) { rest[0].classList.add('fora'); rest[0].disabled = true; }
+        }
+        tryAgain(chosen, [right], `Qual é o nome desta parte? ${gameState.currentPart.hint}`);
+        return;
+    }
+    gameState.locked = true;
     buttons.forEach(btn => {
         btn.style.pointerEvents = 'none';
-        const id = btn.dataset.partId;
-        if (id === part.id) {
-            btn.classList.add(isCorrect ? 'correct' : 'wrong');
-        }
-        if (id === gameState.currentPart.id) {
-            btn.classList.add('correct');
-        }
+        if (btn !== right) btn.classList.add('fora');
     });
+    right.classList.add('correct');
+    if (window.Efeitos) Efeitos.acerto(right, { emoji: ['⭐', '💜'] });
 
     const msg = thisIsPhrase(gameState.currentPart);
-    handleAnswerResult(isCorrect, feedbackEl, msg, msg);
+    handleAnswerResult(true, feedbackEl, msg, msg);
 }
 
 // Processar resultado da resposta
 function handleAnswerResult(isCorrect, feedbackEl, wrongMessage, spokenAnswer) {
     if (isCorrect) {
         playSound('correct');
+        gameState.streak++;
+        if (window.KidsAudio && KidsAudio.note) setTimeout(() => KidsAudio.note(gameState.streak), 150);
         const praise = getRandomPraise();
         feedbackEl.textContent = praise;
         feedbackEl.className = 'feedback correct';
@@ -428,6 +497,7 @@ function showWinScreen() {
     });
 
     playSound('win');
+    if (window.Efeitos) setTimeout(() => Efeitos.vitoria(), 200);
     speak(`Parabéns! Você conhece o corpo humano! Ganhou ${stars} ${stars === 1 ? 'estrela' : 'estrelas'}!`);
     showScreen('win-screen');
 }
