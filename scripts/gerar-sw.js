@@ -27,12 +27,16 @@ function walk(dir, out) {
 }
 
 const shortHash = buf => crypto.createHash('sha1').update(buf).digest('hex').slice(0, 8);
+// Texto com fim de linha CRLF (Windows com core.autocrlf) ou LF da o mesmo resumo:
+// o hash muda so quando o conteudo muda, nao conforme o sistema de quem rodou o script.
+const TEXT = /\.(html|css|js|svg|json|webmanifest)$/i;
+const readForHash = f => TEXT.test(f) ? Buffer.from(fs.readFileSync(f, 'utf8').replace(/\r\n/g, '\n')) : fs.readFileSync(f);
 const toUrl = full => '/' + path.relative(ROOT, full).split(path.sep).join('/');
 
 const files = walk(ROOT, []).sort();
 const fileHash = {};
 for (const f of files) {
-    if (/\.(css|js)$/.test(f)) fileHash[path.resolve(f)] = shortHash(fs.readFileSync(f));
+    if (/\.(css|js)$/.test(f)) fileHash[path.resolve(f)] = shortHash(readForHash(f));
 }
 
 // ---------- 1) Versao nas referencias das paginas ----------
@@ -58,7 +62,7 @@ for (const page of files.filter(f => f.endsWith('.html'))) {
 const hash = crypto.createHash('sha1');
 const urls = ['/'];
 for (const f of files) {
-    hash.update(fs.readFileSync(f));
+    hash.update(readForHash(f));
     const u = toUrl(f);
     urls.push(versioned[u] || u);
 }

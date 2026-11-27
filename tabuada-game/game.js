@@ -348,7 +348,9 @@
         clearTimer();
         const correct = state.question.answer;
         // disable all interactive elements
-        document.querySelectorAll('.choice-btn, .choice-input, .primary').forEach(b=>b.disabled=true);
+        // So os controles da pergunta: '.primary' tambem pegava Começar, Jogar novamente, Teste de
+        // Memorização, Progresso e Configurações, que ficavam desabilitados depois da ultima pergunta.
+        document.querySelectorAll('#choices button, #choices input').forEach(b=>b.disabled=true);
         // calcular tempo de resposta
         const qobj = state.question;
         const respMs = qobj.startTime ? (Date.now() - qobj.startTime) : null;
@@ -417,8 +419,7 @@
                         if (state.current >= state.total) return finishGame();
                         // garantir que o fade-out seja removido no render
                         const card2 = document.getElementById('question-card'); if (card2) card2.classList.remove('fade-out');
-                        // reabilitar controles por precaucao antes de render
-                        try{ document.querySelectorAll('.choice-btn, .choice-input, .primary').forEach(b=>b.disabled=false); }catch(e){}
+                        // (nao reabilita os botoes antigos: durante o fade de 200ms eles responderiam a pergunta NOVA)
                         renderQuestion();
                     }catch(err){
                         console.error('Erro ao avançar para proxima pergunta:', err);
@@ -479,7 +480,6 @@
         if (sessionRemaining <= 0) return finishGame();
         state.current++;
         if (state.current >= state.total) return finishGame();
-        try{ document.querySelectorAll('.choice-btn, .choice-input, .primary').forEach(b=>b.disabled=false); }catch(e){}
         renderQuestion();
     }
 
@@ -570,6 +570,8 @@
         q.res = q.answer;
         let kind = choice === 'misto' ? pickOne(['conta','falta','problema']) : (choice || 'conta');
         if (kind === 'problema' && q.op === '-' && q.a === q.b) kind = 'conta';
+        // Evita historinhas sem sentido como "em 1 páginas" ou "repartidas entre 1 crianças"
+        if (kind === 'problema' && (q.op === '×' || q.op === '*' || q.op === '÷' || q.op === '/') && (q.a === 1 || q.b === 1)) kind = 'conta';
         q.kind = kind;
         if (kind === 'falta') {
             const unknownA = (q.op === '×' || q.op === '÷') ? Math.random() < 0.5 : false;
@@ -929,7 +931,8 @@
 
     function closeProgressPanel(){
         $('progress-panel').classList.add('hidden');
-        $('result-area').classList.remove('hidden');
+        // so volta ao resultado se ja houve um jogo (antes mostrava um "Resultado" vazio)
+        if (state.finished && state.questions.length) $('result-area').classList.remove('hidden');
     }
 
     // Memorization test: uses last session questions saved for player
@@ -1005,6 +1008,8 @@
         const avgMs = mem.times.length ? Math.round(mem.times.reduce((s,t)=>s+t,0)/mem.times.length) : 0;
         $('play-area').classList.add('hidden');
         $('result-area').classList.remove('hidden');
+        // sem isso o resultado ficava invisivel: '.container.minimal .result-area{display:none}'
+        const cont = document.querySelector('.container'); if (cont) cont.classList.remove('minimal');
         $('hint-btn').disabled = false;
         $('result-summary').innerHTML = `Teste de memorização: você acertou <strong>${mem.correct}</strong> de <strong>${mem.queue.length}</strong>. Tempo médio: <strong>${(avgMs/1000).toFixed(2)}s</strong>`;
         state.memTest = null;

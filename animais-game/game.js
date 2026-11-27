@@ -17,7 +17,9 @@ const ANIMALS = [
     { emoji: '🦆', name: 'Pato', article: 'o', sound: 'Quá quá!', say: 'Quá, quá, quá!', habitat: 'fazenda' },
 
     // Floresta
-    { emoji: '🐸', name: 'Sapo', article: 'o', sound: 'Croac!', say: 'Croac, croac!', habitat: 'floresta' },
+    // Sapo e passaro vivem tanto na floresta quanto no jardim (duas respostas certas):
+    // ficam so no modo Sons
+    { emoji: '🐸', name: 'Sapo', article: 'o', sound: 'Croac!', say: 'Croac, croac!', habitat: null },
     { emoji: '🦊', name: 'Raposa', article: 'a', sound: null, say: null, habitat: 'floresta' },
     { emoji: '🐻', name: 'Urso', article: 'o', sound: 'Grrr!', say: 'Grrrrr!', habitat: 'floresta' },
     { emoji: '🦉', name: 'Coruja', article: 'a', sound: 'Uhu uhu!', say: 'Uuu-huuu! Uuu-huuu!', habitat: 'floresta' },
@@ -35,7 +37,7 @@ const ANIMALS = [
     // Jardim
     { emoji: '🐝', name: 'Abelha', article: 'a', sound: 'Bzzzz!', say: 'Bzzzzzzz!', habitat: 'jardim' },
     { emoji: '🦋', name: 'Borboleta', article: 'a', sound: null, say: null, habitat: 'jardim' },
-    { emoji: '🐦', name: 'Pássaro', article: 'o', sound: 'Piu piu!', say: 'Piu, piu, piu!', habitat: 'jardim' },
+    { emoji: '🐦', name: 'Pássaro', article: 'o', sound: 'Piu piu!', say: 'Piu, piu, piu!', habitat: null },
     { emoji: '🐌', name: 'Caracol', article: 'o', sound: null, say: null, habitat: 'jardim' }
 ];
 

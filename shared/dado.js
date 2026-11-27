@@ -35,18 +35,22 @@
 
     async function roll(opts) {
         opts = opts || {};
-        const value = opts.value || (Math.floor(Math.random() * 6) + 1);
+        // Valor invalido (fora de 1..6) travaria o dado na tela com o tambor tocando para sempre
+        const value = FACE_ROT[opts.value] ? opts.value : (Math.floor(Math.random() * 6) + 1);
         const theme = opts.theme || 'selva';
         const ov = document.createElement('div');
         ov.className = 'dado-overlay theme-' + theme;
         ov.setAttribute('role', 'dialog');
         ov.setAttribute('aria-label', 'Dado sendo jogado');
         ov.innerHTML = `
-            <div class="dado-who"><span class="dado-emoji">${opts.emoji || '🎲'}</span><span>${opts.name ? opts.name + ' joga o dado!' : 'Jogando o dado!'}</span></div>
+            <div class="dado-who"><span class="dado-emoji"></span><span class="dado-name"></span></div>
             <div class="dado-stage"><div class="dado-cube">${[1, 2, 3, 4, 5, 6].map(faceHTML).join('')}</div></div>
             <div class="dado-shadow"></div>
             <div class="dado-result" aria-live="polite"></div>
             <div class="dado-hint"></div>`;
+        // Nome e emoji como texto (nunca como HTML): quem chama passa o nome sem escapar
+        ov.querySelector('.dado-emoji').textContent = opts.emoji || '🎲';
+        ov.querySelector('.dado-name').textContent = opts.name ? opts.name + ' joga o dado!' : 'Jogando o dado!';
         document.body.appendChild(ov);
         rainLeaves(ov, theme);
         const cube = ov.querySelector('.dado-cube');

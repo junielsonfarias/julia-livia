@@ -116,12 +116,17 @@ function openGameModal(src) {
     const modal = document.getElementById('game-modal');
     if (!modal) return window.location.href = src; // fallback
     const iframe = document.getElementById('game-iframe');
+    const wasOpen = isGameModalOpen();
     setGameFrame(iframe, new URL(src, location.href).href);
     modal.classList.remove('hidden');
     modal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('modal-open');
-    // Botao/gesto "voltar" do celular fecha o jogo (e nao o app inteiro)
-    try { history.pushState({ gameModal: true }, ''); } catch (e) {}
+    // Botao/gesto "voltar" do celular fecha o jogo (e nao o app inteiro).
+    // Uma entrada so: se ja existe (jogo aberto, pagina recarregada com o jogo aberto
+    // ou um "voltar" ainda a caminho), reaproveita em vez de empilhar outra.
+    if (!wasOpen && !(history.state && history.state.gameModal)) {
+        try { history.pushState({ gameModal: true }, ''); } catch (e) {}
+    }
     setTimeout(() => { try { iframe.focus(); } catch (e) {} }, 300);
 }
 
@@ -146,13 +151,32 @@ function hideGameModal() {
 }
 
 // Chamado pelo botao "Voltar" de cada jogo, pelo X e pela tecla Esc
+// Fecha na hora e depois tira a entrada do historico. (Antes esperava o popstate para
+// fechar: um toque duplo no "Voltar" chamava history.back() duas vezes e saia do app.)
+let modalBackPending = false;
+let modalBackTimer = null;
 function closeGameModal() {
     if (!isGameModalOpen()) return;
-    if (history.state && history.state.gameModal) history.back();   // o popstate fecha
-    else hideGameModal();
+    hideGameModal();
+    if (!modalBackPending && history.state && history.state.gameModal) {
+        modalBackPending = true;
+        clearTimeout(modalBackTimer);
+        modalBackTimer = setTimeout(() => { modalBackPending = false; }, 1500);
+        history.back();
+    }
 }
 
-window.addEventListener('popstate', () => { if (isGameModalOpen()) hideGameModal(); });
+window.addEventListener('popstate', () => {
+    if (modalBackPending) {
+        // Este popstate e o do nosso history.back(): o jogo ja foi fechado
+        modalBackPending = false;
+        clearTimeout(modalBackTimer);
+        // Um jogo foi aberto enquanto o "voltar" estava a caminho: recoloca a entrada
+        if (isGameModalOpen()) { try { history.pushState({ gameModal: true }, ''); } catch (e) {} }
+        return;
+    }
+    if (isGameModalOpen()) hideGameModal();
+});
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isGameModalOpen()) closeGameModal(); });
 
 // Sistema de audio simples
@@ -269,9 +293,10 @@ async function mediaTx(mode, fn) {
         const store = tx.objectStore(MEDIA_STORE);
         let result;
         Promise.resolve(fn(store)).then(r => { result = r; });
-        tx.oncomplete = () => resolve(result);
-        tx.onerror = () => reject(tx.error);
-        tx.onabort = () => reject(tx.error);
+        // Fecha a conexao ao terminar (antes cada operacao deixava uma conexao aberta)
+        tx.oncomplete = () => { db.close(); resolve(result); };
+        tx.onerror = () => { db.close(); reject(tx.error); };
+        tx.onabort = () => { db.close(); reject(tx.error); };
     });
 }
 
@@ -523,8 +548,13 @@ function readJSON(key, fallback) {
     try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; }
 }
 
+// Numero seguro para mostrar (os dados podem vir de um backup importado)
+const num = v => (typeof v === 'number' && isFinite(v)) ? v : (parseFloat(v) || 0);
+const arr = v => Array.isArray(v) ? v : [];
+
 function skillBars(stats) {
-    const entries = Object.entries(stats || {}).filter(([, s]) => s && s.total);
+    const entries = Object.entries(stats || {}).filter(([, s]) => s && num(s.total) > 0)
+        .map(([name, s]) => [name, { ok: num(s.ok), total: num(s.total) }]);
     if (!entries.length) return '<p class="pg-empty">Ainda não jogou.</p>';
     return entries.sort((a, b) => a[1].ok / a[1].total - b[1].ok / b[1].total).map(([name, s]) => {
         const pct = Math.round(100 * s.ok / s.total);
@@ -543,8 +573,8 @@ function renderProgress() {
     const rec = readJSON('leitura_recordes_v1', {});
     const modeNames = { 2: '2 sílabas', 3: '3 sílabas', 4: '4 sílabas', variadas: 'Variadas' };
     const rows = Object.keys(modeNames).map(m => {
-        const list = rec[m] || [];
-        const best = name => list.filter(r => r.name === name).reduce((x, r) => Math.max(x, r.score), 0);
+        const list = arr(rec[m]);
+        const best = name => list.filter(r => r && r.name === name).reduce((x, r) => Math.max(x, num(r.score)), 0);
         return `<tr><td>${modeNames[m]}</td><td>${best('Livia') || '—'}</td><td>${best('Julia') || '—'}</td></tr>`;
     }).join('');
     cards.push(`<div class="pg-card livia"><h3>⚡ Leitura Relâmpago</h3><p class="pg-sub">Recorde de palavras lidas em 60 s</p>
@@ -557,15 +587,15 @@ function renderProgress() {
     // Julia - Olimpiada
     const sim = readJSON('olimpiada_simulado_recorde_v1', null);
     cards.push(`<div class="pg-card julia"><h3>🥇 Treino Olímpico</h3>
-        <p class="pg-sub">${sim ? `Melhor simulado: <b>${sim.score}/10</b> em ${new Date(sim.date).toLocaleDateString('pt-BR')}` : 'Ainda não fez simulado.'}</p>
+        <p class="pg-sub">${sim ? `Melhor simulado: <b>${num(sim.score)}/10</b> em ${new Date(sim.date).toLocaleDateString('pt-BR')}` : 'Ainda não fez simulado.'}</p>
         ${skillBars(readJSON('olimpiada_stats_v1', {}))}</div>`);
 
     // Julia - Tabuada (ultimas sessoes)
-    const tab = readJSON('tabuada_progress_julia', []);
+    const tab = arr(readJSON('tabuada_progress_julia', []));
     const lastTab = tab.slice(-5).reverse();
     cards.push(`<div class="pg-card julia"><h3>✖️ Tabuada</h3><p class="pg-sub">Últimas partidas da Julia</p>
         ${lastTab.length ? '<table class="pg-table"><tr><th>Data</th><th>Acertos</th><th>Tempo médio</th></tr>' + lastTab.map(s =>
-            `<tr><td>${new Date(s.date).toLocaleDateString('pt-BR')}</td><td>${s.correct}/${s.total} (${s.percent}%)</td><td>${s.avgResponseMs ? (s.avgResponseMs / 1000).toFixed(1) + ' s' : '—'}</td></tr>`).join('') + '</table>'
+            `<tr><td>${new Date(s.date).toLocaleDateString('pt-BR')}</td><td>${num(s.correct)}/${num(s.total)} (${num(s.percent)}%)</td><td>${num(s.avgResponseMs) ? (num(s.avgResponseMs) / 1000).toFixed(1) + ' s' : '—'}</td></tr>`).join('') + '</table>'
             : '<p class="pg-empty">Ainda não jogou.</p>'}</div>`);
 
     // Duelos
@@ -573,9 +603,9 @@ function renderProgress() {
     const mem = readJSON('memoria_duelos_v1', { julia: 0, livia: 0, empates: 0 });
     const gameNames = { selva: '🌴 Aventura na Selva', trilha: '🎲 Trilha do Saber', relampago: '⚡ Duelo Relâmpago', velha: '⭕ Jogo da Velha' };
     const duelRows = Object.entries(gameNames).map(([k, n]) => {
-        const g = (d.jogos || {})[k] || { julia: 0, livia: 0, empates: 0 };
-        return `<tr><td>${n}</td><td>${g.julia}</td><td>${g.livia}</td><td>${g.empates}</td></tr>`;
-    }).join('') + `<tr><td>🧠 Memória</td><td>${mem.julia || 0}</td><td>${mem.livia || 0}</td><td>${mem.empates || 0}</td></tr>`;
+        const g = ((d && d.jogos) || {})[k] || {};
+        return `<tr><td>${n}</td><td>${num(g.julia)}</td><td>${num(g.livia)}</td><td>${num(g.empates)}</td></tr>`;
+    }).join('') + `<tr><td>🧠 Memória</td><td>${num(mem && mem.julia)}</td><td>${num(mem && mem.livia)}</td><td>${num(mem && mem.empates)}</td></tr>`;
     cards.push(`<div class="pg-card duel"><h3>⚔️ Duelos</h3><table class="pg-table"><tr><th>Jogo</th><th>👸</th><th>🧚</th><th>🤝</th></tr>${duelRows}</table></div>`);
 
     box.innerHTML = cards.join('');
@@ -641,7 +671,8 @@ async function exportBackup() {
     a.download = `backup-julia-livia-${new Date().toISOString().slice(0, 10)}.json`;
     document.body.appendChild(a);
     a.click();
-    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    // Espera bem antes de liberar: arquivos grandes (com fotos) podem demorar a comecar a baixar
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 60000);
     showToast(`💾 Backup criado${includePhotos ? ` (com ${data.imagens.length} imagens)` : ''}! Guarde o arquivo em local seguro.`);
 }
 
@@ -772,12 +803,15 @@ function updateDuelTotal() {
     let j = 0, l = 0;
     try {
         const d = JSON.parse(localStorage.getItem('duelos_placar_v1') || '{}');
-        if (d.total) { j += d.total.julia || 0; l += d.total.livia || 0; }
+        if (d && d.total) { j += num(d.total.julia); l += num(d.total.livia); }
         const m = JSON.parse(localStorage.getItem('memoria_duelos_v1') || '{}');
-        j += m.julia || 0; l += m.livia || 0;
+        if (m) { j += num(m.julia); l += num(m.livia); }
     } catch (e) {}
     el.innerHTML = (j + l) ? `⚔️ Placar dos duelos: 👸 Julia <b>${j}</b> × <b>${l}</b> Livia 🧚` : '';
 }
+
+// App aberto de um dia para o outro (tablet): atualiza idades/contagem ao voltar
+document.addEventListener('visibilitychange', () => { if (!document.hidden) updateAges(); });
 
 document.addEventListener('DOMContentLoaded', function () {
     updateAges();

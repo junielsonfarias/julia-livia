@@ -58,6 +58,7 @@ function goSetup() {
 function speakIntro() {
     KidsAudio.speak('Aventura na Selva! Cada um joga o dado na sua vez e anda pela trilha. ' +
         'Cuidado com as surpresas: macacos, areia movediça e jacarés. Na estátua mágica, responda a pergunta para avançar. ' +
+        'A cada rodada, você tira uma Carta da Selva: pode ser uma curiosidade, um desafio, um prêmio ou um azar! ' +
         'Quem chegar primeiro ao Templo Dourado vence!', { rate: 0.92 });
 }
 
@@ -77,7 +78,12 @@ function loadSetup() {
         const saved = JSON.parse(localStorage.getItem(SETUP_KEY));
         if (Array.isArray(saved) && saved.length >= 2) {
             // niveis da Julia e da Livia vem sempre da escolha compartilhada dos duelos
-            saved.forEach(p => { if (p.fixed) p.level = Duelo.getLevel(p.id); });
+            saved.forEach(p => {
+                if (!p.fixed || !Duelo.PLAYERS[p.id]) return;
+                const P = Duelo.PLAYERS[p.id];
+                p.name = P.name; p.emoji = P.emoji; p.color = P.color;
+                p.level = Duelo.getLevel(p.id);
+            });
             return saved;
         }
     } catch (e) {}
@@ -134,7 +140,8 @@ function addGuest() {
     state.setup.push({
         id: 'convidado' + Date.now(), name: 'Convidado ' + (n + 1),
         emoji: GUEST_EMOJIS.find(e => !used.includes(e)) || '🙂',
-        color: GUEST_COLORS[n % GUEST_COLORS.length], level: 'medio', on: true, fixed: false
+        color: GUEST_COLORS.find(c => !state.setup.some(p => p.color === c)) || GUEST_COLORS[n % GUEST_COLORS.length],
+        level: 'medio', on: true, fixed: false
     });
     saveSetup();
     renderSetup();
@@ -170,7 +177,7 @@ function renderRanking() {
     const cur = state.players[state.turn];
     document.getElementById('ranking').innerHTML = state.players.map(p => `
         <div class="rank-row ${p === cur ? 'current' : ''}" style="--pc:${p.color}">
-            <span class="rank-emoji">${p.emoji}</span><span class="rank-name">${esc(p.name)}${p.skip ? ' 🌀' : ''}</span>
+            <span class="rank-emoji">${p.emoji}</span><span class="rank-name">${esc(p.name)}${p.skip ? ' 🌀' : ''}${p.shield ? ' 🛡️' : ''}${p.web ? ' 🕸️' : ''}${(p.statuses || []).map(st => ` <span class="badge-status" title="Desafio">${st.icon}${st.rounds}</span>`).join('')}</span>
             <span class="rank-pos">casa ${p.pos}</span></div>`).join('');
 }
 
@@ -178,9 +185,14 @@ function renderRanking() {
 function startGame() {
     const chosen = state.setup.filter(p => p.on);
     if (chosen.length < 2) return;
-    state.players = chosen.map(p => ({ id: p.id, name: p.name, emoji: p.emoji, color: p.color, level: p.level, pos: 0, skip: false }));
+    // toque duplo em "Jogar de novo": a 2a chamada nao reinicia a partida que acabou de comecar
+    if (document.getElementById('game-screen').classList.contains('active') && !state.over) return;
+    state.players = chosen.map(p => ({ id: p.id, name: p.name, emoji: p.emoji, color: p.color, level: p.level, pos: 0, skip: false, statuses: [], shield: false, web: false }));
     // Alterna entre Julia e Livia quem comeca; convidados entram na sequencia
-    const starter = Duelo.nextStarter('selva');
+    // (se so uma delas joga, ela comeca; se nenhuma joga, o primeiro convidado)
+    const hasJulia = state.players.some(p => p.id === 'julia');
+    const hasLivia = state.players.some(p => p.id === 'livia');
+    const starter = hasJulia && hasLivia ? Duelo.nextStarter('selva') : (hasJulia ? 'julia' : 'livia');
     const idx = state.players.findIndex(p => p.id === starter);
     state.turn = idx >= 0 ? idx : 0;
     state.over = false;
@@ -191,7 +203,7 @@ function startGame() {
     beginTurn();
 }
 
-function beginTurn() {
+function beginTurn(note) {
     if (state.over) return;
     const p = state.players[state.turn];
     renderRanking();
@@ -207,10 +219,25 @@ function beginTurn() {
         setTimeout(nextTurn, 2600);
         return;
     }
-    btn.disabled = false;
-    setMsg('Toque em <b>Jogar o dado</b>!');
-    KidsAudio.play('turn');
-    KidsAudio.speak(`Vez de ${p.name}!`, { rate: 0.95 });
+    const enable = () => {
+        btn.disabled = false;
+        setMsg((note ? note + '<br>' : '') + 'Toque em <b>Jogar o dado</b>!');
+        KidsAudio.play('turn');
+        KidsAudio.speak(`Vez de ${p.name}!`, { rate: 0.95, interrupt: false });
+    };
+    if (p.statuses && p.statuses.length) {
+        // Desafios de varias rodadas (silencio, flamingo...) que terminam nesta vez
+        btn.disabled = true;
+        state.busy = true;
+        resolveStatuses(p).then(() => {
+            state.busy = false;
+            if (state.over) return;
+            renderRanking();
+            enable();
+        });
+        return;
+    }
+    enable();
 }
 
 function setMsg(html) { document.getElementById('turn-msg').innerHTML = html; }
@@ -221,14 +248,25 @@ async function rollTurn() {
     const btn = document.getElementById('roll-btn');
     btn.disabled = true;
     const p = state.players[state.turn];
-    const n = await Dado.roll({ name: p.name, emoji: p.emoji, theme: 'selva' });
-    setMsg(`${p.emoji} tirou <b>${n}</b>!`);
+    let n = await Dado.roll({ name: p.name, emoji: p.emoji, theme: 'selva' });
+    if (p.web) {
+        p.web = false;
+        const half = Math.max(1, Math.ceil(n / 2));
+        setMsg(`🕸️ ${p.emoji} tirou ${n}, mas a teia segura: anda só <b>${half}</b>.`);
+        n = half;
+        renderRanking();
+        await sleep(900);
+    } else setMsg(`${p.emoji} tirou <b>${n}</b>!`);
     await move(p, n);
     if (state.over) return;
-    const again = await landOn(p);
+    let again = await landOn(p);
+    if (state.over) return;
+    // Carta da Selva da rodada (curiosidade, frase, desafio, premio ou consequencia)
+    await sleep(300);
+    if (await drawCard(p)) again = true;
     state.busy = false;
     if (state.over) return;
-    if (again) { setMsg(`💎 ${esc(p.name)} joga de novo!`); beginTurn(); }
+    if (again) beginTurn(`💎 ${esc(p.name)} joga de novo!`);
     else nextTurn();
 }
 
@@ -271,7 +309,9 @@ function showEvent(ev, extra) {
             DueloPerguntas.render(qBox, q, correct => {
                 KidsAudio.play(correct ? 'correct' : 'wrong');
                 DueloPerguntas.feedback(qBox, correct ? '✅ Acertou!' : `❌ ${q.explain || 'Não foi dessa vez.'}`, correct ? 'good' : 'bad');
-                if (p.level !== 'dificil') KidsAudio.speak(correct ? 'Acertou!' : 'Não foi dessa vez!', { interrupt: false });
+                // interrompe o texto/pergunta ainda na fila: senao o "Acertou!" so tocaria depois
+                // e seria cortado pelo "Vez de ..." do proximo jogador
+                if (p.level !== 'dificil') KidsAudio.speak(correct ? 'Acertou!' : 'Não foi dessa vez!');
                 setTimeout(() => { ov.hidden = true; resolve(correct); }, correct ? 1300 : 2600);
             }, { hearButton: p.level !== 'dificil' });
             if (p.level !== 'dificil') setTimeout(() => KidsAudio.speak(q.speak, { rate: 0.85, interrupt: false }), 200);
@@ -298,12 +338,13 @@ async function landOn(p) {
         return false;
     }
     await showEvent(ev);
+    if (['macaco', 'areia'].includes(ev) && useShield(p)) return false;
     if (ev === 'macaco') await move(p, -3);
     else if (ev === 'cipo') await move(p, 4);
     else if (ev === 'elefante') await move(p, 3);
     else if (ev === 'areia') { p.skip = true; renderRanking(); }
     else if (ev === 'cocos') {
-        state.players.filter(o => o !== p).forEach(o => { o.pos = Math.max(0, o.pos - 2); });
+        state.players.filter(o => o !== p).forEach(o => { if (!useShield(o)) o.pos = Math.max(0, o.pos - 2); });
         renderBoard();
     } else if (ev === 'tesouro') return true;
     return false;

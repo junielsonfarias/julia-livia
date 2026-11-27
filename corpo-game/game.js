@@ -31,6 +31,12 @@ const PART_PARENTS = {
     knees: ['legs']
 };
 
+// "Qual é o Nome?": partes que nao aparecem juntas como opcao
+const NAME_CONFLICTS = {
+    fingers: ['hands'], hands: ['fingers'],
+    tongue: ['mouth'], mouth: ['tongue']
+};
+
 const PREP = { o: 'no', a: 'na', os: 'nos', as: 'nas' };            // Toque no nariz
 const THIS_IS = { o: 'Esse é', a: 'Essa é', os: 'Esses são', as: 'Essas são' };
 
@@ -267,7 +273,9 @@ function renderOptionsForName(container) {
     optionsDiv.className = 'name-options';
 
     // Pegar 3 partes aleatorias diferentes + a correta
-    const otherParts = getPool().filter(p => p.id !== gameState.currentPart.id);
+    // Sem pares que a figura mostra juntos (☝️ e uma mao; 👅 sai da boca): so uma resposta certa
+    const blocked = NAME_CONFLICTS[gameState.currentPart.id] || [];
+    const otherParts = getPool().filter(p => p.id !== gameState.currentPart.id && !blocked.includes(p.id));
     const shuffledOthers = otherParts.sort(() => Math.random() - 0.5).slice(0, 3);
     const options = [gameState.currentPart, ...shuffledOthers].sort(() => Math.random() - 0.5);
 

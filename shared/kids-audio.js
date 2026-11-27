@@ -17,11 +17,17 @@
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (!AudioCtx) return null;
         if (!ctx) ctx = new AudioCtx();
-        if (ctx.state === 'suspended') ctx.resume();
+        // 'interrupted' = iOS/Safari depois de ir para segundo plano ou de uma ligacao
+        if (ctx.state === 'suspended' || ctx.state === 'interrupted') {
+            try { const p = ctx.resume(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+        }
         return ctx;
     }
 
-    // Desbloqueia o audio no primeiro toque (exigencia do iOS/Android)
+    // Desbloqueia o audio no primeiro toque (exigencia do iOS/Android).
+    // O iOS so libera no FIM do toque (touchend/click), nao no pointerdown:
+    // por isso escuta os tres e so para quando o audio estiver rodando de fato.
+    const UNLOCK_EVENTS = ['pointerdown', 'touchend', 'click', 'keydown'];
     function unlock() {
         const c = getCtx();
         if (c) {
@@ -29,11 +35,11 @@
             const s = c.createBufferSource();
             s.buffer = b; s.connect(c.destination); s.start(0);
         }
-        window.removeEventListener('pointerdown', unlock);
-        window.removeEventListener('keydown', unlock);
+        if (!c || c.state === 'running') {
+            UNLOCK_EVENTS.forEach(ev => window.removeEventListener(ev, unlock, true));
+        }
     }
-    window.addEventListener('pointerdown', unlock);
-    window.addEventListener('keydown', unlock);
+    UNLOCK_EVENTS.forEach(ev => window.addEventListener(ev, unlock, true));
 
     function tone(freq, start, dur, type, peak) {
         const c = getCtx(); if (!c) return;

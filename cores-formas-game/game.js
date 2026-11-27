@@ -347,6 +347,8 @@ function showWinScreen() {
 
 // Proximo nivel
 function nextLevel() {
+    // Toque duplo no botao pulava dois niveis
+    if (!document.getElementById('win-screen').classList.contains('active')) return;
     gameState.level++;
     gameState.questionsAnswered = 0;
     gameState.mistakes = 0;

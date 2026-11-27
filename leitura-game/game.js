@@ -77,6 +77,10 @@ const state = {
     recognizer: null,
     ignoreUntil: 0,        // ignora o microfone enquanto o jogo fala (botao 🔊)
     consumedIndex: -1,     // resultado de fala ja usado (evita contar duas vezes)
+    consumedTokens: 0,     // quantas palavras desse resultado ja foram usadas (o resto ainda vale)
+    checkFallback: false,  // microfone trocado pelo botao so nesta partida (erro de rede, bloqueio...)
+    micStartedAt: 0,
+    micQuickEnds: 0,       // sessoes do microfone que terminaram logo apos comecar (evita religar sem parar)
     lastWrongAt: 0,
     prevWord: null,        // palavra anterior (fala atrasada dela nao conta como erro)
     cdTimer: null,         // contagem 3-2-1 (cancelavel ao sair)
@@ -117,7 +121,10 @@ function addRecord(mode, name, score) {
     const list = all[mode] || [];
     list.push({ name, score, date: new Date().toISOString() });
     list.sort((a, b) => b.score - a.score || a.date.localeCompare(b.date));
-    all[mode] = list.slice(0, 10);
+    // Ate 10 por leitora: se fosse 10 no total, os recordes da Julia (maiores)
+    // apagariam os da Livia, e todo jogo dela viraria "novo recorde".
+    const perName = {};
+    all[mode] = list.filter(r => (perName[r.name] = (perName[r.name] || 0) + 1) <= 10);
     saveRecords(all);
 }
 
@@ -151,6 +158,7 @@ function showRanking() {
 function setCheck(mode, persist) {
     if (mode === 'mic' && !SpeechRec) mode = 'manual';
     state.check = mode;
+    state.checkFallback = persist === false && mode === 'manual';
     document.querySelectorAll('.check').forEach(b => b.classList.toggle('selected', b.dataset.check === mode));
     if (persist !== false) { try { localStorage.setItem('leitura_check', mode); } catch (e) {} }
     applyCheckUI();
@@ -178,6 +186,10 @@ function startGame(mode) {
     state.prevWord = null;
     state.locked = false;
     state.timeLeft = GAME_SECONDS;
+    state.ignoreUntil = 0;
+    state.micQuickEnds = 0;
+    // A troca para o botao por erro (rede, microfone...) vale so para a partida em que aconteceu
+    if (state.checkFallback && SpeechRec) setCheck('mic', false);
     document.getElementById('score').textContent = '0';
     document.getElementById('best').textContent = bestFor(mode, state.reader);
     updateTimer();
@@ -214,6 +226,11 @@ function countdown(done) {
             state.cdDelay = setTimeout(() => { state.cdDelay = null; done(); }, 500);
         }
     }, 800);
+}
+
+// Partida em andamento (contagem 3-2-1 ou jogando)
+function gameActive() {
+    return state.running || state.cdTimer !== null || state.cdDelay !== null;
 }
 
 function cancelCountdown() {
@@ -292,7 +309,7 @@ function correctWord() {
     document.getElementById('word-card').classList.add('good');
     if (state.check === 'mic') setHeard('✅ Leu certinho!', 'good');
     floatPoint();
-    setTimeout(() => { state.locked = false; if (state.running) nextWord(); }, state.check === 'mic' ? 300 : 350);
+    setTimeout(() => { state.locked = false; if (state.running) nextWord(); }, state.check === 'mic' ? 180 : 350);
 }
 
 // Microfone ouviu outra palavra: avisa e deixa tentar de novo (ou pular)
@@ -318,13 +335,31 @@ function skipWord() {
     setTimeout(() => { state.locked = false; if (state.running) nextWord(); }, 250);
 }
 
+// Fala do jogo durante a partida, sem o microfone "ouvir" a propria voz do jogo
+function speakGuarded(text) {
+    const until = state.ignoreUntil = Date.now() + 1200 + text.length * 120;
+    // Quando a voz termina de verdade, libera o microfone logo (a estimativa acima e so o limite).
+    // So vale para esta fala: se tocou de novo, o fim da fala cortada nao libera nada.
+    KidsAudio.speak(text, { rate: 0.8, onend: () => { if (state.ignoreUntil === until) state.ignoreUntil = Date.now() + 500; } });
+}
+
 function listenWord() {
     if (!state.current) return;
     const w = state.current;
-    const text = w.syllables.join('... ') + '... ' + w.word.toLowerCase();
-    // Nao deixar o microfone "ouvir" a voz do proprio jogo
-    state.ignoreUntil = Date.now() + 1500 + text.length * 120;
-    KidsAudio.speak(text, { rate: 0.8 });
+    speakGuarded(w.syllables.join('... ') + '... ' + w.word.toLowerCase());
+}
+
+// Tocar numa silaba da palavra fala so ela ("ba"); sem silabas separadas, fala a palavra
+function tapWord(ev) {
+    if (!state.running || !state.current) return;
+    const syl = ev.target.closest ? ev.target.closest('.syl') : null;
+    if (syl) {
+        syl.classList.add('tap');
+        setTimeout(() => syl.classList.remove('tap'), 180);
+        speakGuarded(syl.textContent.toLowerCase());
+    } else if (!document.getElementById('opt-syllables').checked) {
+        speakGuarded(state.current.word.toLowerCase());
+    }
 }
 
 function floatPoint() {
@@ -365,7 +400,11 @@ function endGame() {
         icon = '🏆';
         msg = `Parabéns, ${state.reader}! Você bateu o seu recorde` + (prevBest ? ` (era ${prevBest}).` : '!');
         if (state.score > prevBestAll && prevBestAll > 0) msg += ' É o maior recorde de todos!';
-    } else if (state.score >= prevBest * 0.8) { icon = '🎉'; msg = `Quase o recorde! Faltaram ${prevBest - state.score + 1} palavras.`; }
+    } else if (state.score >= prevBest * 0.8) {
+        const falta = prevBest - state.score + 1;
+        icon = '🎉';
+        msg = falta === 1 ? 'Quase o recorde! Faltou 1 palavra.' : `Quase o recorde! Faltaram ${falta} palavras.`;
+    }
     else { msg = `Muito bem! Seu recorde é ${prevBest}. Vamos treinar mais?`; }
     document.getElementById('result-icon').textContent = icon;
     document.getElementById('result-msg').textContent = msg;
@@ -402,7 +441,8 @@ function endGame() {
     setTimeout(() => {
         KidsAudio.play(isRecord ? 'win' : 'star');
         if (isRecord) KidsAudio.speak(`Novo recorde! ${state.score} palavras!`);
-        else if (state.score > 0) KidsAudio.speak(`Você leu ${state.score} ${state.score === 1 ? 'palavra' : 'palavras'}!`);
+        else if (state.score > 0) KidsAudio.speak(`Você leu ${state.score} ${state.score === 1 ? 'palavra' : 'palavras'}! ${msg}`);
+        else KidsAudio.speak(msg);
     }, 700);
 }
 
@@ -426,12 +466,29 @@ function editDistance(a, b) {
     return dp[a.length][b.length];
 }
 
+const GLUED = ['A', 'O', 'UM', 'UMA'];
+
+function speechTokens(transcript) {
+    return semAcento(transcript).replace(/[^A-Z ]/g, ' ').split(/\s+/).filter(Boolean);
+}
+
+// Todas as palavras do jogo (sem acento): no modo tolerante, ouvir OUTRA palavra
+// do jogo nunca vale (MENINO x MENINA, JANELA x PANELA, CANETA x CANECA...)
+let knownWords = null;
+function isKnownWord(w) {
+    if (!knownWords) knownWords = new Set(getPalavras('variadas').map(p => semAcento(p.word)));
+    return knownWords.has(w);
+}
+
 // A fala reconhecida corresponde a palavra da tela?
 function speechMatches(target, transcript) {
     const t = semAcento(target);
-    const tokens = semAcento(transcript).replace(/[^A-Z ]/g, ' ').split(/\s+/).filter(Boolean);
+    const tokens = speechTokens(transcript);
     if (!tokens.length) return false;
     if (tokens.includes(t)) return true;
+    // Artigo grudado pelo reconhecedor: "abola", "umgato" (mas SAPATO nao vale para PATO:
+    // so artigos, e nunca se o resultado for outra palavra do jogo, ex.: O+VELHA)
+    if (tokens.some(tok => GLUED.some(p => tok === p + t) && !isKnownWord(tok))) return true;
     // Silabas faladas separadas: "bo la" -> "BOLA"
     const joined = tokens.join('');
     if (joined === t) return true;
@@ -442,8 +499,8 @@ function speechMatches(target, transcript) {
     }
     // Modo tolerante: aceita 1 letra de diferenca em palavras de 5+ letras
     if (document.getElementById('opt-lenient').checked && t.length >= 5) {
-        if (tokens.some(tok => editDistance(tok, t) <= 1)) return true;
-        if (editDistance(joined, t) <= 1) return true;
+        if (tokens.some(tok => !isKnownWord(tok) && editDistance(tok, t) <= 1)) return true;
+        if (!isKnownWord(joined) && editDistance(joined, t) <= 1) return true;
     }
     return false;
 }
@@ -468,30 +525,48 @@ function startMic() {
         // (so no modo do aparelho: pelo servidor as pistas podem nao ser aceitas)
         if (localSpeech === 'available' && window.SpeechRecognitionPhrase && 'phrases' in rec) {
             try {
-                rec.phrases = getPalavras(state.mode).slice(0, 120)
+                // Na ordem em que vao aparecer (o baralho sai do fim): no modo Variadas
+                // ha mais de 120 palavras e as primeiras da partida precisam estar na lista
+                rec.phrases = state.deck.slice().reverse().slice(0, 120)
                     .map(w => new SpeechRecognitionPhrase(w.word.toLowerCase(), 4.0));
             } catch (e) { /* sem suporte a pistas */ }
         }
 
         rec.onstart = () => {
             state.consumedIndex = -1;
+            state.consumedTokens = 0;
+            state.micStartedAt = Date.now();
             status.innerHTML = '<span class="mic-dot"></span> Estou ouvindo...';
         };
 
         rec.onresult = (ev) => {
-            if (!state.running || !state.current || state.locked) return;
-            if (Date.now() < state.ignoreUntil) return;
+            if (!state.running || !state.current) return;
+            if (Date.now() < state.ignoreUntil) {
+                // E a voz do proprio jogo (botao 🔊): o que foi ouvido ate aqui nunca conta,
+                // nem quando o resultado "final" dessa fala chegar depois
+                state.consumedIndex = ev.results.length - 1;
+                state.consumedTokens = Infinity;
+                return;
+            }
+            if (state.locked) return;
             for (let i = ev.resultIndex; i < ev.results.length; i++) {
-                if (i <= state.consumedIndex) continue;
+                if (i < state.consumedIndex) continue;
                 const res = ev.results[i];
-                const alts = Array.from(res).map(a => a.transcript);
-                if (alts.some(a => speechMatches(state.current.word, a))) {
+                // Mesmo resultado de uma palavra ja aceita: o Chrome junta falas seguidas
+                // ("bola gato") num resultado so. Confere so o que veio DEPOIS.
+                const skip = i === state.consumedIndex ? state.consumedTokens : 0;
+                const alts = Array.from(res).map(a => skip ? speechTokens(a.transcript).slice(skip).join(' ') : a.transcript);
+                const hit = alts.findIndex(a => speechMatches(state.current.word, a));
+                if (hit >= 0) {
                     state.consumedIndex = i;   // este pedaco de fala ja valeu
+                    state.consumedTokens = skip + speechTokens(alts[hit]).length;
                     correctWord();
                     return;
                 }
                 if (res.isFinal) {
                     state.consumedIndex = i;
+                    state.consumedTokens = Infinity;
+                    if (skip) continue;   // resto de uma fala ja aceita: nao vira "erro"
                     // Final atrasado da palavra anterior (ex.: repetiu "bola"): ignora sem dar erro
                     if (state.prevWord && alts.some(a => speechMatches(state.prevWord, a))) continue;
                     if (alts[0] && alts[0].trim()) wrongAttempt(alts[0]);
@@ -519,19 +594,35 @@ function startMic() {
             else if (e.error === 'phrases-not-supported' || e.error === 'language-not-supported') {
                 // Recomeca sem os recursos extras (pistas / reconhecimento no aparelho)
                 localSpeech = 'unsupported';
-                setTimeout(() => { if (state.check === 'mic' && (state.running || state.timeLeft > 0)) startMic(); }, 150);
+                // Este reconhecedor nao religa sozinho (o onend religaria com as mesmas opcoes)
+                if (state.recognizer === rec) state.recognizer = null;
+                try { rec.abort(); } catch (err) {}
+                setTimeout(() => {
+                    // So se a partida continua e ninguem ligou outro microfone (Voltar / nova partida)
+                    if (!state.recognizer && state.check === 'mic' && gameActive()) startMic();
+                }, 150);
             }
             // 'no-speech' e 'aborted' sao normais: o onend religa
         };
 
         // O Chrome desliga o microfone de tempos em tempos: religamos
         rec.onend = () => {
-            if (state.recognizer === rec && state.check === 'mic' && (state.running || state.timeLeft > 0)) {
-                try { rec.start(); } catch (e) {}
+            if (state.recognizer !== rec || state.check !== 'mic' || !gameActive()) return;
+            // Terminou logo depois de comecar varias vezes seguidas (microfone ocupado,
+            // erro desconhecido...): nao fica religando sem parar, passa para o botao
+            state.micQuickEnds = Date.now() - state.micStartedAt < 1000 ? state.micQuickEnds + 1 : 0;
+            if (state.micQuickEnds >= 5) {
+                state.recognizer = null;
+                status.textContent = '🎤 O microfone não está funcionando. Use o botão ✓.';
+                setCheck('manual', false);
+                return;
             }
+            state.micStartedAt = Date.now();
+            try { rec.start(); } catch (e) {}
         };
 
         state.recognizer = rec;
+        state.micStartedAt = Date.now();
         rec.start();
         status.textContent = '🎤 Permita o uso do microfone...';
     } catch (e) {
@@ -582,6 +673,8 @@ document.addEventListener('DOMContentLoaded', () => {
             try { localStorage.setItem('leitura_' + id, el.checked ? '1' : '0'); } catch (e) {}
         });
     });
+
+    document.getElementById('word').addEventListener('click', tapWord);
 
     document.querySelectorAll('.check').forEach(btn => {
         btn.addEventListener('click', () => { setCheck(btn.dataset.check); KidsAudio.play('select'); });

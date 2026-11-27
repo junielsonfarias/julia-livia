@@ -98,14 +98,15 @@ const EMOTIONS = [
 // Emocoes parecidas que nunca aparecem juntas como opcao no modo situacao
 // (assim so uma opcao pode estar certa)
 const CONFLICTS = {
-    'Feliz': ['Amado', 'Surpreso'],
+    // Feliz x Cansado: "Brincou o dia inteiro" / "Ganhou o jogo de corrida" servem para os dois
+    'Feliz': ['Amado', 'Surpreso', 'Cansado'],
     'Amado': ['Feliz'],
     'Surpreso': ['Feliz', 'Com Medo'],
     'Triste': ['Bravo', 'Envergonhado', 'Com Medo'],
     'Bravo': ['Triste'],
     'Com Medo': ['Surpreso', 'Envergonhado', 'Triste'],
     'Envergonhado': ['Triste', 'Com Medo'],
-    'Cansado': []
+    'Cansado': ['Feliz']
 };
 
 // Estado do jogo

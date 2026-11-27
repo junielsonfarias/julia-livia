@@ -65,6 +65,8 @@ function showRound(first) {
     w.syllables.forEach((_, i) => {
         const s = document.createElement('div');
         s.className = 'slot' + (i === 0 ? ' next' : '');
+        // Silaba ja colocada: tocar nela fala de novo ("ba")
+        s.onclick = () => { if (s.textContent) KidsAudio.speak(s.textContent.toLowerCase(), { rate: 0.8 }); };
         slots.appendChild(s);
     });
 
@@ -92,9 +94,9 @@ function sayWord() {
 }
 
 // Fala a palavra em pedacinhos: "ba... na... na"
-function saySyllables() {
+function saySyllables(interrupt) {
     const w = state.current;
-    if (w) KidsAudio.speak(w.syllables.map(s => s.toLowerCase()).join('... '), { rate: 0.75 });
+    if (w) KidsAudio.speak(w.syllables.map(s => s.toLowerCase()).join('... '), { rate: 0.75, interrupt: interrupt !== false });
 }
 
 function pickTile(btn, syl) {
@@ -126,16 +128,22 @@ function pickTile(btn, syl) {
         state.mistakes++;
         state.slotMisses++;
         KidsAudio.play('wrong');
+        // Fala a peca tocada ("ma"); a dica entra na fila depois dela (interrupt:false)
+        KidsAudio.speak(syl.toLowerCase(), { rate: 0.8 });
         btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');
         setTimeout(() => btn.classList.remove('shake'), 450);
+        // A dica falada sai um pouco depois: se nesse meio tempo ela ja acertou a peca,
+        // a dica nao pode cortar a voz da silaba certa (nem o "Muito bem")
+        const filledNow = state.filled;
+        const stillHere = () => state.current === w && state.filled === filledNow;
         if (state.slotMisses >= 2) {
             // Segunda tentativa errada: a peca certa brilha e a voz diz qual procurar
             const need = w.syllables[state.filled];
             const right = [...document.querySelectorAll('.tile:not(.used)')].find(t => t.textContent === need);
             if (right) right.classList.add('hint');
-            setTimeout(() => KidsAudio.speak(`Procure: ${need.toLowerCase()}`, { rate: 0.8 }), 350);
+            setTimeout(() => { if (stillHere()) KidsAudio.speak(`Procure: ${need.toLowerCase()}`, { rate: 0.8, interrupt: false }); }, 350);
         } else {
-            setTimeout(saySyllables, 350);
+            setTimeout(() => { if (stillHere()) saySyllables(false); }, 350);
         }
     }
 }

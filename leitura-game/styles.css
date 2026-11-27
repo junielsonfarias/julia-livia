@@ -123,6 +123,10 @@ body {
 .word .dash { color: #ccc; margin: 0 .05em; }
 /* Quebra de linha so entre silabas (nunca no meio de uma) */
 .word .syl, .word .dash { display: inline-block; }
+/* Tocar numa silaba fala ela: alvo de toque maior e "aperto" visivel */
+#word { cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+#word .syl { padding: .04em .08em; border-radius: .18em; transition: transform .12s ease, background .12s ease; }
+#word .syl:active, #word .syl.tap { transform: scale(.92); background: rgba(108, 92, 231, .12); }
 .mic-status { margin-top: 8px; font-weight: 700; color: #6c5ce7; min-height: 1.2em; }
 .float-point {
     position: absolute; top: 20px; right: 30px; font-family: 'Fredoka One', cursive;

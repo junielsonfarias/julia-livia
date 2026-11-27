@@ -140,7 +140,10 @@ function generateNumberSequence() {
             break;
         }
         case 'alternada': {
-            const p = rnd(2, 6), q = rnd(1, 4) * -1 + (Math.random() < .5 ? 0 : rnd(5, 9));
+            const p = rnd(2, 6);
+            let q;
+            // q diferente de p: com saltos iguais a sequencia nao seria "alternada" (e a explicacao ficaria errada)
+            do { q = rnd(1, 4) * -1 + (Math.random() < .5 ? 0 : rnd(5, 9)); } while (q === p);
             const a = rnd(5, 20);
             seq = [a];
             for (let i = 1; i < 6; i++) seq.push(seq[i - 1] + (i % 2 ? p : q));
@@ -235,11 +238,20 @@ function generateNumberOptions(correctAnswer, traps) {
 // PADROES DE FIGURAS (grupo que se repete)
 // ==========================================
 function randomUnit(len) {
-    // Grupo de figuras que se repete; garante que nao seja tudo igual
+    // Grupo de figuras que se repete; garante que nao seja tudo igual e que o grupo
+    // nao seja formado por um grupo menor repetido (ex.: A B A B com "grupo de 4"),
+    // senao a explicacao ("o grupo tem 4 figuras") nao bate com o que a crianca ve.
+    const key = u => u.shape + u.color;
+    const hasSmallerPeriod = unit => {
+        for (let p = 1; p < unit.length; p++) {
+            if (unit.length % p === 0 && unit.every((u, i) => key(u) === key(unit[i % p]))) return true;
+        }
+        return false;
+    };
     let unit;
     do {
         unit = Array.from({ length: len }, () => ({ shape: pick(SHAPES), color: pick(COLORS) }));
-    } while (new Set(unit.map(u => u.shape + u.color)).size < Math.min(len, 2));
+    } while (new Set(unit.map(key)).size < Math.min(len, 2) || hasSmallerPeriod(unit));
     return unit;
 }
 

@@ -419,10 +419,11 @@ function showWinScreen() {
         if (gameState.moves <= perfectMoves * 1.5) stars = 3;
         else if (gameState.moves <= perfectMoves * 2.2) stars = 2;
 
+        const id = gameState.gameId;
         starsDisplay.querySelectorAll('.star').forEach((star, i) => {
             star.classList.remove('earned');
             if (i < stars) {
-                setTimeout(() => { star.classList.add('earned'); playSound('star'); }, 600 + i * 400);
+                setTimeout(() => { if (id !== gameState.gameId) return; star.classList.add('earned'); playSound('star'); }, 600 + i * 400);
             }
         });
     }

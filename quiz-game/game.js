@@ -315,9 +315,17 @@ function showScreen(screenId) {
     document.getElementById(screenId).classList.add('active');
 }
 
+// Estrelas do resultado: timeouts cancelados ao sair/jogar de novo
+let starTimers = [];
+function clearStarTimers() {
+    starTimers.forEach(clearTimeout);
+    starTimers = [];
+}
+
 // Ir para menu inicial
 function goToMenu() {
     clearTimer();
+    clearStarTimers();
     gameState.score = 0;
     gameState.currentQuestion = 0;
     showScreen('start-screen');
@@ -332,6 +340,7 @@ function startGame(category) {
     gameState.wrongAnswers = 0;
     gameState.mistakes = [];
     gameState.totalQuestions = 10;
+    clearStarTimers();
 
     // Selecionar perguntas
     if (category === 'misturado') {
@@ -588,13 +597,14 @@ function showResults() {
 
     // Mostrar estrelas
     const starsDisplay = document.getElementById('stars-display');
+    clearStarTimers();
     starsDisplay.querySelectorAll('.star').forEach((star, i) => {
         star.classList.remove('earned');
         if (i < stars) {
-            setTimeout(() => {
+            starTimers.push(setTimeout(() => {
                 star.classList.add('earned');
                 playSound('star');
-            }, i * 300);
+            }, i * 300));
         }
     });
 

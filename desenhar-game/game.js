@@ -175,21 +175,24 @@ function initControls() {
     });
 }
 
-function getMousePos(e) {
+// Converte a posicao na tela para as coordenadas do desenho (cssW x cssH).
+// Divide pelo tamanho MOSTRADO do canvas: continua certo se ele estiver
+// esticado/encolhido (arredondamento do tamanho, zoom da pagina...).
+function toCanvasPos(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
     return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
+        x: (clientX - rect.left) * (rect.width ? cssW / rect.width : 1),
+        y: (clientY - rect.top) * (rect.height ? cssH / rect.height : 1)
     };
 }
 
+function getMousePos(e) {
+    return toCanvasPos(e.clientX, e.clientY);
+}
+
 function getTouchPos(e) {
-    const rect = canvas.getBoundingClientRect();
     const touch = e.touches[0];
-    return {
-        x: touch.clientX - rect.left,
-        y: touch.clientY - rect.top
-    };
+    return toCanvasPos(touch.clientX, touch.clientY);
 }
 
 function handleTouchStart(e) {
@@ -304,13 +307,16 @@ function floodFill(startX, startY, fillColor) {
     // Se a cor e a mesma, nao fazer nada
     if (startR === fillR && startG === fillG && startB === fillB) return;
 
+    // Marca como visitado ao EMPILHAR: cada pixel entra na pilha no maximo uma vez
+    // (antes entrava ate 4 vezes: milhoes de itens num canvas grande de tablet)
     const visited = new Uint8Array(w * h);
-    const stack = [startY * w + startX];
+    const first = startY * w + startX;
+    const stack = [first];
+    visited[first] = 1;
+    const push = (i) => { if (!visited[i]) { visited[i] = 1; stack.push(i); } };
 
     while (stack.length > 0) {
         const idx = stack.pop();
-        if (visited[idx]) continue;
-        visited[idx] = 1;
 
         const pos = idx * 4;
         // Verificar se a cor e similar (tolerancia de 30)
@@ -324,10 +330,10 @@ function floodFill(startX, startY, fillColor) {
         data[pos + 3] = 255;
 
         const x = idx % w;
-        if (x + 1 < w) stack.push(idx + 1);
-        if (x > 0) stack.push(idx - 1);
-        if (idx + w < w * h) stack.push(idx + w);
-        if (idx - w >= 0) stack.push(idx - w);
+        if (x + 1 < w) push(idx + 1);
+        if (x > 0) push(idx - 1);
+        if (idx + w < w * h) push(idx + w);
+        if (idx - w >= 0) push(idx - w);
     }
 
     ctx.putImageData(imageData, 0, 0);

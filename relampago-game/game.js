@@ -62,7 +62,9 @@ function startGame() {
         document.getElementById('q-' + id).innerHTML = '';
         document.getElementById('freeze-' + id).hidden = true;
     });
-    document.getElementById('clock').textContent = SECONDS;
+    const clock = document.getElementById('clock');
+    clock.textContent = SECONDS;
+    clock.classList.remove('warning');   // sobrava vermelho/pulsando da partida anterior
     showScreen('game-screen');
     // Contagem 3-2-1
     const cd = document.getElementById('countdown');
@@ -154,7 +156,10 @@ function endGame() {
         document.getElementById('winner-title').textContent = `${Duelo.PLAYERS[winner].name} venceu! 🏆`;
     }
     document.getElementById('score-line-end').innerHTML = Duelo.scoreText('relampago');
+    const id = state.gameId;
     setTimeout(() => {
+        // saiu (Sair? duplo) ou recomecou nesse meio-tempo: nao sobrepoe a tela atual
+        if (id !== state.gameId || !document.getElementById('game-screen').classList.contains('active')) return;
         showScreen('result-screen');
         KidsAudio.play('win');
         KidsAudio.speak(winner === 'empate' ? 'Empate! As duas foram incríveis!' : `${Duelo.PLAYERS[winner].name} venceu!`);

@@ -84,7 +84,11 @@ function showRound() {
     } else if (item.kind === 'vogal') {
         // escolhe uma vogal (sem acento) da palavra para esconder
         const letters = w.word.split('');
-        const positions = letters.map((ch, i) => VOGAIS.includes(ch) ? i : -1).filter(i => i >= 0);
+        // Nao esconde vogal que nao se ouve: U mudo de QUE/QUI/GUE/GUI (BONEQUINHA, FOGUETE)
+        // nem a vogal do som nasal ÃO/ÃE (AVIÃO, MÃE)
+        const silent = i => (letters[i] === 'U' && /[QG]/.test(letters[i - 1] || '') && /[EIÉÊÍ]/.test(letters[i + 1] || '')) ||
+            /[ÃÕ]/.test(letters[i - 1] || '');
+        const positions = letters.map((ch, i) => VOGAIS.includes(ch) && !silent(i) ? i : -1).filter(i => i >= 0);
         if (!positions.length) { item.kind = 'inicial'; return showRound(); }
         const pos = positions[Math.floor(Math.random() * positions.length)];
         item.answer = letters[pos];

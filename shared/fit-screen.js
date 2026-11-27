@@ -12,8 +12,10 @@
     let current = null;
 
     function target() {
-        return document.querySelector('.screen.active') ||
-               document.querySelector('main section:not(.hidden):not([hidden])') ||
+        // Telas sem .screen.active: a primeira <section> realmente visivel
+        const visibleSection = [...document.querySelectorAll('main section:not(.hidden):not([hidden])')]
+            .find(el => el.offsetParent !== null);
+        return document.querySelector('.screen.active') || visibleSection ||
                document.querySelector('main') ||
                document.querySelector('.container');
     }
